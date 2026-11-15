@@ -5,6 +5,7 @@ using static PCL.Core.UI.ToastNotification;
 namespace PCL.Core.Test;
 
 [TestClass]
+[TestCategory("Integration")]
 public class ToastTest
 {
     [TestMethod]

@@ -11,6 +11,7 @@ using PCL.Core.IO.Net.Dns;
 namespace PCL.Core.Test.Network;
 
 [TestClass]
+[TestCategory("Integration")]
 public class DoHQueryTest
 {
     [TestMethod]

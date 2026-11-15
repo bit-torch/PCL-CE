@@ -180,6 +180,8 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
     [RelayCommand]
     private void CheckFiles()
     {
+        if (!DownloadSources.EnsureConfigured())
+            return;
         try
         {
             // 忽略文件检查提示

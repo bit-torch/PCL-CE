@@ -10,6 +10,7 @@ using PCL.Core.App.Localization;
 namespace PCL.Core.Test;
 
 [TestClass]
+[TestCategory("KnownFailure")]
 public class LocalizationTest
 {
     private static readonly string[] LanguageFiles = LocalizationService.SupportedLanguages

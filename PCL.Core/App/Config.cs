@@ -79,7 +79,7 @@ public static partial class Config
         [ConfigItem<int>("ToolDownloadVersion", 1)] public partial int VersionListSource { get; set; }
 
         /// <summary>
-        /// 自定义下载源（镜像源地址），留空则使用默认镜像源。
+        /// 自定义下载源（镜像源地址）。未填写时无法下载游戏与整合包资源。
         /// </summary>
         [ConfigItem<string>("ToolDownloadCustomSource", "")] public partial string CustomSource { get; set; }
 

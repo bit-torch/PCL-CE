@@ -7,6 +7,7 @@ using PCL.Core.Link.McPing;
 namespace PCL.Core.Test.Minecraft;
 
 [TestClass]
+[TestCategory("Integration")]
 public class McPingTest
 {
     [TestMethod]

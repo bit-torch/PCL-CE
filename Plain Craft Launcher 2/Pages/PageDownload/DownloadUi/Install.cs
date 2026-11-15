@@ -142,6 +142,8 @@ public static partial class DownloadUi
     /// </summary>
     public static bool McInstall(McInstallRequest request, string type = McInstallDefaultType)
     {
+        if (!DownloadSources.EnsureConfigured())
+            return false;
         try
         {
             var subLoaders = McInstallLoader(request, ignoreDump: type != McInstallDefaultType);

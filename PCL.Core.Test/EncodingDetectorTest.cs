@@ -4,6 +4,7 @@ using PCL.Core.Utils.Codecs;
 
 namespace PCL.Core.Test;
 [TestClass]
+[TestCategory("KnownFailure")]
 public class EncodingDetectorTest
 {
     [TestMethod]

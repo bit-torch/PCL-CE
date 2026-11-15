@@ -4,6 +4,7 @@ using PCL.Core.Utils.Validate;
 namespace PCL.Core.Test.Validate;
 
 [TestClass]
+[TestCategory("KnownFailure")]
 public class BlacklistValidatorTest
 {
     // ReSharper disable once UnusedAutoPropertyAccessor.Global

@@ -118,6 +118,8 @@ public static partial class DownloadUi
 
     public static void McDownloadMenuSave(object sender, RoutedEventArgs e)
     {
+        if (!DownloadSources.EnsureConfigured())
+            return;
         var element = (FrameworkElement)sender;
         MyListItem version;
         if (element is MyListItem s1)
