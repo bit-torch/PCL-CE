@@ -78,15 +78,6 @@ public partial class FormMain
         var lastVersion = States.System.LastVersion;
         if (lastVersion < Common.VersionCode)
         {
-            // 重新询问是否启用遥测数据收集
-            if (lastVersion <= 511)
-            {
-                if (!Config.System.TelemetryConfig.IsDefault() && Config.System.Telemetry)
-                {
-                    Config.System.TelemetryConfig.Reset();
-                    Common.Log("[Start] 遥测策略变更：由旧版本升级到含新版遥测的版本，已重置遥测设置");
-                }
-            }
             // 触发升级
             UpgradeSub(lastVersion);
         }
@@ -285,18 +276,6 @@ public partial class FormMain
                             }
                     }
 
-                // 遥测提示
-                if (Config.System.TelemetryConfig.IsDefault())
-                {
-                    var selection = (DialogService.Instance.Show(new TextDialogRequest
-                    {
-                        Title = Lang.Text("Main.Telemetry.Title"),
-                        Content = Lang.Text("Main.Telemetry.Message"),
-                        Buttons = DialogButtons.AgreeDecline,
-                        ForceWait = true
-                    }).Result?.Button ?? 0);
-                    Config.System.TelemetryConfig.SetValue(selection == 1, forceNewValue: true);
-                }
                 // 启动加载器池
                 try
                 {

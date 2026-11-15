@@ -70,16 +70,12 @@ public class LogService : ILifecycleLogService
     public void OnLog(LifecycleLogItem item) => _LogAction(item.ToLogEntry(), item.ActionLevel);
 
     /// <summary>
-    /// Handles one log item: reports the exception to telemetry, enqueues the entry for the file writer,
-    /// then performs the action required by <paramref name="actionLevel" />. The three steps are
-    /// independent, which is what keeps <see cref="LoggerConfiguration.MinLogLevel" /> from silencing
-    /// hints, message boxes or fatal exits.
+    /// Handles one log item: enqueues the entry for the file writer, then performs the action required by
+    /// <paramref name="actionLevel" />. The two steps are independent, which is what keeps
+    /// <see cref="LoggerConfiguration.MinLogLevel" /> from silencing hints, message boxes or fatal exits.
     /// </summary>
     private static void _LogAction(in LogEntry entry, ActionLevel actionLevel)
     {
-        if (entry.Exception is not null)
-            TelemetryService.ReportException(entry.Exception, entry.Message, entry.Level);
-
         _logger?.Enqueue(entry);
 
         var plain = entry.Message;

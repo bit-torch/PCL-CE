@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.App;
-using PCL.Core.App.Essentials;
 using PCL.Core.ViewModel;
 
 namespace PCL;
@@ -16,14 +15,11 @@ public partial class PageSetupLauncherMiscViewModel : ViewModelBase
 
     [ObservableProperty] private string _httpProxyUsername = Config.Network.HttpProxy.CustomUsername;
 
-    [ObservableProperty] private bool _telemetryEnabled = !TelemetryService.IsBuildUntrusted;
-
     public void Reload()
     {
         ActivityIndex = Math.Max(0, States.System.AnnounceSolution);
         HttpProxyText = Config.Network.HttpProxy.CustomAddress;
         HttpProxyUsername = Config.Network.HttpProxy.CustomUsername;
         HttpProxyPassword = Config.Network.HttpProxy.CustomPassword;
-        TelemetryEnabled = !TelemetryService.IsBuildUntrusted;
     }
 }
