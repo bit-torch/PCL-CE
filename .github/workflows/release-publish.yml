@@ -19,15 +19,38 @@ on:
         description: 'Version to release (e.g., 2.14.2)'
         required: true
         type: string
+  push:
+    tags:
+      - 'v*'
 
 jobs:
+  prepare:
+    name: Resolve release parameters
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+      configuration: ${{ steps.resolve.outputs.configuration }}
+    steps:
+      - name: Resolve version and configuration
+        id: resolve
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_CONFIGURATION: ${{ inputs.configuration }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          version="${INPUT_VERSION:-${REF_NAME#v}}"
+          configuration="${INPUT_CONFIGURATION:-Release}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "configuration=$configuration" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: [prepare]
     strategy:
       matrix:
         include:
-          - configuration: ${{ inputs.configuration }}
+          - configuration: ${{ needs.prepare.outputs.configuration }}
             architecture: x64
-          - configuration: ${{ inputs.configuration }}
+          - configuration: ${{ needs.prepare.outputs.configuration }}
             architecture: ARM64
       fail-fast: false
 
@@ -38,6 +61,7 @@ jobs:
     secrets: inherit
 
   changelog:
+    needs: [prepare]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout all
@@ -51,7 +75,7 @@ jobs:
           tool: git-cliff
 
       - name: Create local release tag
-        run: git tag -f "v${{ inputs.version }}"
+        run: git tag -f "v${{ needs.prepare.outputs.version }}"
 
       - name: Generate changelog
         run: git-cliff --latest -o CHANGELOG.md
@@ -62,15 +86,15 @@ jobs:
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           draft: true
-          tag_name: v${{ inputs.version }}
-          name: Release ${{ inputs.version }}
+          tag_name: v${{ needs.prepare.outputs.version }}
+          name: Release ${{ needs.prepare.outputs.version }}
           body_path: CHANGELOG.md
-          prerelease: ${{ inputs.configuration == 'Beta' }}
+          prerelease: ${{ needs.prepare.outputs.configuration == 'Beta' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   rename_and_release:
-    needs: [build, changelog]
+    needs: [prepare, build, changelog]
     permissions:
       actions: read
       contents: write
@@ -79,9 +103,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - configuration: ${{ inputs.configuration }}
+          - configuration: ${{ needs.prepare.outputs.configuration }}
             architecture: x64
-          - configuration: ${{ inputs.configuration }}
+          - configuration: ${{ needs.prepare.outputs.configuration }}
             architecture: ARM64
     steps:
       - name: Download Build Artifact
@@ -99,14 +123,14 @@ jobs:
         with:
           inputs: PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe
           verify: true
-          verify-cert-identity: https://github.com/PCL-Community/PCL-CE/.github/workflows/release-publish.yml@refs/heads/dev
+          verify-cert-identity: https://github.com/${{ github.repository }}/.github/workflows/release-publish.yml@${{ github.ref }}
           verify-oidc-issuer: https://token.actions.githubusercontent.com
 
       - name: Upload binary and signature to Release
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           draft: true
-          tag_name: v${{ inputs.version }}
+          tag_name: v${{ needs.prepare.outputs.version }}
           files: |
             PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe
             PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe.sigstore.json
@@ -114,18 +138,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish_draft:
-    needs: [rename_and_release]
+    needs: [prepare, rename_and_release]
     runs-on: ubuntu-latest
     steps:
       - name: Publish Draft
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
-          tag_name: v${{ inputs.version }}
+          tag_name: v${{ needs.prepare.outputs.version }}
 
       - name: Trigger MirrorChyanUploading
         run: |
           MRC_CHANNEL="stable"
-          if [ "${{ inputs.configuration }}" = "Beta" ]; then
+          if [ "${{ needs.prepare.outputs.configuration }}" = "Beta" ]; then
             MRC_CHANNEL="beta"
           fi
 
