@@ -36,6 +36,39 @@ public class RuntimeAndUpdateTests
     }
 
     [TestMethod]
+    public async Task JavaArchiveMaterializesInternalFileLinksAndRejectsEscapingLinks()
+    {
+        if (OperatingSystem.IsWindows()) { Assert.Inconclusive("Java tar archives are used on Unix."); return; }
+        foreach (var outside in new[] { false, true })
+        {
+            using var temp = new TemporaryDirectory(); var handler = new FixtureHttp(); using var client = new HttpClient(handler);
+            using var stream = new MemoryStream();
+            using (var gzip = new GZipStream(stream, CompressionMode.Compress, true))
+            using (var tar = new TarWriter(gzip, leaveOpen: true))
+            {
+                using var java = new MemoryStream(Encoding.UTF8.GetBytes("java"));
+                tar.WriteEntry(new PaxTarEntry(TarEntryType.RegularFile, "jdk/bin/java") { DataStream = java, Mode = UnixFileMode.UserRead | UnixFileMode.UserExecute });
+                tar.WriteEntry(new PaxTarEntry(TarEntryType.SymbolicLink, "jdk/lib/java-alias") { LinkName = outside ? "../../../outside" : "../bin/java" });
+            }
+            var archive = stream.ToArray(); handler.Files["https://files.test/jdk"] = archive;
+            handler.Json("https://api.adoptium.net/*", new JsonArray(new JsonObject { ["binary"] = new JsonObject { ["package"] = new JsonObject
+                { ["link"] = "https://files.test/jdk", ["checksum"] = Convert.ToHexString(SHA256.HashData(archive)) } } }));
+            var installer = new JavaRuntimeInstaller(client);
+            if (outside)
+            {
+                await Assert.ThrowsExactlyAsync<InvalidDataException>(() => installer.InstallAsync(21, temp.Path, null, default));
+                Assert.AreEqual(0, Directory.GetFileSystemEntries(temp.Path).Length);
+            }
+            else
+            {
+                var path = await installer.InstallAsync(21, temp.Path, null, default);
+                var alias = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(path))!, "lib", "java-alias");
+                Assert.AreEqual("java", File.ReadAllText(alias)); Assert.IsNull(new FileInfo(alias).LinkTarget);
+            }
+        }
+    }
+
+    [TestMethod]
     public async Task BadJavaDigestDoesNotPublishRuntime()
     {
         using var temp = new TemporaryDirectory(); var handler = new FixtureHttp(); using var client = new HttpClient(handler);

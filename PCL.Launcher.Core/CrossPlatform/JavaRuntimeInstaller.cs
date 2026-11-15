@@ -37,6 +37,7 @@ public sealed class JavaRuntimeInstaller(HttpClient client)
             {
                 await using var file = File.OpenRead(archive); await using var gzip = new GZipStream(file, CompressionMode.Decompress);
                 using var tar = new TarReader(gzip);
+                var links = new List<(string Path, string Target)>();
                 while (await tar.GetNextEntryAsync(copyData: false, cancellationToken: token) is { } entry)
                 {
                     var relative = entry.Name.TrimEnd('/');
@@ -44,11 +45,35 @@ public sealed class JavaRuntimeInstaller(HttpClient client)
                     if (relative.Length == 0 || relative == ".") continue;
                     var path = GameManifest.SafePath(stage, relative); InstanceFiles.EnsureNoLinks(stage, path);
                     if (entry.EntryType == TarEntryType.Directory) { Directory.CreateDirectory(path); continue; }
-                    if (entry.EntryType is not (TarEntryType.RegularFile or TarEntryType.V7RegularFile)) throw new InvalidDataException("Java 安装包包含不支持的链接或设备文件。");
+                    if (entry.EntryType is TarEntryType.SymbolicLink or TarEntryType.HardLink)
+                    {
+                        var link = entry.LinkName.Replace('\\', '/');
+                        if (Path.IsPathRooted(link) || link.Contains(':')) throw new InvalidDataException("Java 安装包链接越界。");
+                        var basis = entry.EntryType == TarEntryType.HardLink ? stage : Path.GetDirectoryName(path)!;
+                        var targetPath = Path.GetFullPath(Path.Combine(basis, link));
+                        _ = GameManifest.SafePath(stage, Path.GetRelativePath(stage, targetPath));
+                        links.Add((path, targetPath)); continue;
+                    }
+                    if (entry.EntryType is not (TarEntryType.RegularFile or TarEntryType.V7RegularFile)) throw new InvalidDataException("Java 安装包包含不支持的设备文件。");
                     Directory.CreateDirectory(Path.GetDirectoryName(path)!);
                     await using (var output = new FileStream(path, FileMode.CreateNew, FileAccess.Write))
                         if (entry.DataStream is not null) await entry.DataStream.CopyToAsync(output, token);
                     File.SetUnixFileMode(path, entry.Mode & (UnixFileMode)0x1FF);
+                }
+                // Materialize internal file aliases after extraction; never create an archive-controlled symlink.
+                while (links.Count != 0)
+                {
+                    var resolved = false;
+                    for (var i = links.Count - 1; i >= 0; i--)
+                    {
+                        var link = links[i]; if (!File.Exists(link.Target)) continue;
+                        InstanceFiles.EnsureNoLinks(stage, link.Target); InstanceFiles.EnsureNoLinks(stage, link.Path);
+                        Directory.CreateDirectory(Path.GetDirectoryName(link.Path)!);
+                        File.Copy(link.Target, link.Path, false);
+                        File.SetUnixFileMode(link.Path, File.GetUnixFileMode(link.Target));
+                        links.RemoveAt(i); resolved = true;
+                    }
+                    if (!resolved) throw new InvalidDataException("Java 安装包包含循环、缺失或目录链接。");
                 }
             }
             _ = FindJava(stage); token.ThrowIfCancellationRequested(); Directory.Move(stage, target);
