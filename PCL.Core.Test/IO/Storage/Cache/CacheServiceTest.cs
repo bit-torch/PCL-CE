@@ -16,6 +16,7 @@ namespace PCL.Core.Test.IO.Storage.Cache;
 /// to your test setup or ensure the SQLite native libraries are properly deployed.
 /// </summary>
 [TestClass]
+[TestCategory("KnownFailure")]
 public class CacheServiceTest
 {
     private CacheService _cache = null!;

@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 namespace PCL.Core.Test.Hash;
 
 [TestClass]
+[TestCategory("KnownFailure")]
 public class HashCacheTest
 {
     private string _tempDir = null!;

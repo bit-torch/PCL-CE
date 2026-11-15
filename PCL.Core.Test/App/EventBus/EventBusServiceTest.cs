@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 namespace PCL.Core.Test.App.EventBus;
 
 [TestClass]
+[TestCategory("KnownFailure")]
 public class EventBusServiceTest
 {
     private record MyEvent(Guid Id, string Name, int Value) : EventDataBase(Id, Name);

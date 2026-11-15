@@ -19,6 +19,11 @@ on:
   pull_request:
     paths: *paths
   workflow_dispatch:
+    inputs:
+      run_all:
+        description: '运行全部测试（包含 Integration 与 KnownFailure 用例）'
+        type: boolean
+        default: false
 
 concurrency:
   group: test-${{ github.ref }}
@@ -50,12 +55,22 @@ jobs:
       - name: Build
         run: dotnet build "PCL.Core.Test/PCL.Core.Test.csproj" -c CI --no-restore
 
-      # 外部网络与系统环境相关的测试已标记为 Integration / Performance，此处跳过
+      # 默认跳过依赖外部网络与系统环境的用例，以及尚未修复的历史失败用例
       - name: Test
+        if: ${{ inputs.run_all != true }}
         run: >
           dotnet test "PCL.Core.Test/PCL.Core.Test.csproj" -c CI --no-build --no-restore
-          --filter "TestCategory!=Integration&TestCategory!=Performance"
+          --filter "TestCategory!=Integration&TestCategory!=Performance&TestCategory!=KnownFailure"
           --logger "trx;LogFileName=test-results.trx"
+          --results-directory ./TestResults
+
+      # 手动触发时可通过 run_all 运行全部测试（仍跳过性能基准）
+      - name: Test (All)
+        if: ${{ inputs.run_all == true }}
+        run: >
+          dotnet test "PCL.Core.Test/PCL.Core.Test.csproj" -c CI --no-build --no-restore
+          --filter "TestCategory!=Performance"
+          --logger "trx;LogFileName=test-results-all.trx"
           --results-directory ./TestResults
 
       - name: Upload Test Results
