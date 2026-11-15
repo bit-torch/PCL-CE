@@ -1,4 +1,4 @@
-<!-- Formatted by xaml-lang-formatter at 2026-06-28T17:16:52. -->
+﻿<!-- Formatted by xaml-lang-formatter at 2026-06-28T17:16:52. -->
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -270,7 +270,7 @@
     <!-- Download -->
 
     <sys:String x:Key="Download.Error.OperationFailed">下載頁面操作失敗。請檢視錯誤詳情。</sys:String>
-    <sys:String x:Key="Download.Error.CustomSourceRequired">尚未新增下載來源，請先在「設定 → 遊戲管理 → 遊戲資源取得行為」中填寫自訂下載來源，然後再下載遊戲或整合包資源。</sys:String>
+    <sys:String x:Key="Download.Error.CustomSourceRequired">尚未新增下載來源，請先在「設定 → 遊戲管理 → 管理下載來源」中新增下載來源，然後再下載遊戲或整合包資源。</sys:String>
 
     <!-- Download.Comp -->
 
@@ -1874,8 +1874,6 @@
     <sys:String x:Key="Main.Tab.Launch">啟動</sys:String>
     <sys:String x:Key="Main.Tab.Settings">設定</sys:String>
     <sys:String x:Key="Main.Tab.Tools">工具</sys:String>
-    <sys:String x:Key="Main.Telemetry.Message">啟用遙測資料收集後，啟動器將會收集並上報錯誤與裝置環境資訊，這可以幫助開發者修復潛在的問題、更好的進行規劃和開發。&#xA;若啟用此功能，我們將會收集以下資訊：&#xA;&#xA;- 啟動器內出現的錯誤&#xA;- 啟動器版本資訊與識別碼&#xA;- Windows 系統版本與架構&#xA;- 已安裝的實體記憶體大小&#xA;- NAT 與 IPv6 支援情況&#xA;- 是否使用過原版 PCL、HMCL 或 BakaXL&#xA;&#xA;這些資料均不與你關聯，我們也絕不會向第三方出售資料。&#xA;如果不希望啟用遙測，可以選擇拒絕。這不會影響其他功能的正常使用，但可能會影響開發者修復潛在 Bug。&#xA;你可以隨時在啟動器設定中調整這項設定。</sys:String>
-    <sys:String x:Key="Main.Telemetry.Title">啟用遙測資料收集</sys:String>
     <sys:String x:Key="Main.Title.GameLog">即時日誌</sys:String>
     <sys:String x:Key="Main.Title.InstanceSelect">實例選擇</sys:String>
     <sys:String x:Key="Main.Title.InstanceSetup">實例設定 - {0}</sys:String>
@@ -2628,9 +2626,15 @@
     <sys:String x:Key="Setup.GameManage.Source.UseOfficial">盡量使用官方源</sys:String>
     <sys:String x:Key="Setup.GameManage.Source.Version">版本清單源</sys:String>
     <sys:String x:Key="Setup.GameManage.Source.Version.Mirror">盡量使用鏡像來源（可能缺少剛更新的版本）</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Title">下載來源管理</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Description">下載遊戲與整合包前需要至少新增一個下載來源。可以新增多個來源，目前選取的來源用於下載。</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Empty">尚未新增下載來源。</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Add">新增</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Add.Hint">輸入鏡像來源位址，如 https://example.com</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Add.Invalid">請輸入有效的 HTTP(S) 下載來源位址。</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Add.Duplicate">該下載來源已存在。</sys:String>
     <sys:String x:Key="Setup.GameManage.Source.Custom">自訂下載來源</sys:String>
-    <sys:String x:Key="Setup.GameManage.Source.Custom.Hint">必填，留空將無法下載遊戲與整合包資源</sys:String>
-    <sys:String x:Key="Setup.GameManage.Source.Custom.ToolTip">手動填寫鏡像來源位址（需與 BMCLAPI 路徑結構相容），該位址將用於取代所有鏡像來源位址</sys:String>
+    <sys:String x:Key="Setup.GameManage.Source.Manage">管理下載來源</sys:String>
 
     <!-- Setup.GameManage.Accessibility -->
 
@@ -2872,6 +2876,7 @@
     <sys:String x:Key="Setup.Left.Item.Feedback">回饋</sys:String>
     <sys:String x:Key="Setup.Left.Item.GameLink">連線</sys:String>
     <sys:String x:Key="Setup.Left.Item.GameManage">管理</sys:String>
+    <sys:String x:Key="Setup.Left.Item.DownloadSource">下載來源</sys:String>
     <sys:String x:Key="Setup.Left.Item.Java">Java</sys:String>
     <sys:String x:Key="Setup.Left.Item.Launch">啟動</sys:String>
     <sys:String x:Key="Setup.Left.Item.Log">檢視日誌</sys:String>
@@ -2961,8 +2966,6 @@
     <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Message.Final">你確認要繼續操作嗎？這是最後警告！&#xA;與 PCL CE 有關的一切資料將被永久消除！（真的很久！）</sys:String>
     <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Message">即將刪除此電腦上與 PCL CE 有關的全部設定、快取、已儲存的帳戶資訊及其他相關資料，並復原已接受的許可協議。完成後，軟體將自動關閉。&#xA;&#xA;但請注意，以下內容無法自動刪除或登出：&#xA;- 此電腦上其他 PCL CE 實例的本機資料&#xA;- Natayark 帳戶&#xA;&#xA;如需同時刪除 Minecraft 實例中的 PCL CE 設定檔，請選擇「繼續並清理實例資料夾」，這不會影響你的遊戲設定、模組、存檔，以及其他資料。&#xA;&#xA;此操作無法復原。您確認要繼續嗎？</sys:String>
     <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Title">停止使用 PCL CE？</sys:String>
-    <sys:String x:Key="Setup.Misc.System.Telemetry">啟用遙測資料收集</sys:String>
-    <sys:String x:Key="Setup.Misc.System.Telemetry.ToolTip">啟用此功能後，啟動器將會收集並上報錯誤與裝置環境資訊，這可以幫助開發者修復潛在的問題、更好的進行規劃和開發。&#xA;若啟用此功能，我們將會收集以下資訊：啟動器內出現的錯誤，啟動器版本資訊與識別碼，使用的 Windows 系統版本與架構，已安裝的實體記憶體大小，NAT 與 IPv6 支援情況，是否使用過原版 PCL、HMCL 或 BakaXL。&#xA;&#xA;這些資料均不與你關聯，我們也絕不會向第三方出售資料。不啟用此功能不會影響你使用其他功能，但可能會影響開發者修復潛在 Bug。&#xA;&#xA;此項更改將在重新啟動啟動器後生效。</sys:String>
     <sys:String x:Key="Setup.Misc.System.Title">系統</sys:String>
 
     <!-- Setup.Ui -->

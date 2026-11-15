@@ -5,7 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageSetupLauncherMisc"
     PanScroll="{Binding ElementName=PanBack}"
-    xmlns:loc="https://ce.pclc.cc/core/localization">
+    xmlns:loc="clr-namespace:PCL.Core.App.Localization;assembly=PCL.Core.Wpf">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel x:Name="PanMain" Margin="25,10">
             <local:MyCard Margin="0,15" Title="{loc:Loc Setup.Misc.System.Title}">
@@ -49,8 +49,6 @@
                             <RowDefinition Height="20" />
                         </Grid.RowDefinitions>
                         <local:MyCheckBox Grid.Row="0" Grid.Column="0" Text="{loc:Loc Setup.Misc.System.DisableHardwareAcceleration}" x:Name="CheckSystemDisableHardwareAcceleration" Tag="SystemDisableHardwareAcceleration" Change="CheckSystemDisableHardwareAcceleration_OnChange"/>
-                        <local:MyCheckBox Grid.Row="0" Grid.Column="1" Text="{loc:Loc Setup.Misc.System.Telemetry}" x:Name="CheckSystemTelemetry" Tag="SystemTelemetry" Change="CheckBoxChange" IsEnabled="{Binding TelemetryEnabled, Mode=OneWay}"
-                          ToolTip="{loc:Loc Setup.Misc.System.Telemetry.ToolTip}"/>
                     </Grid>
                     <Grid Grid.Row="6" Grid.ColumnSpan="5">
                         <Grid.ColumnDefinitions>

@@ -5,7 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageSetupGameManage"
     PanScroll="{Binding ElementName=PanBack}"
-    xmlns:loc="https://ce.pclc.cc/core/localization">
+    xmlns:loc="clr-namespace:PCL.Core.App.Localization;assembly=PCL.Core.Wpf">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel x:Name="PanMain" Margin="25,10">
             <local:MyCard Margin="0,15" Title="{loc:Loc Setup.GameManage.Source.Title}">
@@ -97,11 +97,11 @@
                         </Grid>
                         <TextBlock VerticalAlignment="Center" Grid.Row="12" HorizontalAlignment="Left"
                                    Text="{loc:Loc Setup.GameManage.Source.Custom}" Margin="0,0,25,0" />
-                        <local:MyTextBox x:Name="TextDownloadCustomSource" Grid.Row="12" Grid.Column="1"
-                                         Grid.ColumnSpan="2" Tag="ToolDownloadCustomSource" Height="28"
-                                         MaxLength="500" TextChanged="TextBoxChange"
-                                         HintText="{loc:Loc Setup.GameManage.Source.Custom.Hint}"
-                                         ToolTip="{loc:Loc Setup.GameManage.Source.Custom.ToolTip}" />
+                        <local:MyButton x:Name="BtnManageDownloadSource" Grid.Row="12" Grid.Column="1"
+                                        Grid.ColumnSpan="2" Height="28" MinWidth="140" Padding="13,0"
+                                        HorizontalAlignment="Left"
+                                        Text="{loc:Loc Setup.GameManage.Source.Manage}"
+                                        Click="BtnManageDownloadSource_Click" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>

@@ -1,4 +1,4 @@
-<!-- Formatted by xaml-lang-formatter at 2026-06-28T17:16:52. -->
+﻿<!-- Formatted by xaml-lang-formatter at 2026-06-28T17:16:52. -->
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -270,7 +270,7 @@
     <!-- Download -->
 
     <sys:String x:Key="Download.Error.OperationFailed">A download page operation failed. See the details below.</sys:String>
-    <sys:String x:Key="Download.Error.CustomSourceRequired">No download source has been added. Please fill in a custom download source in Settings → Game Management before downloading game or modpack resources.</sys:String>
+    <sys:String x:Key="Download.Error.CustomSourceRequired">No download source has been added. Please add one in Settings → Game Management → Manage Download Sources before downloading game or modpack resources.</sys:String>
 
     <!-- Download.Comp -->
 
@@ -1874,8 +1874,6 @@
     <sys:String x:Key="Main.Tab.Launch">Launch</sys:String>
     <sys:String x:Key="Main.Tab.Settings">Settings</sys:String>
     <sys:String x:Key="Main.Tab.Tools">Tools</sys:String>
-    <sys:String x:Key="Main.Telemetry.Message">After telemetry data collection is enabled, the launcher will collect and report errors and device environment information. This can help developers fix potential issues and better plan and develop the launcher.&#xA;If this feature is enabled, we will collect the following information:&#xA;&#xA;- Errors that occur in the launcher&#xA;- Launcher version information and identifier&#xA;- Windows system version and architecture&#xA;- Installed physical memory size&#xA;- NAT and IPv6 support status&#xA;- Whether you have used the original PCL, HMCL, or BakaXL&#xA;&#xA;This data is not associated with you, and we will never sell it to any third party.&#xA;If you do not want to enable telemetry, you can choose to decline. This will not affect normal use of other features, but may affect developers' ability to fix potential bugs.&#xA;You can change this setting at any time in launcher settings.</sys:String>
-    <sys:String x:Key="Main.Telemetry.Title">Enable telemetry data collection</sys:String>
     <sys:String x:Key="Main.Title.GameLog">Launch log</sys:String>
     <sys:String x:Key="Main.Title.InstanceSelect">Selection</sys:String>
     <sys:String x:Key="Main.Title.InstanceSetup">Properties - {0}</sys:String>
@@ -2628,9 +2626,15 @@
     <sys:String x:Key="Setup.GameManage.Source.UseOfficial">Prefer official sources</sys:String>
     <sys:String x:Key="Setup.GameManage.Source.Version">Version list source</sys:String>
     <sys:String x:Key="Setup.GameManage.Source.Version.Mirror">Prefer mirror sources (recently released versions may be missing)</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Title">Download Sources</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Description">At least one download source is required before downloading games or modpacks. You can add multiple sources; the selected one is used for downloads.</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Empty">No download source has been added.</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Add">Add</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Add.Hint">Enter a mirror URL, e.g. https://example.com</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Add.Invalid">Please enter a valid HTTP(S) download source URL.</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Add.Duplicate">This download source already exists.</sys:String>
     <sys:String x:Key="Setup.GameManage.Source.Custom">Custom download source</sys:String>
-    <sys:String x:Key="Setup.GameManage.Source.Custom.Hint">Required. Downloads are unavailable while this is empty.</sys:String>
-    <sys:String x:Key="Setup.GameManage.Source.Custom.ToolTip">Manually enter the mirror source URL (must be compatible with the BMCLAPI path layout); it will be used for all mirror downloads.</sys:String>
+    <sys:String x:Key="Setup.GameManage.Source.Manage">Manage Download Sources</sys:String>
 
     <!-- Setup.GameManage.Accessibility -->
 
@@ -2872,6 +2876,7 @@
     <sys:String x:Key="Setup.Left.Item.Feedback">Feedback</sys:String>
     <sys:String x:Key="Setup.Left.Item.GameLink">Multiplayer</sys:String>
     <sys:String x:Key="Setup.Left.Item.GameManage">Management</sys:String>
+    <sys:String x:Key="Setup.Left.Item.DownloadSource">Download Sources</sys:String>
     <sys:String x:Key="Setup.Left.Item.Java">Java</sys:String>
     <sys:String x:Key="Setup.Left.Item.Launch">Launch</sys:String>
     <sys:String x:Key="Setup.Left.Item.Log">Logs</sys:String>
@@ -2961,8 +2966,6 @@
     <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Message">This will delete all PCL CE settings, cached data, saved account information, and other related data from this computer. Your acceptance of any licence agreements will also be revoked. PCL CE will close automatically when the process is complete.&#xA;&#xA;The following cannot be removed automatically:&#xA;- Local data from other PCL CE installations on this computer&#xA;- Your Natayark account&#xA;&#xA;To also remove PCL CE configuration files from Minecraft instances, choose 'Continue and remove instance configs'. This will not affect Minecraft settings, mods, saves, or other game data.&#xA;&#xA;This action cannot be undone. Are you sure you want to continue?</sys:String>
     <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Message.Final">This is the final warning! Are you sure you want to continue?&#xA;All PCL CE data on this computer will be lost forever! (A long time!)</sys:String>
     <sys:String x:Key="Setup.Misc.System.StopUsingPclCe.Title">Stop using PCL CE?</sys:String>
-    <sys:String x:Key="Setup.Misc.System.Telemetry">Enable telemetry data collection</sys:String>
-    <sys:String x:Key="Setup.Misc.System.Telemetry.ToolTip">When enabled, the launcher will collect and report errors and device environment information. This helps developers fix potential issues and better plan and develop the launcher.&#xA;The following information will be collected: launcher errors, launcher version information and identifier, Windows system version and architecture, installed physical memory size, NAT and IPv6 support status, and whether original PCL, HMCL, or BakaXL have been used.&#xA;&#xA;This data is not associated with you, and we will never sell it to any third party. Not enabling this will not affect other features, but may affect developers' ability to fix potential bugs.&#xA;&#xA;This change will take effect after restarting the launcher.</sys:String>
     <sys:String x:Key="Setup.Misc.System.Title">System</sys:String>
 
     <!-- Setup.Ui -->

@@ -8,7 +8,7 @@
                    mc:Ignorable="d"
                    x:Class="PCL.PageSetupLauncherLanguage"
                    PanScroll="{Binding ElementName=PanBack}"
-                   xmlns:loc="https://ce.pclc.cc/core/localization">
+                   xmlns:loc="clr-namespace:PCL.Core.App.Localization;assembly=PCL.Core.Wpf">
 
     <local:MyScrollViewer x:Name="PanBack"
                           VerticalScrollBarVisibility="Auto"

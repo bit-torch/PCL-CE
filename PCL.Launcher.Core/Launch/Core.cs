@@ -208,40 +208,15 @@ public static partial class GameLaunch
         if (ProfileService.HasMicrosoftProfile)
             return;
 
-        if (Lang.IsFeaturesUnrestricted)
-        {
-            if (LaunchUi.ShowMessageBox(
-                    Lang.Text("Minecraft.Launch.PurchaseHint.Message"),
-                    Lang.Text("Minecraft.Launch.PurchaseHint.Title"),
-                    Lang.Text("Minecraft.Launch.PurchaseHint.Purchase"),
-                    Lang.Text("Minecraft.Launch.PurchaseHint.Later")
-                )
-                == 1)
-                LauncherUi.Interaction?.OpenWebsite(
-                    "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
-            return;
-        }
-
-        switch (LaunchUi.ShowMessageBox(
-                    Lang.Text("Minecraft.Launch.AccountVerification.Message"),
-                    Lang.Text("Minecraft.Launch.AccountVerification.Title"),
-                    Lang.Text("Minecraft.Launch.AccountVerification.Purchase"),
-                    Lang.Text("Minecraft.Launch.AccountVerification.Demo"),
-                    Lang.Text("Minecraft.Launch.AccountVerification.Back"),
-                    button1Action: () =>
-                        LauncherUi.Interaction?.OpenWebsite(
-                            "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj")))
-        {
-            case 2:
-                LauncherUi.Interaction?.ShowHint(
-                    Lang.Text("Minecraft.Launch.DemoMode"),
-                    NotificationType.Error);
-                currentLaunchOptions!.ExtraArgs.Add("--demo");
-                break;
-
-            case 3:
-                throw new Exception("$$");
-        }
+        if (LaunchUi.ShowMessageBox(
+                Lang.Text("Minecraft.Launch.PurchaseHint.Message"),
+                Lang.Text("Minecraft.Launch.PurchaseHint.Title"),
+                Lang.Text("Minecraft.Launch.PurchaseHint.Purchase"),
+                Lang.Text("Minecraft.Launch.PurchaseHint.Later")
+            )
+            == 1)
+            LauncherUi.Interaction?.OpenWebsite(
+                "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
     }
 
     public static bool isLaunching;

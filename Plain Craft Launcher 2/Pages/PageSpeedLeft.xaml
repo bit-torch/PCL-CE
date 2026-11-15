@@ -6,7 +6,7 @@
                   xmlns:local="clr-namespace:PCL"
                   mc:Ignorable="d"
                   d:DesignHeight="450" Width="200" HorizontalAlignment="Left"
-                  xmlns:loc="https://ce.pclc.cc/core/localization">
+                  xmlns:loc="clr-namespace:PCL.Core.App.Localization;assembly=PCL.Core.Wpf">
     <Grid.Resources>
         <ResourceDictionary>
             <Style TargetType="TextBlock" x:Key="Split">

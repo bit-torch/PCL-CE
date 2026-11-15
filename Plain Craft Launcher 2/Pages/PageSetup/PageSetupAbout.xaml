@@ -10,7 +10,7 @@
     DataContext="{Binding Source={x:Static app:Basics.Metadata}}"
     PanScroll="{Binding ElementName=PanBack}"
     RenderOptions.BitmapScalingMode="LowQuality"
-    xmlns:loc="https://ce.pclc.cc/core/localization">
+    xmlns:loc="clr-namespace:PCL.Core.App.Localization;assembly=PCL.Core.Wpf">
     <local:MyScrollViewer
         x:Name="PanBack"
         HorizontalScrollBarVisibility="Disabled"

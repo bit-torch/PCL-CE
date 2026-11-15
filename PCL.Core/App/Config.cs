@@ -24,11 +24,6 @@ public static partial class Config
         [ConfigItem<bool>("SystemDisableHardwareAcceleration", false)] public partial bool DisableHardwareAcceleration { get; set; }
 
         /// <summary>
-        /// 遥测。
-        /// </summary>
-        [ConfigItem<bool>("SystemTelemetry", false)] public partial bool Telemetry { get; set; }
-
-        /// <summary>
         /// 实时日志最大行数。
         /// </summary>
         [ConfigItem<int>("SystemMaxLog", 13)] public partial int MaxGameLog { get; set; }
@@ -79,9 +74,14 @@ public static partial class Config
         [ConfigItem<int>("ToolDownloadVersion", 1)] public partial int VersionListSource { get; set; }
 
         /// <summary>
-        /// 自定义下载源（镜像源地址）。未填写时无法下载游戏与整合包资源。
+        /// 自定义下载源列表（镜像源地址，每行一个）。未添加时无法下载游戏与整合包资源。
         /// </summary>
         [ConfigItem<string>("ToolDownloadCustomSource", "")] public partial string CustomSource { get; set; }
+
+        /// <summary>
+        /// 当前用于下载的自定义下载源序号。
+        /// </summary>
+        [ConfigItem<int>("ToolDownloadCustomSourceIndex", 0)] public partial int CustomSourceIndex { get; set; }
 
         [ConfigItem<bool>("ToolDownloadAutoSelectVersion", true)] public partial bool AutoSelectInstance { get; set; }
         [ConfigItem<bool>("ToolFixAuthlib", true)] public partial bool FixAuthLib { get; set; }

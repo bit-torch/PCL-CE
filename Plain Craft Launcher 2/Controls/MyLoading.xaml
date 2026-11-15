@@ -4,7 +4,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" x:Name="PanBack" mc:Ignorable="d"
     x:Class="PCL.MyLoading"
     MinWidth="50" MinHeight="50" Background="{StaticResource ColorBrushTransparent}"
-                  xmlns:loc="https://ce.pclc.cc/core/localization">
+                  xmlns:loc="clr-namespace:PCL.Core.App.Localization;assembly=PCL.Core.Wpf">
     <Grid.RowDefinitions>
         <RowDefinition Height="1*" />
         <RowDefinition Height="Auto" />

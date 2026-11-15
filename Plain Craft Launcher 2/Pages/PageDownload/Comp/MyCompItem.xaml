@@ -6,7 +6,7 @@
       x:Name="PanBack" Height="64"
       RenderTransformOrigin="0.5,0.5" Background="{StaticResource ColorBrushSemiTransparent}"
       SnapsToDevicePixels="True"
-      xmlns:loc="https://ce.pclc.cc/core/localization">
+      xmlns:loc="clr-namespace:PCL.Core.App.Localization;assembly=PCL.Core.Wpf">
     <Grid.ColumnDefinitions>
         <ColumnDefinition Width="7" />
         <ColumnDefinition Width="50" />

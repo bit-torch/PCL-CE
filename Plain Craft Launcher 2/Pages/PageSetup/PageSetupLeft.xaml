@@ -4,7 +4,7 @@
     xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="PCL.PageSetupLeft"
     d:DesignWidth="152"
-    xmlns:loc="https://ce.pclc.cc/core/localization">
+    xmlns:loc="clr-namespace:PCL.Core.App.Localization;assembly=PCL.Core.Wpf">
     <local:MyScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
                           Style="{StaticResource ScrollViewerFullMargin}">
         <StackPanel Margin="0,12,0,0" x:Name="PanItem">
@@ -53,6 +53,24 @@
                 <local:MyListItem.Buttons>
                     <x:Array Type="{x:Type local:MyIconButton}">
                         <local:MyIconButton Tag="2" ToolTip="{loc:Loc Common.Action.Initialize}"
+                                            ToolTipService.Placement="Right"
+                                            ToolTipService.InitialShowDelay="200" ToolTipService.VerticalOffset="-1"
+                                            Click="Reset"
+                                            SvgIcon="lucide/rotate-ccw"
+                                            LogoScale="0.9" />
+                    </x:Array>
+                </local:MyListItem.Buttons>
+            </local:MyListItem>
+
+            <local:MyListItem x:Name="ItemDownloadSource" IsScaleAnimationEnabled="False" Tag="12" MinPaddingRight="35"
+                               Check="PageCheck"
+                               Height="36" VerticalAlignment="Top"
+                               Title="{loc:Loc Setup.Left.Item.DownloadSource}" Type="RadioBox"
+                              LogoScale="0.95"
+                              SvgIcon="lucide/download">
+                <local:MyListItem.Buttons>
+                    <x:Array Type="{x:Type local:MyIconButton}">
+                        <local:MyIconButton Tag="12" ToolTip="{loc:Loc Common.Action.Initialize}"
                                             ToolTipService.Placement="Right"
                                             ToolTipService.InitialShowDelay="200" ToolTipService.VerticalOffset="-1"
                                             Click="Reset"
