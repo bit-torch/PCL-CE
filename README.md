@@ -1,5 +1,10 @@
 **简体中文** | [English](README-EN.md) | [繁體中文](README-ZH_TW.md)
 
+> [!IMPORTANT]
+> 本仓库（`bit-torch/PCL-CE`）是上游仓库 [PCL-Community/PCL-CE](https://github.com/PCL-Community/PCL-CE) 的派生仓库，仅用于个人开发与同步。
+> 本仓库不提供官方发布与支持，请勿在此提交 Issue 或 Pull Request；相关问题与反馈请前往[上游仓库](https://github.com/PCL-Community/PCL-CE/issues)。
+> 上游项目 PCL CE 基于 [Meloong-Git/PCL](https://github.com/Meloong-Git/PCL) 二次开发。
+
 <div align="center">
 
 <img src="Plain Craft Launcher 2/Images/icon.ico" alt="Logo" width="80" height="80">
