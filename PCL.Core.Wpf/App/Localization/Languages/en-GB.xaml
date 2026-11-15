@@ -2627,6 +2627,9 @@
     <sys:String x:Key="Setup.GameManage.Source.UseOfficial">Prefer official sources</sys:String>
     <sys:String x:Key="Setup.GameManage.Source.Version">Version list source</sys:String>
     <sys:String x:Key="Setup.GameManage.Source.Version.Mirror">Prefer mirror sources (recently released versions may be missing)</sys:String>
+    <sys:String x:Key="Setup.GameManage.Source.Custom">Custom download source</sys:String>
+    <sys:String x:Key="Setup.GameManage.Source.Custom.Hint">Leave empty to use the default mirror source</sys:String>
+    <sys:String x:Key="Setup.GameManage.Source.Custom.ToolTip">Manually enter a custom mirror source URL (must be compatible with the BMCLAPI path layout). It will replace all mirror addresses, e.g. https://bmclapi2.bangbang93.com</sys:String>
 
     <!-- Setup.GameManage.Accessibility -->
 

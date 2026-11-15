@@ -72,6 +72,7 @@ public partial class PageSetupGameManage : IPageView
         SliderDownloadSpeed.Value = Config.Download.SpeedLimit;
         CheckDownloadAutoSelectVersion.Checked = Config.Download.AutoSelectInstance;
         CheckFixAuthlib.Checked = Config.Download.FixAuthLib;
+        TextDownloadCustomSource.Text = Config.Download.CustomSource;
 
         // Mod 与整合包
         CheckDownloadIgnoreQuilt.Checked = Config.Download.Comp.IgnoreQuilt;
@@ -129,6 +130,13 @@ public partial class PageSetupGameManage : IPageView
         if (Animations.AniExitsAnyControl() || sender.SelectedIndex < 0)
             return;
         SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+    }
+
+    private void TextBoxChange(object senderRaw, TextChangedEventArgs e)
+    {
+        var sender = (MyTextBox)senderRaw;
+        if (!Animations.AniExitsAnyControl())
+            SetByTag(sender.Tag?.ToString(), sender.Text);
     }
 
     private static void SetByTag(string tag, object value)

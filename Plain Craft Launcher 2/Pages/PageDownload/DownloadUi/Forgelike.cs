@@ -97,8 +97,8 @@ public static partial class DownloadUi
                     new DownloadFile(
                         [
                             url.Replace(
-                                "maven.neoforged.net/releases",
-                                "bmclapi2.bangbang93.com/maven"),
+                                "https://maven.neoforged.net/releases",
+                                $"{DownloadSources.MirrorBase}/maven"),
                             url
                         ],
                         target,
@@ -128,7 +128,7 @@ public static partial class DownloadUi
                 files.Add(
                     new DownloadFile(
                         [
-                            $"https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/{fileName}",
+                            $"{DownloadSources.MirrorBase}/maven/net/minecraftforge/forge/{fileName}",
                             $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{fileName}"
                         ],
                         target,

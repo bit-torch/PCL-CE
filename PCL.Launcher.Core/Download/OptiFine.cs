@@ -164,7 +164,7 @@ public static partial class GameDownload
         Loading.LoaderTask<int, DlOptiFineListResult> loader)
     {
         var json =
-            (JsonArray)Requester.FetchJson("https://bmclapi2.bangbang93.com/optifine/versionList");
+            (JsonArray)Requester.FetchJson($"{DownloadSources.MirrorBase}/optifine/versionList");
         try
         {
             var versions = new List<DlOptiFineListEntry>();

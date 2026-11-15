@@ -143,7 +143,7 @@ public static partial class GameDownload
     {
         var resultLatest = Requester
             .FetchJson(
-                "https://bmclapi2.bangbang93.com/neoforge/meta/api/maven/details/releases/net/neoforged/neoforge",
+                $"{DownloadSources.MirrorBase}/neoforge/meta/api/maven/details/releases/net/neoforged/neoforge",
                 new RequestParam
                 {
                     UseBrowserUserAgent = true
@@ -151,7 +151,7 @@ public static partial class GameDownload
             .ToString();
         var resultLegacy = Requester
             .FetchJson(
-                "https://bmclapi2.bangbang93.com/neoforge/meta/api/maven/details/releases/net/neoforged/forge",
+                $"{DownloadSources.MirrorBase}/neoforge/meta/api/maven/details/releases/net/neoforged/forge",
                 new RequestParam
                 {
                     UseBrowserUserAgent = true

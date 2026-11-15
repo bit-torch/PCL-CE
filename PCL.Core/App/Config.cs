@@ -77,6 +77,12 @@ public static partial class Config
         [ConfigItem<DownloadHttpMode>("ToolDownloadHttpMode", DownloadHttpMode.Auto)] public partial DownloadHttpMode HttpMode { get; set; }
         [ConfigItem<int>("ToolDownloadSource", 1)] public partial int FileSource { get; set; }
         [ConfigItem<int>("ToolDownloadVersion", 1)] public partial int VersionListSource { get; set; }
+
+        /// <summary>
+        /// 自定义下载源（镜像源地址），留空则使用默认镜像源。
+        /// </summary>
+        [ConfigItem<string>("ToolDownloadCustomSource", "")] public partial string CustomSource { get; set; }
+
         [ConfigItem<bool>("ToolDownloadAutoSelectVersion", true)] public partial bool AutoSelectInstance { get; set; }
         [ConfigItem<bool>("ToolFixAuthlib", true)] public partial bool FixAuthLib { get; set; }
 

@@ -195,11 +195,11 @@ public static partial class DownloadUi
 
             if (downloadInfo.IsPreview)
                 sources.Add(
-                    $"https://bmclapi2.bangbang93.com/optifine/{bmclapiInherit}/HD_U_{displayName.Replace($"{inherit} ", "").Replace(" ", "/")}"
+                    $"{DownloadSources.MirrorBase}/optifine/{bmclapiInherit}/HD_U_{displayName.Replace($"{inherit} ", "").Replace(" ", "/")}"
                 );
             else
                 sources.Add(
-                    $"https://bmclapi2.bangbang93.com/optifine/{bmclapiInherit}/HD_U/{displayName.Replace($"{inherit} ", "")}"
+                    $"{DownloadSources.MirrorBase}/optifine/{bmclapiInherit}/HD_U/{displayName.Replace($"{inherit} ", "")}"
                 );
 
             try

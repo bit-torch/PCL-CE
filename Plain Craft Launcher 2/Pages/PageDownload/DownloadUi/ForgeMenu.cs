@@ -169,7 +169,7 @@ public static partial class DownloadUi
                 {
                     Common.Log("[Download] 刷新 Forge 推荐版本缓存开始");
                     var result = NetFacade.NetGetCodeByLoader(
-                        "https://bmclapi2.bangbang93.com/forge/promos");
+                        $"{DownloadSources.MirrorBase}/forge/promos");
                     if (result.Length < 1000)
                         throw new Exception(
                             Lang.Text(

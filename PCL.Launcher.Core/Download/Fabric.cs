@@ -109,7 +109,7 @@ public static partial class GameDownload
     private static void DlFabricListBmclapiMain(Loading.LoaderTask<int, DlFabricListResult> loader)
     {
         var result = (JsonObject)Requester.FetchJson(
-            "https://bmclapi2.bangbang93.com/fabric-meta/v2/versions");
+            $"{DownloadSources.MirrorBase}/fabric-meta/v2/versions");
         try
         {
             var output = new DlFabricListResult
