@@ -109,7 +109,7 @@ public static partial class GameDownload
         var result =
             Requester
                 .FetchJson(
-                    "https://bmclapi2.bangbang93.com/forge/minecraft",
+                    $"{DownloadSources.MirrorBase}/forge/minecraft",
                     new RequestParam
                     {
                         Encoding = Encoding.Default
@@ -354,7 +354,7 @@ public static partial class GameDownload
     {
         var inherit = loader.input ?? "";
         var json = (JsonArray)Requester.FetchJson(
-            $"https://bmclapi2.bangbang93.com/forge/minecraft/{inherit.Replace("-", "_")}");
+            $"{DownloadSources.MirrorBase}/forge/minecraft/{inherit.Replace("-", "_")}");
 
         List<DlForgeVersionEntry> versions;
         try

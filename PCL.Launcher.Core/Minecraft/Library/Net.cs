@@ -71,7 +71,7 @@ public static partial class Libraries
                     NetFacade.NetGetCodeByLoader(
                         [
                             "https://authlib-injector.yushi.moe/artifact/latest.json",
-                            "https://bmclapi2.bangbang93.com/mirrors/authlib-injector/artifact/latest.json"
+                            $"{DownloadSources.MirrorBase}/mirrors/authlib-injector/artifact/latest.json"
                         ],
                         isJson: true));
         }
@@ -92,8 +92,8 @@ public static partial class Libraries
             return null;
 
         var downloadAddress = (authlibDownloadInfo["download_url"]?.ToString() ?? "").Replace(
-            "bmclapi2.bangbang93.com/mirrors/authlib-injector",
-            "authlib-injector.yushi.moe");
+            "https://bmclapi2.bangbang93.com/mirrors/authlib-injector",
+            "https://authlib-injector.yushi.moe");
         LauncherCommon.Log(
             $"[Minecraft] Authlib-Injector 需要更新：{downloadAddress}",
             LauncherLogLevel.Developer);
@@ -101,8 +101,8 @@ public static partial class Libraries
             [
                 downloadAddress,
                 downloadAddress.Replace(
-                    "authlib-injector.yushi.moe",
-                    "bmclapi2.bangbang93.com/mirrors/authlib-injector"
+                    "https://authlib-injector.yushi.moe",
+                    $"{DownloadSources.MirrorBase}/mirrors/authlib-injector"
                 )
             ],
             authlibTargetFile,
@@ -296,7 +296,7 @@ public static partial class Libraries
         optiFineBase = $"/maven/com/optifine/{optiFineBase}";
         if (optiFineBase.Contains("_pre"))
             optiFineBase = optiFineBase.Replace("com/optifine/", "com/optifine/preview_");
-        urls.Add($"https://bmclapi2.bangbang93.com{optiFineBase}");
+        urls.Add($"{DownloadSources.MirrorBase}{optiFineBase}");
     }
 
     private static void _AddMojangLibraryFallback(
@@ -335,7 +335,7 @@ public static partial class Libraries
         var bmclapiUrl = url
             .Replace(
                 url[..url.IndexOfF("maven")],
-                "https://bmclapi2.bangbang93.com/")
+                DownloadSources.MirrorBase + "/")
             .Replace("maven.fabricmc.net", "maven")
             .Replace("maven.minecraftforge.net", "maven")
             .Replace("maven.neoforged.net/releases", "maven");

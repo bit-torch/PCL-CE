@@ -2627,6 +2627,9 @@
     <sys:String x:Key="Setup.GameManage.Source.UseOfficial">盡量使用官方源</sys:String>
     <sys:String x:Key="Setup.GameManage.Source.Version">版本清單源</sys:String>
     <sys:String x:Key="Setup.GameManage.Source.Version.Mirror">盡量使用鏡像來源（可能缺少剛更新的版本）</sys:String>
+    <sys:String x:Key="Setup.GameManage.Source.Custom">自訂下載來源</sys:String>
+    <sys:String x:Key="Setup.GameManage.Source.Custom.Hint">留空則使用預設鏡像來源</sys:String>
+    <sys:String x:Key="Setup.GameManage.Source.Custom.ToolTip">手動填寫自訂鏡像來源位址（需與 BMCLAPI 路徑結構相容），填寫後將取代所有鏡像來源位址，例如 https://bmclapi2.bangbang93.com</sys:String>
 
     <!-- Setup.GameManage.Accessibility -->
 

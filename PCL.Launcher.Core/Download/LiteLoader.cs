@@ -136,7 +136,7 @@ public static partial class GameDownload
     {
         var result =
             (JsonObject)Requester.FetchJson(
-                "https://bmclapi2.bangbang93.com/maven/com/mumfrey/liteloader/versions.json");
+                $"{DownloadSources.MirrorBase}/maven/com/mumfrey/liteloader/versions.json");
         try
         {
             var json = result["versions"] as JsonObject ?? [];

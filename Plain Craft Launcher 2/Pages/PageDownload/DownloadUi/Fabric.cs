@@ -101,7 +101,7 @@ public static partial class DownloadUi
 
                     var safeName = minecraftName.Replace("∞", "infinite");
                     var bmclapiUrl =
-                        $"https://bmclapi2.bangbang93.com/fabric-meta/v2/versions/loader/{safeName}/{fabricVersion}/profile/json";
+                        $"{DownloadSources.MirrorBase}/fabric-meta/v2/versions/loader/{safeName}/{fabricVersion}/profile/json";
                     var officialUrl =
                         $"https://meta.fabricmc.net/v2/versions/loader/{safeName}/{fabricVersion}/profile/json";
 

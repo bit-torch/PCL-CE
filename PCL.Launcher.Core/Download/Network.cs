@@ -200,13 +200,13 @@ public static partial class GameDownload
                 original
                     .Replace(
                         "https://piston-data.mojang.com",
-                        "https://bmclapi2.bangbang93.com/assets")
+                        $"{DownloadSources.MirrorBase}/assets")
                     .Replace(
                         "https://piston-meta.mojang.com",
-                        "https://bmclapi2.bangbang93.com/assets")
+                        $"{DownloadSources.MirrorBase}/assets")
                     .Replace(
                         "https://resources.download.minecraft.net",
-                        "https://bmclapi2.bangbang93.com/assets")
+                        $"{DownloadSources.MirrorBase}/assets")
             ]);
     }
 
@@ -221,26 +221,26 @@ public static partial class GameDownload
                 original
                     .Replace(
                         "https://piston-data.mojang.com",
-                        "https://bmclapi2.bangbang93.com/maven")
+                        $"{DownloadSources.MirrorBase}/maven")
                     .Replace(
                         "https://piston-meta.mojang.com",
-                        "https://bmclapi2.bangbang93.com/maven")
+                        $"{DownloadSources.MirrorBase}/maven")
                     .Replace(
                         "https://libraries.minecraft.net",
-                        "https://bmclapi2.bangbang93.com/maven")
+                        $"{DownloadSources.MirrorBase}/maven")
                     .Replace(
                         "https://zkitefly.github.io/unlisted-versions-of-minecraft",
                         "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto"),
                 original
                     .Replace(
                         "https://piston-data.mojang.com",
-                        "https://bmclapi2.bangbang93.com/libraries")
+                        $"{DownloadSources.MirrorBase}/libraries")
                     .Replace(
                         "https://piston-meta.mojang.com",
-                        "https://bmclapi2.bangbang93.com/libraries")
+                        $"{DownloadSources.MirrorBase}/libraries")
                     .Replace(
                         "https://libraries.minecraft.net",
-                        "https://bmclapi2.bangbang93.com/libraries")
+                        $"{DownloadSources.MirrorBase}/libraries")
                     .Replace(
                         "https://zkitefly.github.io/unlisted-versions-of-minecraft",
                         "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto")
@@ -252,26 +252,26 @@ public static partial class GameDownload
                 original
                     .Replace(
                         "https://piston-data.mojang.com",
-                        "https://bmclapi2.bangbang93.com/maven")
+                        $"{DownloadSources.MirrorBase}/maven")
                     .Replace(
                         "https://piston-meta.mojang.com",
-                        "https://bmclapi2.bangbang93.com/maven")
+                        $"{DownloadSources.MirrorBase}/maven")
                     .Replace(
                         "https://libraries.minecraft.net",
-                        "https://bmclapi2.bangbang93.com/maven")
+                        $"{DownloadSources.MirrorBase}/maven")
                     .Replace(
                         "https://zkitefly.github.io/unlisted-versions-of-minecraft",
                         "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto"),
                 original
                     .Replace(
                         "https://piston-data.mojang.com",
-                        "https://bmclapi2.bangbang93.com/libraries")
+                        $"{DownloadSources.MirrorBase}/libraries")
                     .Replace(
                         "https://piston-meta.mojang.com",
-                        "https://bmclapi2.bangbang93.com/libraries")
+                        $"{DownloadSources.MirrorBase}/libraries")
                     .Replace(
                         "https://libraries.minecraft.net",
-                        "https://bmclapi2.bangbang93.com/libraries")
+                        $"{DownloadSources.MirrorBase}/libraries")
                     .Replace(
                         "https://zkitefly.github.io/unlisted-versions-of-minecraft",
                         "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto"),
@@ -293,16 +293,16 @@ public static partial class GameDownload
                 original
                     .Replace(
                         "https://piston-data.mojang.com",
-                        "https://bmclapi2.bangbang93.com")
+                        $"{DownloadSources.MirrorBase}")
                     .Replace(
                         "https://piston-meta.mojang.com",
-                        "https://bmclapi2.bangbang93.com")
+                        $"{DownloadSources.MirrorBase}")
                     .Replace(
                         "https://launcher.mojang.com",
-                        "https://bmclapi2.bangbang93.com")
+                        $"{DownloadSources.MirrorBase}")
                     .Replace(
                         "https://launchermeta.mojang.com",
-                        "https://bmclapi2.bangbang93.com")
+                        $"{DownloadSources.MirrorBase}")
                     .Replace(
                         "https://zkitefly.github.io/unlisted-versions-of-minecraft",
                         "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto"),

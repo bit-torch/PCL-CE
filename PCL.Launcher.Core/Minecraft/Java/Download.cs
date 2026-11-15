@@ -124,7 +124,7 @@ public static partial class JavaRuntime
                     "https://piston-meta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json"
                 ],
                 [
-                    "https://bmclapi2.bangbang93.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json"
+                    $"{DownloadSources.MirrorBase}/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json"
                 ]),
             isJson: true);
 
@@ -171,7 +171,7 @@ public static partial class JavaRuntime
         var manifestUrl = GameDownload
             .DlSourceOrder(
                 [address],
-                [address.Replace("piston-meta.mojang.com", "bmclapi2.bangbang93.com")])
+                [address.Replace("https://piston-meta.mojang.com", DownloadSources.MirrorBase)])
             .First();
 
         return (JsonObject)Requester.FetchJson(manifestUrl, RequestParam.WithRetry);
@@ -216,7 +216,7 @@ public static partial class JavaRuntime
                 new DownloadFile(
                     GameDownload.DlSourceOrder(
                         [url],
-                        [url.Replace("piston-data.mojang.com", "bmclapi2.bangbang93.com")]),
+                        [url.Replace("https://piston-data.mojang.com", DownloadSources.MirrorBase)]),
                     filePath,
                     checker));
         }

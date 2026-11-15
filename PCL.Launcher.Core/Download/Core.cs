@@ -587,7 +587,7 @@ public static partial class GameDownload
         Loading.LoaderTask<string, DlClientListResult> loader)
     {
         var json = (JsonObject)Requester.FetchJson(
-            "https://bmclapi2.bangbang93.com/mc/game/version_manifest.json");
+            $"{DownloadSources.MirrorBase}/mc/game/version_manifest.json");
         try
         {
             var versions = json["versions"] as JsonArray ?? [];

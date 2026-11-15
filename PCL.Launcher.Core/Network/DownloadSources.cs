@@ -1,8 +1,27 @@
+using PCL.Core.App;
+
 namespace PCL;
 
 /// <summary>下载源排序与镜像地址生成，供业务模块共享。</summary>
 public static class DownloadSources
 {
+    /// <summary>默认镜像源基址。</summary>
+    public const string DefaultMirrorBase = "https://bmclapi2.bangbang93.com";
+
+    /// <summary>当前使用的镜像源基址。用户在设置中手动填写自定义下载源后，将替换所有镜像地址。</summary>
+    public static string MirrorBase
+    {
+        get
+        {
+            var custom = Config.Download.CustomSource.Trim();
+            if (string.IsNullOrEmpty(custom))
+                return DefaultMirrorBase;
+            if (!custom.Contains("://"))
+                custom = "https://" + custom;
+            return custom.TrimEnd('/');
+        }
+    }
+
     /// <summary>下载文件时是否优先使用官方源。</summary>
     public static bool PreferMojang { get; set; }
 
@@ -53,13 +72,13 @@ public static class DownloadSources
                 original
                     .Replace(
                         "https://piston-data.mojang.com",
-                        "https://bmclapi2.bangbang93.com/assets")
+                        $"{MirrorBase}/assets")
                     .Replace(
                         "https://piston-meta.mojang.com",
-                        "https://bmclapi2.bangbang93.com/assets")
+                        $"{MirrorBase}/assets")
                     .Replace(
                         "https://resources.download.minecraft.net",
-                        "https://bmclapi2.bangbang93.com/assets")
+                        $"{MirrorBase}/assets")
             ]);
     }
 }
