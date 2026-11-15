@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 namespace PCL.Core.Test.Project;
 
 [TestClass]
+[TestCategory("Integration")]
 public class Modrinth
 {
     [TestMethod]

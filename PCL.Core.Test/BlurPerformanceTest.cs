@@ -12,6 +12,7 @@ using PCL.Core.UI.Effects;
 namespace PCL.Core.Test;
 
 [TestClass]
+[TestCategory("Performance")]
 public class BlurTest
 {
     [TestMethod]

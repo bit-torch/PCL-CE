@@ -1,0 +1,67 @@
+name: Test (CI)
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main, dev]
+    paths: &paths
+      - 'PCL.Core/**'
+      - 'PCL.Core.Wpf/**'
+      - 'PCL.Launcher.Core/**'
+      - 'PCL.Core.SourceGenerators/**'
+      - 'PCL.Core.Test/**'
+      - 'Plain Craft Launcher 2.slnx'
+      - 'Directory.Build.*'
+      - 'global.json'
+      - '.github/workflows/test.yml'
+  pull_request:
+    paths: *paths
+  workflow_dispatch:
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test
+    runs-on: windows-latest
+    timeout-minutes: 60
+    env:
+      DOTNET_NOLOGO: '1'
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: |
+            10.0.x
+            11.0.x
+
+      - name: Restore
+        run: dotnet restore "PCL.Core.Test/PCL.Core.Test.csproj"
+
+      - name: Build
+        run: dotnet build "PCL.Core.Test/PCL.Core.Test.csproj" -c CI --no-restore
+
+      # 外部网络与系统环境相关的测试已标记为 Integration / Performance，此处跳过
+      - name: Test
+        run: >
+          dotnet test "PCL.Core.Test/PCL.Core.Test.csproj" -c CI --no-build --no-restore
+          --filter "TestCategory!=Integration&TestCategory!=Performance"
+          --logger "trx;LogFileName=test-results.trx"
+          --results-directory ./TestResults
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: test-results
+          path: ./TestResults/**
+          if-no-files-found: ignore
