@@ -256,11 +256,14 @@ public static class EncryptHelper
         var tmpFile = $"{keyFile}.tmp{RandomUtils.NextInt(10000, 99999)}";
         try
         {
-            using (var fs = new FileStream(tmpFile, new FileStreamOptions
+            var options = new FileStreamOptions
             {
-                Mode = FileMode.CreateNew, Access = FileAccess.ReadWrite, Share = FileShare.None,
-                UnixCreateMode = OperatingSystem.IsWindows() ? null : UnixFileMode.UserRead | UnixFileMode.UserWrite
-            }))
+                Mode = FileMode.CreateNew, Access = FileAccess.ReadWrite, Share = FileShare.None
+            };
+            // The UnixCreateMode setter itself throws on Windows, even for a null value.
+            if (!OperatingSystem.IsWindows())
+                options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+            using (var fs = new FileStream(tmpFile, options))
             {
                 fs.Write(storeData);
                 fs.Flush(true);

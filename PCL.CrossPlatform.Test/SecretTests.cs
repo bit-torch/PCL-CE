@@ -8,18 +8,20 @@ namespace PCL.CrossPlatform.Test;
 public class SecretTests
 {
     [TestMethod]
-    public void UnixSecretsSurviveRestartAndUseOwnerOnlyPermissions()
+    public void SecretsSurviveRestartAndUnixKeysUseOwnerOnlyPermissions()
     {
-        if (OperatingSystem.IsWindows()) Assert.Inconclusive("This test exercises Unix-specific behavior.");
         using var temp = new TemporaryDirectory();
         var path = Path.Combine(temp.Path, "UserKey.unix.bin");
         EncryptHelper.OverrideKeyFile(path); EncryptHelper.ResetKeyCache();
         try
         {
             var encrypted = EncryptHelper.SecretEncrypt("test refresh token");
-            Assert.AreEqual(UnixFileMode.UserRead | UnixFileMode.UserWrite, File.GetUnixFileMode(path));
+            Assert.IsTrue(File.Exists(path), "The key must be persisted on every desktop platform.");
+            if (!OperatingSystem.IsWindows())
+                Assert.AreEqual(UnixFileMode.UserRead | UnixFileMode.UserWrite, File.GetUnixFileMode(path));
             EncryptHelper.ResetKeyCache();
             Assert.AreEqual("test refresh token", EncryptHelper.SecretDecrypt(encrypted));
+            if (OperatingSystem.IsWindows()) return;
             var original = File.ReadAllBytes(path);
             File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.OtherRead);
             EncryptHelper.ResetKeyCache();
