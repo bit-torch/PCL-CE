@@ -1,25 +1,35 @@
 using PCL.Core.App;
+using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 
 namespace PCL;
 
 /// <summary>下载源排序与镜像地址生成，供业务模块共享。</summary>
 public static class DownloadSources
 {
-    /// <summary>默认镜像源基址。</summary>
-    public const string DefaultMirrorBase = "https://bmclapi2.bangbang93.com";
-
-    /// <summary>当前使用的镜像源基址。用户在设置中手动填写自定义下载源后，将替换所有镜像地址。</summary>
+    /// <summary>当前使用的自定义镜像源基址；未配置时为空字符串。</summary>
     public static string MirrorBase
     {
         get
         {
-            var custom = Config.Download.CustomSource.Trim();
+            var custom = (Config.Download.CustomSource ?? "").Trim();
             if (string.IsNullOrEmpty(custom))
-                return DefaultMirrorBase;
+                return "";
             if (!custom.Contains("://"))
                 custom = "https://" + custom;
             return custom.TrimEnd('/');
         }
+    }
+
+    /// <summary>是否已在设置中手动添加下载源。</summary>
+    public static bool HasCustomSource => MirrorBase.Length > 0;
+
+    /// <summary>校验是否已手动添加下载源。未添加时显示提示并返回 <c>false</c>。</summary>
+    public static bool EnsureConfigured()
+    {
+        if (HasCustomSource) return true;
+        HintService.Show(Hints.Error(Lang.Text("Download.Error.CustomSourceRequired")));
+        return false;
     }
 
     /// <summary>下载文件时是否优先使用官方源。</summary>

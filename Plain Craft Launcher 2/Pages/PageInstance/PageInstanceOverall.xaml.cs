@@ -498,6 +498,8 @@ public partial class PageInstanceOverall : IPageView
     // 重置
     private async void BtnManageRestore_Click(object sender, MouseButtonEventArgs e)
     {
+        if (!DownloadSources.EnsureConfigured())
+            return;
         _vm.RestoreButtonEnabled = false;
         try
         {

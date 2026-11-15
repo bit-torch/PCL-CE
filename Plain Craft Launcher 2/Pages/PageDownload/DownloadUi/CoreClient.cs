@@ -19,6 +19,8 @@ public static partial class DownloadUi
         string id,
         string? jsonUrl = null)
     {
+        if (!DownloadSources.EnsureConfigured())
+            return null;
         try
         {
             var versionFolder = Path.Combine(GameFolders.mcFolderSelected ?? "", "versions", id);

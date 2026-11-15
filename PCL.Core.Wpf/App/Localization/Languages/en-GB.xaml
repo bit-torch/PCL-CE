@@ -270,6 +270,7 @@
     <!-- Download -->
 
     <sys:String x:Key="Download.Error.OperationFailed">A download page operation failed. See the details below.</sys:String>
+    <sys:String x:Key="Download.Error.CustomSourceRequired">No download source has been added. Please fill in a custom download source in Settings → Game Management before downloading game or modpack resources.</sys:String>
 
     <!-- Download.Comp -->
 
@@ -2628,8 +2629,8 @@
     <sys:String x:Key="Setup.GameManage.Source.Version">Version list source</sys:String>
     <sys:String x:Key="Setup.GameManage.Source.Version.Mirror">Prefer mirror sources (recently released versions may be missing)</sys:String>
     <sys:String x:Key="Setup.GameManage.Source.Custom">Custom download source</sys:String>
-    <sys:String x:Key="Setup.GameManage.Source.Custom.Hint">Leave empty to use the default mirror source</sys:String>
-    <sys:String x:Key="Setup.GameManage.Source.Custom.ToolTip">Manually enter a custom mirror source URL (must be compatible with the BMCLAPI path layout). It will replace all mirror addresses, e.g. https://bmclapi2.bangbang93.com</sys:String>
+    <sys:String x:Key="Setup.GameManage.Source.Custom.Hint">Required. Downloads are unavailable while this is empty.</sys:String>
+    <sys:String x:Key="Setup.GameManage.Source.Custom.ToolTip">Manually enter the mirror source URL (must be compatible with the BMCLAPI path layout); it will be used for all mirror downloads.</sys:String>
 
     <!-- Setup.GameManage.Accessibility -->
 

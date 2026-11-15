@@ -270,6 +270,7 @@
     <!-- Download -->
 
     <sys:String x:Key="Download.Error.OperationFailed">下載頁面操作失敗。請檢視錯誤詳情。</sys:String>
+    <sys:String x:Key="Download.Error.CustomSourceRequired">尚未新增下載來源，請先在「設定 → 遊戲管理 → 遊戲資源取得行為」中填寫自訂下載來源，然後再下載遊戲或整合包資源。</sys:String>
 
     <!-- Download.Comp -->
 
@@ -2628,8 +2629,8 @@
     <sys:String x:Key="Setup.GameManage.Source.Version">版本清單源</sys:String>
     <sys:String x:Key="Setup.GameManage.Source.Version.Mirror">盡量使用鏡像來源（可能缺少剛更新的版本）</sys:String>
     <sys:String x:Key="Setup.GameManage.Source.Custom">自訂下載來源</sys:String>
-    <sys:String x:Key="Setup.GameManage.Source.Custom.Hint">留空則使用預設鏡像來源</sys:String>
-    <sys:String x:Key="Setup.GameManage.Source.Custom.ToolTip">手動填寫自訂鏡像來源位址（需與 BMCLAPI 路徑結構相容），填寫後將取代所有鏡像來源位址，例如 https://bmclapi2.bangbang93.com</sys:String>
+    <sys:String x:Key="Setup.GameManage.Source.Custom.Hint">必填，留空將無法下載遊戲與整合包資源</sys:String>
+    <sys:String x:Key="Setup.GameManage.Source.Custom.ToolTip">手動填寫鏡像來源位址（需與 BMCLAPI 路徑結構相容），該位址將用於取代所有鏡像來源位址</sys:String>
 
     <!-- Setup.GameManage.Accessibility -->
 
