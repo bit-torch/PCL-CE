@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
@@ -131,7 +132,7 @@ public partial class PageSetupGameManage : IPageView
         SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
-    private void BtnManageDownloadSource_Click(object sender, EventArgs e)
+    private void BtnManageDownloadSource_Click(object sender, MouseButtonEventArgs e)
     {
         Launcher.frmSetupLeft.PageChange(FormMain.PageSubType.SetupDownloadSource);
         Launcher.frmSetupLeft.ItemDownloadSource.Checked = true;

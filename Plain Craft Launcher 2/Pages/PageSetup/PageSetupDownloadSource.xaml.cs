@@ -101,7 +101,7 @@ public partial class PageSetupDownloadSource : IPageView
         RefreshSourceList();
     }
 
-    private void BtnAddSource_Click(object sender, RoutedEventArgs e)
+    private void BtnAddSource_Click(object sender, MouseButtonEventArgs e)
     {
         AddSource();
     }
