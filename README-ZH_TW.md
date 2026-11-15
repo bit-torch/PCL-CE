@@ -34,6 +34,10 @@ PCL CE 是基於 PCL 開放原始碼二次開發的社群版本，包括了主�
 
 **開發群:** [599620549](https://qm.qq.com/q/PNQA4Md8wc) | **使用者 1 群:** [1028074835](https://qm.qq.com/q/qrMGJo8BQQ) | **使用者 2 群:** [1070029541](https://qm.qq.com/q/lBywbDMWhG)
 
+## 跨平台桌面預覽
+
+`PCL.Avalonia` 提供 Windows/Linux/macOS 原生桌面預覽，包含原版安裝、Java 偵測、帳戶登入及遊戲啟動。尚未完整取代原 WPF 功能，請參閱[建置說明與功能範圍](docs/cross-platform.md)。使用 .NET 11 SDK 建置 `PCL.CrossPlatform.slnx`，或執行 `dotnet run --project PCL.Avalonia/PCL.Avalonia.csproj`。
+
 ## 💻 支援平台
 
 | 作業系統 | 支援情況 | 環境要求 |
@@ -41,7 +45,8 @@ PCL CE 是基於 PCL 開放原始碼二次開發的社群版本，包括了主�
 | Windows 10 1809 (17763) 或更高 | ✅ 完整支援 | [.NET 10 Desktop Runtime](https://get.dot.net/10) |
 | Windows 8 - Windows 10 1809 (17763) | ⚠️ 理論能跑，酌情提供社群支援 | [.NET 10 Desktop Runtime](https://get.dot.net/10) |
 | Windows 7 或更低版本 | ❌ 不支援 | / |
-| macOS / Linux / 其他作業系統 | ⚠️ 僅跨平台開發支援（交叉編譯）| [.NET 11 SDK](https://get.dot.net/11) |
+| macOS / Linux | 🧪 Avalonia 桌面預覽 | .NET 10 Runtime，或自包含套件 |
+| 其他作業系統 | ❌ 尚無桌面目標 | / |
 
 **✅ 完整支援**：盡可能提供一切相關支援，但必須確保啟動器為最新版本。
 
@@ -49,7 +54,7 @@ PCL CE 是基於 PCL 開放原始碼二次開發的社群版本，包括了主�
 
 **❌ 不支援**：PCL CE 在這些平台的可用性較低，甚至根本打不開。請升級作業系統以使用 PCL CE。
 
-**⚠️ 僅跨平台開發支援（交叉編譯）**：PCL CE 的原始碼可以在 macOS 與 Linux 平台編譯，但無法直接執行。作為開發者，你可以在這些平台上進行開發，然後將編譯產物轉移到 Windows 系統測試。
+**🧪 桌面預覽**：macOS 和 Linux 可使用 Avalonia 入口，原 WPF 入口仍僅在 Windows 執行。功能遷移範圍請參閱上述說明。
 
 **注**：
 社群僅對最新版本的啟動器提供支援。

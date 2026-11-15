@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using Microsoft.Win32;
 using PCL.Core.Logging;
 using PCL.Core.Utils.Exts;
@@ -26,10 +27,13 @@ public class HttpProxyManager : IWebProxy, IDisposable
     private readonly WebProxy _systemWebProxy = new() { BypassProxyOnLocal = true };
     private const string ProxyRegPathFull = @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings";
     private const string ProxyRegPath = @"Software\Microsoft\Windows\CurrentVersion\Internet Settings";
-    private readonly RegistryChangeMonitor _proxyMonitor = new(ProxyRegPath);
+    private readonly RegistryChangeMonitor? _proxyMonitor;
+    private readonly IWebProxy _portableSystemProxy = HttpClient.DefaultProxy;
 
     private HttpProxyManager()
     {
+        if (!OperatingSystem.IsWindows()) return;
+        _proxyMonitor = new RegistryChangeMonitor(ProxyRegPath);
         RefreshSystemProxy(); // 初始化系统代理
         _proxyMonitor.Changed += _OnSystemProxyChanged;
     }
@@ -109,6 +113,7 @@ public class HttpProxyManager : IWebProxy, IDisposable
     /// <summary>刷新系统代理设置</summary>
     public void RefreshSystemProxy()
     {
+        if (!OperatingSystem.IsWindows()) return;
         lock (_lock)
         {
             try
@@ -176,7 +181,8 @@ public class HttpProxyManager : IWebProxy, IDisposable
             return _mode switch
             {
                 ProxyMode.NoProxy => null, // 返回 null 表明没有代理
-                ProxyMode.SystemProxy => _systemWebProxy.GetProxy(destination),
+                ProxyMode.SystemProxy => OperatingSystem.IsWindows()
+                    ? _systemWebProxy.GetProxy(destination) : _portableSystemProxy.GetProxy(destination),
                 ProxyMode.CustomProxy => _customWebProxy.GetProxy(destination),
                 _ => null
             };
@@ -190,7 +196,8 @@ public class HttpProxyManager : IWebProxy, IDisposable
             return _mode switch
             {
                 ProxyMode.NoProxy => true,
-                ProxyMode.SystemProxy => _systemWebProxy.IsBypassed(host),
+                ProxyMode.SystemProxy => OperatingSystem.IsWindows()
+                    ? _systemWebProxy.IsBypassed(host) : _portableSystemProxy.IsBypassed(host),
                 ProxyMode.CustomProxy => _customWebProxy.IsBypassed(host),
                 _ => true
             };
@@ -220,7 +227,7 @@ public class HttpProxyManager : IWebProxy, IDisposable
 
     public void Dispose()
     {
-        _proxyMonitor.Dispose();
+        _proxyMonitor?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

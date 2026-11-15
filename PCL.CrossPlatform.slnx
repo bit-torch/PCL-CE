@@ -1,0 +1,13 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="CI" />
+    <BuildType Name="Release" />
+    <BuildType Name="Beta" />
+  </Configurations>
+  <Project Path="PCL.Core/PCL.Core.csproj" />
+  <Project Path="PCL.Core.SourceGenerators/PCL.Core.SourceGenerators.csproj" />
+  <Project Path="PCL.Launcher.Core/PCL.Launcher.Core.csproj" />
+  <Project Path="PCL.Avalonia/PCL.Avalonia.csproj" />
+  <Project Path="PCL.CrossPlatform.Test/PCL.CrossPlatform.Test.csproj" />
+</Solution>

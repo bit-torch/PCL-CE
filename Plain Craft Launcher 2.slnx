@@ -8,6 +8,10 @@
         <Platform Name="ARM64" />
         <Platform Name="x64" />
     </Configurations>
+    <Project Path="PCL.Avalonia/PCL.Avalonia.csproj" Type="C#" />
+    <Project Path="PCL.CrossPlatform.Test/PCL.CrossPlatform.Test.csproj" Type="C#">
+        <Build Solution="*|*" Project="false" />
+    </Project>
     <Project Path="PCL.Core\PCL.Core.csproj" Type="C#" />
     <Project Path="PCL.Core.Wpf\PCL.Core.Wpf.csproj" Type="C#" />
     <Project Path="PCL.Launcher.Core\PCL.Launcher.Core.csproj" Type="C#" />

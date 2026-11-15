@@ -1,0 +1,77 @@
+name: Cross-platform desktop
+
+on:
+  push:
+    branches: [main, dev]
+    paths: &paths
+      - 'PCL.Core/**'
+      - 'PCL.Core.SourceGenerators/**'
+      - 'PCL.Launcher.Core/**'
+      - 'PCL.Avalonia/**'
+      - 'PCL.CrossPlatform.Test/**'
+      - 'PCL.CrossPlatform.slnx'
+      - 'Plain Craft Launcher 2/metadata.json'
+      - '.github/workflows/cross-platform.yml'
+  pull_request:
+    paths: *paths
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  AVALONIA_TELEMETRY_OPTOUT: '1'
+  DOTNET_NOLOGO: '1'
+
+jobs:
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rids: 'linux-x64 linux-arm64'
+          - os: windows-latest
+            rids: 'win-x64 win-arm64'
+          - os: macos-latest
+            rids: 'osx-x64 osx-arm64'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: |
+            10.0.x
+            11.0.x
+      - name: Test portable core and headless desktop
+        run: dotnet test PCL.CrossPlatform.Test/PCL.CrossPlatform.Test.csproj -c CI --logger "trx;LogFileName=desktop.trx" --results-directory TestResults
+      - name: Publish desktop targets
+        shell: bash
+        run: |
+          for rid in ${{ matrix.rids }}; do
+            dotnet publish PCL.Avalonia/PCL.Avalonia.csproj -c Release -r "$rid" --self-contained true -o "artifact/$rid"
+            if [[ "$rid" == osx-* ]]; then
+              app="artifact/$rid/PCL CE.app/Contents"
+              mkdir -p "$app/MacOS" "$app/Resources"
+              for item in artifact/"$rid"/*; do
+                [[ "$item" == *.app ]] || mv "$item" "$app/MacOS/"
+              done
+              cp PCL.Avalonia/Info.plist "$app/Info.plist"
+            fi
+            tar -czf "artifact/PCL-CE-$rid.tar.gz" -C "artifact/$rid" .
+          done
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: desktop-${{ matrix.os }}
+          path: artifact/*.tar.gz
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: desktop-tests-${{ matrix.os }}
+          path: TestResults/*.trx

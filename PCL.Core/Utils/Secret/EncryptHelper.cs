@@ -150,7 +150,7 @@ public static class EncryptHelper
 
     /// <summary>
     /// 用户密钥。只在成功获取后缓存——失败不会被记住，下次访问会重新尝试。<br/>
-    /// 注意：密钥文件的 version（1 = 旧版 CAPI DPAPI，2 = CNG DPAPI）与
+    /// 注意：密钥文件的 version（1 = 旧版 CAPI DPAPI，2 = CNG DPAPI，3 = Unix owner-only key file）与
     /// <see cref="SecretEncrypt"/> 的数据算法 version（0/1/2）语义无关。
     /// </summary>
     internal static byte[] EncryptionKey
@@ -158,14 +158,12 @@ public static class EncryptHelper
         get { lock (_KeyLock) return _cachedKey ??= _LoadOrCreateKey(); }
     }
 
-    //internal static string KeyFilePath => Path.Combine(Paths.SharedData, "UserKey.bin");
-
     // NOTE: only used for unit test
     // NOTE: do not touch on production env
     private static string? _keyFileverride;
     internal static void OverrideKeyFile(string? path) => _keyFileverride = path;
 
-    internal static string KeyFilePath => _keyFileverride ?? Path.Combine(Paths.SharedData, "UserKey.bin");
+    internal static string KeyFilePath => _keyFileverride ?? Path.Combine(Paths.SharedData, OperatingSystem.IsWindows() ? "UserKey.bin" : "UserKey.unix.bin");
 
     internal static void ResetKeyCache() { lock (_KeyLock) _cachedKey = null; }
 
@@ -192,6 +190,12 @@ public static class EncryptHelper
         var data = EncryptionData.FromBytes(File.ReadAllBytes(keyFile));
         switch (data.Version)
         {
+            case 3 when !OperatingSystem.IsWindows():
+                var permissions = File.GetUnixFileMode(keyFile);
+                if ((permissions & (UnixFileMode.GroupRead | UnixFileMode.GroupWrite | UnixFileMode.OtherRead | UnixFileMode.OtherWrite)) != 0)
+                    throw new UnauthorizedAccessException("User key must only be accessible to its owner.");
+                if (data.Data.Length != 32) throw new CryptographicException("Invalid Unix user key length.");
+                return data.Data;
             case 2:
                 return CngProtectedData.Unprotect(data.Data, _Key, DataProtectionScope.CurrentUser);
             case 1:
@@ -215,7 +219,7 @@ public static class EncryptHelper
         if (!_WriteKeyFile(keyFile, storeData))
             LogWrapper.Error("Encryption", $"用户密钥写入失败，本次运行仅使用内存密钥：{keyFile}");
         else
-            LogWrapper.Warn("Encryption", "用户密钥已重建（version 2）。旧密钥保护的数据无法恢复，需要重新登录。");
+            LogWrapper.Warn("Encryption", "用户密钥已重建。旧密钥保护的数据无法恢复，需要重新登录。");
         return key;
     }
 
@@ -228,6 +232,11 @@ public static class EncryptHelper
     {
         try
         {
+            if (!OperatingSystem.IsWindows())
+            {
+                storeData = EncryptionData.ToBytes(new EncryptionData { Version = 3, Data = rawKey });
+                return true;
+            }
             var blob = CngProtectedData.Protect(rawKey, _Key, DataProtectionScope.CurrentUser);
             var roundTrip = CngProtectedData.Unprotect(blob, _Key, DataProtectionScope.CurrentUser);
             storeData = EncryptionData.ToBytes(new EncryptionData { Version = 2, Data = blob });
@@ -247,7 +256,11 @@ public static class EncryptHelper
         var tmpFile = $"{keyFile}.tmp{RandomUtils.NextInt(10000, 99999)}";
         try
         {
-            using (var fs = new FileStream(tmpFile, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+            using (var fs = new FileStream(tmpFile, new FileStreamOptions
+            {
+                Mode = FileMode.CreateNew, Access = FileAccess.ReadWrite, Share = FileShare.None,
+                UnixCreateMode = OperatingSystem.IsWindows() ? null : UnixFileMode.UserRead | UnixFileMode.UserWrite
+            }))
             {
                 fs.Write(storeData);
                 fs.Flush(true);
