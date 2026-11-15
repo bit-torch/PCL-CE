@@ -71,7 +71,9 @@ public static class Paths
         const string oldName = ".PCLCE";
 #endif
         // fill paths
-        _data = Path.Combine(DefaultDirectory, "PCL");
+        _data = OperatingSystem.IsWindows()
+            ? Path.Combine(DefaultDirectory, "PCL")
+            : GetSpecialPath(Special.ApplicationData, name);
         _sharedData = GetSpecialPath(Special.ApplicationData, name);
         _sharedLocalData = GetSpecialPath(Special.LocalApplicationData, name);
         _temp = Path.Combine(Path.GetTempPath(), name);

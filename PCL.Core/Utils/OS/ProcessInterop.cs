@@ -15,6 +15,7 @@ public class ProcessInterop {
     /// </summary>
     /// <returns>如果当前用户具有管理员权限，则返回 true；否则返回 false。</returns>
     public static bool IsAdmin() =>
+        OperatingSystem.IsWindows() &&
         new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
 
     /// <summary>
@@ -23,6 +24,8 @@ public class ProcessInterop {
     /// <param name="processId">进程 ID</param>
     /// <returns>命令行参数文本</returns>
     public static string? GetCommandLine(int processId) {
+        if (!OperatingSystem.IsWindows())
+            throw new PlatformNotSupportedException("WMI process command lines are Windows-only.");
         var query = $"SELECT CommandLine FROM Win32_Process WHERE ProcessId = {processId}";
         using var searcher = new ManagementObjectSearcher(query);
         return searcher.Get().GetEnumerator().Current["CommandLine"].ToString();
@@ -38,6 +41,8 @@ public class ProcessInterop {
     public static Process? Start(string path, string? arguments = null, bool runAsAdmin = false) {
         var psi = new ProcessStartInfo(path);
         if (arguments is not null) psi.Arguments = arguments;
+        if (runAsAdmin && !OperatingSystem.IsWindows())
+            throw new PlatformNotSupportedException("Elevation requires the platform desktop session.");
         if (runAsAdmin)
         {
             psi.UseShellExecute = true;
@@ -77,8 +82,7 @@ public class ProcessInterop {
     /// <param name="force">指定是否强制结束，若为 <c>true</c> 将通过带 <c>/F</c> 参数的 <c>TASKKILL.EXE</c> 结束进程</param>
     /// <returns>进程返回值，若等待超时将返回 <see cref="int.MinValue"/></returns>
     public static int Kill(Process process, int timeout = 3000, bool force = false) {
-        if (force) Process.Start(new ProcessStartInfo("TASKKILL.EXE", $"/PID {process.Id} /F") { UseShellExecute = false });
-        else process.Kill();
+        process.Kill(entireProcessTree: force);
         if (timeout == -1) process.WaitForExit();
         else if (timeout != 0) process.WaitForExit(timeout);
         return process.HasExited ? process.ExitCode : int.MinValue;
@@ -94,6 +98,7 @@ public class ProcessInterop {
     /// <exception cref="SecurityException">当安全策略不允许访问注册表时抛出</exception>
     /// <exception cref="InvalidOperationException">当注册表操作失败时抛出</exception>
     public static void SetGpuPreference(string executable, bool wantHighPerformance = true) {
+        if (!OperatingSystem.IsWindows()) return;
         // 参数验证
         if (string.IsNullOrWhiteSpace(executable)) {
             throw new ArgumentException("可执行文件路径不能为空或仅包含空白字符", nameof(executable));

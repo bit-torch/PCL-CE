@@ -34,6 +34,10 @@ Everyone is welcome to try it out!
 
 **Developing group:** [599620549](https://qm.qq.com/q/PNQA4Md8wc) | **User group 1:** [1028074835](https://qm.qq.com/q/qrMGJo8BQQ) | **User group 2:** [1070029541](https://qm.qq.com/q/lBywbDMWhG)
 
+## Cross-platform desktop preview
+
+`PCL.Avalonia` is a native Windows/Linux/macOS preview with game/loader installation, resource and modpack management, worlds, servers, accounts, multiplayer tools, updates and media settings. It is not yet a full replacement for the WPF feature set. See [build instructions and the feature matrix](docs/cross-platform.md). Build with .NET 11 SDK using `PCL.CrossPlatform.slnx`, or run `dotnet run --project PCL.Avalonia/PCL.Avalonia.csproj`.
+
 ## 💻 Supported Platforms
 
 | Operating System | Support Status | Requirements |
@@ -41,7 +45,8 @@ Everyone is welcome to try it out!
 | Windows 10 1809 (17763) or later | ✅ Fully supported | [.NET 10 Desktop Runtime](http://get.dot.net/10) |
 | Windows 8 to Windows 10 1809 (17763) | ⚠️ Expected to run; community support offered at discretion | [.NET 10 Desktop Runtime](http://get.dot.net/10) |
 | Windows 7 or earlier | ❌ Not supported | N/A |
-| macOS / Linux / Other OS | ⚠️ Cross-platform development only (cross-compilation) | [.NET 11 SDK](http://get.dot.net/11) |
+| macOS / Linux | 🧪 Avalonia desktop preview | .NET 10 Runtime, or self-contained package |
+| Other OS | ❌ No desktop target | N/A |
 
 **✅ Fully supported**: We will provide as much support as possible, but you must ensure you are using the latest version of the launcher.
 
@@ -49,7 +54,7 @@ Everyone is welcome to try it out!
 
 **❌ Not supported**: PCL CE may not be usable on these platforms and might not even launch at all. Please upgrade your OS to use PCL CE.
 
-**⚠️ Cross-platform development only (cross-compilation)**: PCL CE’s source code can be built on macOS and Linux, but it cannot run directly. As a developer, you can develop on these platforms and then move the build artifacts to Windows for testing.
+**🧪 Desktop preview**: Use the Avalonia entry point on macOS and Linux. The existing WPF entry point still runs on Windows only. See the feature matrix above for the migration scope.
 
 **Note**:     
 The community only supports the latest version of the launcher.    

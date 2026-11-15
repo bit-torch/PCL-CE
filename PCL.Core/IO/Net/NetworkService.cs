@@ -61,12 +61,17 @@ public partial class NetworkService
     private static IHttpClientFactory? _factory;
 
     [LifecycleStart]
-    private static void _Start()
+    private static void _Start() => Initialize();
+
+    /// <summary>Initializes named clients for a desktop host. Hosts without ConfigService use system networking.</summary>
+    public static void Initialize(bool useConfiguration = true)
     {
         
         var services = new ServiceCollection();
         services.ConfigureHttpClientDefaults(b => b
-            .ConfigurePrimaryHttpMessageHandler(_GetSocketsHttpHandler)
+            .ConfigurePrimaryHttpMessageHandler(() => useConfiguration
+                ? _GetSocketsHttpHandler() : new SocketsHttpHandler
+                { AutomaticDecompression = DecompressionMethods.All, Proxy = HttpProxyManager.Instance })
             .ConfigureHttpClient(c => c.DefaultRequestHeaders
                 .UserAgent.Add(new ProductInfoHeaderValue("PCL-CE", Basics.VersionName)))
             .SetHandlerLifetime(TimeSpan.FromMinutes(LifeTime)));

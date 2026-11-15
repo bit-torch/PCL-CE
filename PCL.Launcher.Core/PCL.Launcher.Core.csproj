@@ -7,8 +7,7 @@
         <Company>PCL Community</Company>
         <Product>PCL.Launcher.Core</Product>
         <RootNamespace>PCL</RootNamespace>
-        <TargetFramework>net10.0-windows</TargetFramework>
-        <EnableWindowsTargeting>true</EnableWindowsTargeting>
+        <TargetFramework>net10.0</TargetFramework>
         <LangVersion>15.0</LangVersion>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -20,6 +19,9 @@
         <PackageReference Include="Dapper" Version="2.1.79" />
         <PackageReference Include="Downloader" Version="5.9.4" />
         <PackageReference Include="protobuf-net" Version="3.2.56" />
+    </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="../Plain Craft Launcher 2/Resources/forge-installer.jar" LogicalName="PCL.ForgeInstallerHelper" />
     </ItemGroup>
     <ItemGroup>
         <Using Include="PCL.Text" />

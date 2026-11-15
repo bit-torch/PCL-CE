@@ -21,8 +21,17 @@ public static class Basics
     /// <summary>
     /// 启动器元数据。
     /// </summary>
-    public static MetadataModel Metadata { get; } = JsonSerializer.Deserialize<MetadataModel>(
-        Assembly.GetEntryAssembly()!.GetManifestResourceStream("PCL.metadata.json")!, JsonCompat.SerializerOptions)!;
+    public static MetadataModel Metadata { get; } = _LoadMetadata();
+
+    private static MetadataModel _LoadMetadata()
+    {
+        // Libraries may be hosted by testhost or another executable without launcher resources.
+        using var stream = Assembly.GetEntryAssembly()?.GetManifestResourceStream("PCL.metadata.json")
+            ?? typeof(Basics).Assembly.GetManifestResourceStream("PCL.metadata.json")
+            ?? throw new InvalidDataException("Launcher metadata resource is missing.");
+        return JsonSerializer.Deserialize<MetadataModel>(stream, JsonCompat.SerializerOptions)
+            ?? throw new InvalidDataException("Launcher metadata resource is empty.");
+    }
 
     /// <summary>
     /// 版本名称。

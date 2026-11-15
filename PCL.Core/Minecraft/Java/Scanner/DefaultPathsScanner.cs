@@ -98,7 +98,7 @@ public class DefaultPathsScanner : IJavaScanner
             {
                 foreach (var subDir in Directory.EnumerateDirectories(current))
                 {
-                    var javaExe = Path.Combine(subDir, "java.exe");
+                    var javaExe = Path.Combine(subDir, OperatingSystem.IsWindows() ? "java.exe" : "java");
                     if (File.Exists(javaExe))
                     {
                         results.Add(javaExe);

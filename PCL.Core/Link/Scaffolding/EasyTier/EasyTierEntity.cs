@@ -69,9 +69,9 @@ public class EasyTierEntity
 
         LogWrapper.Info("EasyTier", $"EasyTier folder path: {EasyTierMetadata.EasyTierFilePath}");
 
-        if (!(File.Exists($"{EasyTierMetadata.EasyTierFilePath}\\easytier-core.exe") &&
-              File.Exists($"{EasyTierMetadata.EasyTierFilePath}\\easytier-cli.exe") &&
-              File.Exists($"{EasyTierMetadata.EasyTierFilePath}\\Packet.dll")))
+        if (!(File.Exists(EasyTierMetadata.ExecutablePath("easytier-core")) &&
+              File.Exists(EasyTierMetadata.ExecutablePath("easytier-cli")) &&
+              (!OperatingSystem.IsWindows() || File.Exists(Path.Combine(EasyTierMetadata.EasyTierFilePath, "Packet.dll")))))
         {
             LogWrapper.Error("EasyTier", "EasyTier was broken.");
 
@@ -156,7 +156,7 @@ public class EasyTierEntity
             EnableRaisingEvents = true,
             StartInfo = new ProcessStartInfo
             {
-                FileName = Path.Combine(EasyTierMetadata.EasyTierFilePath, "easytier-core.exe"),
+                FileName = EasyTierMetadata.ExecutablePath("easytier-core"),
                 WorkingDirectory = EasyTierMetadata.EasyTierFilePath,
                 WindowStyle = ProcessWindowStyle.Hidden
             }
@@ -168,12 +168,12 @@ public class EasyTierEntity
             .AddFlag("multi-thread")
             .AddFlag("enable-kcp-proxy")
             .AddFlag("enable-quic-proxy")
-            .AddFlagIf(!Config.Link.TryPunchSym, "disable-sys-hole-punching")
-            .AddFlagIf(!Config.Link.EnableIPv6, "disable-ipv6")
-            .AddFlagIf(Config.Link.UseLatencyFirstMode, "latency-first")
+            .AddFlagIf(PCL.Core.App.Configuration.ConfigService.IsInitialized && !Config.Link.TryPunchSym, "disable-sys-hole-punching")
+            .AddFlagIf(PCL.Core.App.Configuration.ConfigService.IsInitialized && !Config.Link.EnableIPv6, "disable-ipv6")
+            .AddFlagIf(PCL.Core.App.Configuration.ConfigService.IsInitialized && Config.Link.UseLatencyFirstMode, "latency-first")
             .Add("encryption-algorithm", "aes-gcm")
             .Add("compression", "zstd")
-            .Add("default-protocol", Config.Link.ProtocolPreference.ToString().ToLowerInvariant())
+            .Add("default-protocol", PCL.Core.App.Configuration.ConfigService.IsInitialized ? Config.Link.ProtocolPreference.ToString().ToLowerInvariant() : "tcp")
             .Add("network-name", _lobby.NetworkName)
             .Add("network-secret", _lobby.NetworkSecret)
             //.Add("relay-network-whitelist", _lobby.NetworkName)
@@ -223,7 +223,7 @@ public class EasyTierEntity
 
         process.StartInfo.Arguments = args.GetResult();
 
-        LogWrapper.Debug("EasyTier", process.StartInfo.Arguments);
+        LogWrapper.Debug("EasyTier", process.StartInfo.Arguments.Replace(_lobby.NetworkSecret, "[redacted]"));
 
         return process;
     }
@@ -370,7 +370,7 @@ public class EasyTierEntity
         using var cliProcess = new Process();
         cliProcess.StartInfo = new ProcessStartInfo
         {
-            FileName = $"{EasyTierMetadata.EasyTierFilePath}\\easytier-cli.exe",
+            FileName = EasyTierMetadata.ExecutablePath("easytier-cli"),
             WorkingDirectory = EasyTierMetadata.EasyTierFilePath,
             ErrorDialog = false,
             CreateNoWindow = true,
@@ -423,7 +423,7 @@ public class EasyTierEntity
             using var cliProcess = new Process();
             cliProcess.StartInfo = new ProcessStartInfo
             {
-                FileName = $"{EasyTierMetadata.EasyTierFilePath}\\easytier-cli.exe",
+                FileName = EasyTierMetadata.ExecutablePath("easytier-cli"),
                 WorkingDirectory = EasyTierMetadata.EasyTierFilePath,
                 Arguments = $"--rpc-portal 127.0.0.1:{_rpcPort} peer",
                 ErrorDialog = false,
@@ -469,7 +469,7 @@ public class EasyTierEntity
         using var cliProcess = new Process();
         cliProcess.StartInfo = new ProcessStartInfo
         {
-            FileName = $"{EasyTierMetadata.EasyTierFilePath}\\easytier-cli.exe",
+            FileName = EasyTierMetadata.ExecutablePath("easytier-cli"),
             WorkingDirectory = EasyTierMetadata.EasyTierFilePath,
             Arguments = $"--rpc-portal 127.0.0.1:{_rpcPort} -o json peer",
             ErrorDialog = false,

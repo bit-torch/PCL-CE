@@ -1,5 +1,6 @@
 using PCL.Core.Minecraft.Java.Parser;
 using PCL.Core.Minecraft.Java.Scanner;
+using System;
 using System.Threading.Tasks;
 using PCL.Core.App.IoC;
 using PCL.Core.Minecraft.Java;
@@ -22,10 +23,11 @@ public sealed partial class JavaService
         Context.Info("Initializing Java Manager...");
 
         _javaManager = new JavaManager(
-            new PeHeaderParser(),
+            OperatingSystem.IsWindows() ? new PeHeaderParser() : new ReleaseFileJavaParser(),
             [
                 new RegistryJavaScanner(),
                 new DefaultPathsScanner(),
+                new UnixJavaScanner(),
                 new PathEnvironmentScanner(),
                 new MicrosoftStoreJavaScanner(),
                 new WhereCommandScanner()
