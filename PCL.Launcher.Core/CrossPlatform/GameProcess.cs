@@ -72,7 +72,7 @@ public sealed class GameProcess(RuntimePlatform? platform = null)
         var psi = new ProcessStartInfo(java)
         {
             UseShellExecute = false, WorkingDirectory = gameDirectory,
-            RedirectStandardOutput = true, RedirectStandardError = true, CreateNoWindow = true
+            RedirectStandardOutput = options.CaptureLogs, RedirectStandardError = options.CaptureLogs, CreateNoWindow = true
         };
         psi.ArgumentList.Add($"-Xmx{memoryMb}M");
         var jvm = ExpandArguments(manifest["arguments"]?["jvm"] as JsonArray, features).ToList();
@@ -97,6 +97,8 @@ public sealed class GameProcess(RuntimePlatform? platform = null)
         foreach (var arg in game is not null && game.Count != 0
                      ? ExpandArguments(game, features) : SplitLegacyArguments(manifest["minecraftArguments"]?.ToString() ?? ""))
             psi.ArgumentList.Add(Expand(arg));
+        if (options.Width.HasValue && options.Height.HasValue && !psi.ArgumentList.Contains("--width"))
+        { psi.ArgumentList.Add("--width"); psi.ArgumentList.Add(options.Width.Value.ToString()); psi.ArgumentList.Add("--height"); psi.ArgumentList.Add(options.Height.Value.ToString()); }
         foreach (var arg in options.GameArguments) psi.ArgumentList.Add(Expand(arg));
         if (!quickPlay && !string.IsNullOrWhiteSpace(options.ServerAddress))
         {
@@ -119,7 +121,7 @@ public sealed class GameProcess(RuntimePlatform? platform = null)
         try
         {
             ExtractNatives(root, manifest, nativeDir);
-            MaterializeLegacyAssets(root, manifest);
+            MaterializeLegacyAssets(root, manifest, options?.GameDirectory ?? root);
             var process = new Process { StartInfo = CreateStartInfo(root, id, java, account, memoryMb, nativeDir, options), EnableRaisingEvents = true };
             void LogLine(object sender, DataReceivedEventArgs e)
             {
@@ -135,8 +137,11 @@ public sealed class GameProcess(RuntimePlatform? platform = null)
             try
             {
                 if (!process.Start()) throw new InvalidOperationException("Java process could not be started.");
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
+                if (options?.CaptureLogs != false)
+                {
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
+                }
                 return process;
             }
             catch { process.Dispose(); throw; }
@@ -193,7 +198,7 @@ public sealed class GameProcess(RuntimePlatform? platform = null)
         }
     }
 
-    private static void MaterializeLegacyAssets(string root, JsonObject manifest)
+    private static void MaterializeLegacyAssets(string root, JsonObject manifest, string gameDirectory)
     {
         if (manifest["assetIndex"]?["id"] is not { } id) return;
         var index = JsonNode.Parse(File.ReadAllText(GameManifest.SafePath(root, $"assets/indexes/{id}.json")))!;
@@ -208,7 +213,7 @@ public sealed class GameProcess(RuntimePlatform? platform = null)
             foreach (var folder in new[] { virtualAssets ? $"assets/virtual/{id}" : null, mapToResources ? "resources" : null })
             {
                 if (folder is null) continue;
-                var target = GameManifest.SafePath(root, folder + "/" + name);
+                var target = GameManifest.SafePath(folder == "resources" ? gameDirectory : root, folder + "/" + name);
                 Directory.CreateDirectory(Path.GetDirectoryName(target)!);
                 File.Copy(source, target, true);
             }

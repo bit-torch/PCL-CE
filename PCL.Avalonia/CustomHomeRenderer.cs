@@ -25,10 +25,29 @@ public static class CustomHomeRenderer
         Control control;
         switch (element.Name.LocalName)
         {
-            case "StackPanel": case "MyCard": case "WrapPanel": case "Grid":
+            case "StackPanel": case "MyCard":
                 var panel = new StackPanel { Spacing = 10, Orientation = Value("Orientation") == "Horizontal" ? Orientation.Horizontal : Orientation.Vertical };
                 foreach (var child in element.Elements()) panel.Children.Add(Build(child, openLink, depth + 1));
                 control = panel; break;
+            case "WrapPanel":
+                var wrap = new WrapPanel { Orientation = Value("Orientation") == "Vertical" ? Orientation.Vertical : Orientation.Horizontal };
+                foreach (var child in element.Elements()) wrap.Children.Add(Build(child, openLink, depth + 1));
+                control = wrap; break;
+            case "Grid":
+                var grid = new Grid();
+                foreach (var definition in element.Elements().Where(e => e.Name.LocalName == "Grid.RowDefinitions").Elements())
+                    grid.RowDefinitions.Add(new RowDefinition(GridLength.Parse(definition.Attribute("Height")?.Value ?? "*")));
+                foreach (var definition in element.Elements().Where(e => e.Name.LocalName == "Grid.ColumnDefinitions").Elements())
+                    grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Parse(definition.Attribute("Width")?.Value ?? "*")));
+                foreach (var child in element.Elements().Where(e => !e.Name.LocalName.Contains('.')))
+                {
+                    var item = Build(child, openLink, depth + 1);
+                    int Index(string attribute, int fallback) => int.TryParse(child.Attribute(attribute)?.Value, out var value) ? Math.Clamp(value, fallback, 1000) : fallback;
+                    Grid.SetRow(item, Index("Grid.Row", 0)); Grid.SetColumn(item, Index("Grid.Column", 0));
+                    Grid.SetRowSpan(item, Index("Grid.RowSpan", 1)); Grid.SetColumnSpan(item, Index("Grid.ColumnSpan", 1));
+                    grid.Children.Add(item);
+                }
+                control = grid; break;
             case "TextBlock": case "Label": case "Run":
                 control = new TextBlock { Text = Value("Text", Value("Content", element.Value)), TextWrapping = TextWrapping.Wrap, FontSize = double.TryParse(Value("FontSize"), System.Globalization.CultureInfo.InvariantCulture, out var fontSize) ? Math.Clamp(fontSize, 8, 80) : 15 }; break;
             case "Button": case "MyButton":
@@ -36,8 +55,11 @@ public static class CustomHomeRenderer
                 if (!Uri.TryCreate(address, UriKind.Absolute, out var uri) || uri.Scheme is not ("http" or "https")) throw new InvalidDataException("主页按钮只允许打开 HTTP(S) 链接。");
                 var button = new Button { Content = Value("Text", Value("Content", element.Value)) };
                 button.Click += (_, _) => openLink(uri); control = button; break;
-            case "Border": case "ScrollViewer":
-                var content = element.Elements().FirstOrDefault(); control = new Border { Padding = new Thickness(14), Child = content is null ? null : Build(content, openLink, depth + 1) }; break;
+            case "Border":
+                var content = element.Elements().FirstOrDefault(); control = new Border { Padding = Thickness.Parse(Value("Padding", "14")), Child = content is null ? null : Build(content, openLink, depth + 1) }; break;
+            case "ScrollViewer":
+                var scrollContent = element.Elements().FirstOrDefault();
+                control = new ScrollViewer { Content = scrollContent is null ? null : Build(scrollContent, openLink, depth + 1) }; break;
             case "Separator": control = new Separator(); break;
             default: throw new InvalidDataException("尚不支持的主页控件：" + element.Name.LocalName);
         }

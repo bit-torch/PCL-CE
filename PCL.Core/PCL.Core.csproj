@@ -86,6 +86,9 @@
     <ItemGroup>
         <Compile Include="**\*.cs" Exclude="bin\**;obj\**;publish\**;**\*.g.cs;SourceGenerators\**" />
     </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="../Plain Craft Launcher 2/metadata.json" LogicalName="PCL.metadata.json" />
+    </ItemGroup>
     <!-- 项目自定义源生成器 -->
     <ItemGroup>
         <AdditionalFiles Include="App\IoC\LifecycleState.cs" />

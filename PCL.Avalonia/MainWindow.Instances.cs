@@ -67,11 +67,11 @@ public sealed partial class MainWindow
         return new ScrollViewer { Content = panel };
     }
 
-    private Control LocalFilesPage(string folder)
+    private Control LocalFilesPage(string folder, Func<string>? root = null)
     {
         var panel = Page(); var files = new ListBox { Height = 250 }; var details = new TextBox { IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 130 };
         var game = new TextBox { Watermark = "检查更新时使用的 Minecraft 版本" }; var loader = new TextBox { Watermark = "加载器，例如 fabric" };
-        string DirectoryPath() => Path.Combine(CurrentDataDirectory, folder);
+        string DirectoryPath() => Path.Combine(root?.Invoke() ?? CurrentDataDirectory, folder);
         void Refresh() => files.ItemsSource = InstanceFiles.List(DirectoryPath());
         InstanceFile Selected() => files.SelectedItem as InstanceFile ?? throw new InvalidOperationException("请选择文件。");
         panel.Children.Add(Heading(folder));
@@ -130,6 +130,13 @@ public sealed partial class MainWindow
         }
         saves.SelectionChanged += (_, _) => { if (saves.SelectedItem is SaveInfo save) { summary.Text = $"种子：{save.Seed} · 时间：{save.PlayTime}\n{save.FolderPath}"; commands.IsChecked = save.AllowCommands; locked.IsChecked = save.IsDifficultyLocked; difficulty.SelectedItem = save.Difficulty ?? Difficulty.Normal; } };
         panel.Children.Add(ActionButton("读取存档", Refresh)); panel.Children.Add(saves); panel.Children.Add(summary);
+        panel.Children.Add(ActionButton("管理所选存档的数据包", async _ =>
+        {
+            var save = Selected();
+            var dialog = new Window { Title = "数据包 · " + save.LevelName, Width = 780, Height = 650,
+                Content = LocalFilesPage("datapacks", () => save.FolderPath) };
+            await dialog.ShowDialog(this);
+        }));
         panel.Children.Add(Row(difficulty, commands, locked));
         panel.Children.Add(Row(ActionButton("保存存档设置", async token =>
         {

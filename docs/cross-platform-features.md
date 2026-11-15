@@ -17,23 +17,23 @@
 | PageInstanceSetup / Overall / Install | 实例管理 / 设置 | 启动参数、独立目录、版本副本与备份移除 |
 | PageInstanceExport | 安装与资源 / 整合包 | 安全导出，排除已知凭据与密钥 |
 | Modpack | 整合包 | 各清单格式、overrides、依赖加载器、暂存与回滚 |
-| PageInstanceSaves | 实例管理 / 存档 | 原 SaveManager；修改前完整备份、导入/导出 |
+| PageInstanceSaves | 实例管理 / 存档 | 原 SaveManager；修改前完整备份、导入/导出、数据包管理 |
 | PageInstanceServer | 实例管理 / 服务器 | servers.dat 保留未知字段、备份、探测与加入 |
 | PageInstanceScreenshot | 实例管理 / 截图 | 预览、系统打开、移至备份 |
 | PageLoginOffline / Ms / Auth / Profile | 账户 | 多账户、离线、微软、Authlib、Yggdrasil Connect |
 | PageLoginProfileSkin / MySkin | 账户 / 皮肤与披风 | 微软账户的在线外观服务；第三方外观由其服务端提供 |
 | PageSetupJava | 安装与资源 / Java、常规设置 | 检测、手动选择、校验下载与解压 |
 | PageToolsGameLink / PageSetupGameLink | 工具 / 联机 | Scaffolding 大厅；平台原生 EasyTier |
-| PageToolsTest | 服务器状态、崩溃分析 | 复用探测、诊断能力；不伪造外部网络结果 |
+| PageToolsTest | 服务器状态、崩溃分析 | 服务器探测、EasyTier NAT/IPv6 检测、崩溃诊断 |
 | PageLog / PageSetupLog | 日志、工具 / 崩溃分析 | 输出、读取、规则分析与报告导出 |
 | PageSpeed | 全局任务状态与取消 | 安装、下载任务提供进度；任务退出等待清理 |
-| PageSetupLaunch / GameManage | 常规与实例设置 | 内存、Java、目录、窗口、参数、环境与副本 |
+| PageSetupLaunch / GameManage | 常规与实例设置 | 内存、Java、目录、窗口、参数、环境与副本；启动后保留/隐藏/最小化/退出、异常退出分析 |
 | PageSetupDownloadSource | 设置 / 下载与网络 | 官方/兼容镜像、系统/无/自定义代理、API 密钥 |
 | PageSetupUpdate | 工具 / 更新 | 发布检查、下载、校验、准备、退出替换和重启 |
-| PageSetupUI / Music / VideoBackground | 设置 / 外观与媒体 | 主题、图片、LibVLC 音视频；系统播放器依赖不内置 |
+| PageSetupUI / Music / VideoBackground | 设置 / 外观与媒体 | 主题色、字体、背景透明度、图片、LibVLC 音视频；系统播放器依赖不内置 |
 | PageSetupLauncherLanguage | 设置 / 语言 | 原七语言字典；新增文本仍有回退 |
 | PageHomepageNewsView | 主页 / Minecraft 新闻 | 原数据模型、可信新闻链接校验 |
-| PageLaunchRight 自定义主页 | 主页 / 自定义主页 | 受限声明式 XAML；不执行代码或 WPF 标记扩展 |
+| PageLaunchRight 自定义主页 | 主页 / 自定义主页 | 受限声明式 XAML，含 Grid 行列/跨格、WrapPanel 与滚动容器；不执行代码或 WPF 标记扩展 |
 | PageHelpDetail / SetupAbout / Feedback | 工具 / 帮助与关于 | 文档、来源、许可证与反馈入口 |
 
 ## 自动化验证
@@ -44,3 +44,5 @@
 
 不会把“存在页面按钮”等同于完成外部服务验证。尚未实测的历史加载器、媒体库、
 真实皮肤账户操作与异地联机，应在具体环境验收后再标注为真机验证通过。
+
+启动器通过每用户互斥体与当前用户专用管道实现单实例唤醒。IPC 测试在禁止 Unix socket 的容器中明确跳过，由三系统 CI 补充验证。

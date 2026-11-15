@@ -63,7 +63,8 @@ public class MigrationTests
         File.WriteAllText(GameManifest.VersionPath(temp.Path, "base", ".jar"), "jar");
         var isolated = Path.Combine(temp.Path, "isolated data");
         var info = new GameProcess().CreateStartInfo(temp.Path, "loader", "java", LaunchAccount.Offline("Player"), 1024, "natives", new LaunchOptions
-        { GameDirectory = isolated, Environment = new Dictionary<string, string> { ["PCL_TEST"] = "yes" }, JvmArguments = ["-Dcustom=some value"] });
+        { CaptureLogs = false, GameDirectory = isolated, Environment = new Dictionary<string, string> { ["PCL_TEST"] = "yes" }, JvmArguments = ["-Dcustom=some value"] });
+        Assert.IsFalse(info.RedirectStandardOutput); Assert.IsFalse(info.RedirectStandardError);
         var args = info.ArgumentList.ToArray();
         Assert.Contains("--username", args); Assert.Contains("--tweakClass", args); Assert.Contains("-cp", args);
         Assert.Contains("-Dcustom=some value", args); Assert.Contains(isolated, args);

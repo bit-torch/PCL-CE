@@ -21,6 +21,17 @@ public class ResourceAndPackTests
     }
 
     [TestMethod]
+    public async Task LabyModUsesSupportedVersionManifestAndRejectsUnsupportedMinecraft()
+    {
+        var handler = new FixtureHttp(); using var client = new HttpClient(handler);
+        handler.Json("https://releases.r2.labymod.net/api/v1/manifest/production/latest.json", JsonNode.Parse("""{"labyModVersion":"4-test","commitReference":"abc","minecraftVersions":[{"version":"1.21.1","customManifestUrl":"https://files.test/laby.json"}]}""")!);
+        var installer = new LoaderInstaller(client);
+        var supported = await installer.GetVersionsAsync(LoaderKind.LabyMod, "1.21.1", default);
+        Assert.AreEqual("https://files.test/laby.json", supported.Single().Url);
+        Assert.AreEqual(0, (await installer.GetVersionsAsync(LoaderKind.LabyMod, "unsupported", default)).Count);
+    }
+
+    [TestMethod]
     public async Task CurseForgeRespectsAuthorDownloadRestrictions()
     {
         using var temp = new TemporaryDirectory(); using var client = new HttpClient(new FixtureHttp());

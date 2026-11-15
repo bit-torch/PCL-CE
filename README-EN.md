@@ -36,7 +36,7 @@ Everyone is welcome to try it out!
 
 ## Cross-platform desktop preview
 
-`PCL.Avalonia` is a native Windows/Linux/macOS preview with vanilla installation, Java discovery, account login and game launch. It is not yet a full replacement for the WPF feature set. See [build instructions and the feature matrix](docs/cross-platform.md). Build with .NET 11 SDK using `PCL.CrossPlatform.slnx`, or run `dotnet run --project PCL.Avalonia/PCL.Avalonia.csproj`.
+`PCL.Avalonia` is a native Windows/Linux/macOS preview with game/loader installation, resource and modpack management, worlds, servers, accounts, multiplayer tools, updates and media settings. It is not yet a full replacement for the WPF feature set. See [build instructions and the feature matrix](docs/cross-platform.md). Build with .NET 11 SDK using `PCL.CrossPlatform.slnx`, or run `dotnet run --project PCL.Avalonia/PCL.Avalonia.csproj`.
 
 ## 💻 Supported Platforms
 

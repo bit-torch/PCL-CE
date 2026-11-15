@@ -20,7 +20,11 @@ public sealed class DesktopLocalization : ILocalizationBackend
     {
         var chinese = Read("zh-CN"); _strings.Clear(); foreach (var pair in Read(baseLanguageCode)) _strings[pair.Key] = pair.Value;
         if (!string.IsNullOrWhiteSpace(currentLanguageCode)) foreach (var pair in Read(currentLanguageCode)) _strings[pair.Key] = pair.Value;
-        _phrases.Clear(); foreach (var (key, value) in chinese) if (_strings.TryGetValue(key, out var translation)) _phrases.TryAdd(value, translation);
+        _phrases.Clear();
+        // Accept every dictionary's text as input, so switching languages repeatedly is reversible.
+        foreach (var source in new[] { chinese, Read("zh-TW"), Read("en-US"), Read("en-GB"), Read("ja-JP"), Read("fr-FR"), Read("es-ES") })
+            foreach (var (key, value) in source)
+                if (_strings.TryGetValue(key, out var translation)) _phrases.TryAdd(value, translation);
         var language = currentLanguageCode ?? baseLanguageCode;
         CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(language); CultureInfo.CurrentUICulture = CultureInfo.CurrentCulture;
     }

@@ -16,6 +16,7 @@ public sealed class JavaRuntimeInstaller(HttpClient client)
         var release = json.FirstOrDefault() ?? throw new InvalidOperationException("没有找到适合当前系统的 Java。");
         var package = release["binary"]!["package"]!;
         var checksum = package["checksum"]!.ToString();
+        if (checksum.Length != 64 || !checksum.All(Uri.IsHexDigit)) throw new InvalidDataException("Java 安装包校验格式无效。");
         var target = Path.Combine(parent, "temurin-" + major + "-" + checksum[..12]);
         if (Directory.Exists(target)) return FindJava(target);
         Directory.CreateDirectory(parent);

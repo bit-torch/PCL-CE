@@ -37,6 +37,12 @@ public sealed partial class MainWindow
             ActionButton("加入大厅", async token => { Configure(); var address = await _lobby.JoinAsync(code.Text ?? "", _profile?.UserName ?? _offlineName.Text ?? "Player", token); InstanceOptions.ServerAddress = address; Report("大厅已加入，游戏连接地址：" + address); }),
             ActionButton("复制大厅码", async _ => { if (Clipboard is not null) await Clipboard.SetTextAsync(code.Text); }),
             ActionButton("退出大厅", async _ => { await _lobby.DisposeAsync(); Report("已退出大厅。"); })));
+        panel.Children.Add(ActionButton("检测 NAT 与 IPv6", async token =>
+        {
+            Configure(); var result = await CliNetTest.GetNetStatusAsync(token)
+                ?? throw new InvalidOperationException("网络检测未返回有效结果。");
+            Report($"UDP NAT：{result.UdpNatType}\nTCP NAT：{result.TcpNatType}\nIPv6：{result.SupportIPv6}");
+        }));
         return new ScrollViewer { Content = panel };
     }
     private Control DiagnosticsPage()
@@ -60,7 +66,9 @@ public sealed partial class MainWindow
     {
         var panel = Page(); var description = new TextBlock { TextWrapping = global::Avalonia.Media.TextWrapping.Wrap };
         var prerelease = new CheckBox { Content = "包含测试版" }; DesktopRelease? release = null; PreparedUpdate? prepared = null;
-        panel.Children.Add(Heading("启动器更新")); panel.Children.Add(prerelease); panel.Children.Add(description);
+        var automatic = new CheckBox { Content = "启动时检查更新", IsChecked = _settings.CheckUpdatesOnStartup };
+        automatic.IsCheckedChanged += (_, _) => { _settings.CheckUpdatesOnStartup = automatic.IsChecked == true; SaveSettings(); };
+        panel.Children.Add(automatic); panel.Children.Add(Heading("启动器更新")); panel.Children.Add(prerelease); panel.Children.Add(description);
         panel.Children.Add(ActionButton("检查最新版本", async token =>
         {
             release = await new DesktopUpdater(_http).LatestAsync(prerelease.IsChecked == true, token);

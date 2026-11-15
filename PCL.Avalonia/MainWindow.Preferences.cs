@@ -52,6 +52,16 @@ public sealed partial class MainWindow
         {
             var file = await PickFile("选择背景图片"); if (file is null) return; _settings.BackgroundImage = file; ApplyBackground(); SaveSettings();
         }), ActionButton("清除背景", _ => { _settings.BackgroundImage = null; ApplyBackground(); SaveSettings(); return Task.CompletedTask; })));
+        var opacity = new Slider { Minimum = 0, Maximum = 1, Value = _settings.BackgroundOpacity };
+        opacity.ValueChanged += (_, _) => { _settings.BackgroundOpacity = opacity.Value; _background.Opacity = opacity.Value; };
+        var font = new TextBox { Text = _settings.FontName, Watermark = "字体名称（留空使用默认字体）" };
+        var accent = new TextBox { Text = _settings.AccentColor, Watermark = "主题色，例如 #3978D5" };
+        panel.Children.Add(Label("背景不透明度")); panel.Children.Add(opacity); panel.Children.Add(font); panel.Children.Add(accent);
+        panel.Children.Add(ActionButton("保存外观", _ =>
+        {
+            if (!string.IsNullOrWhiteSpace(accent.Text) && !Color.TryParse(accent.Text, out var parsedColor)) throw new InvalidOperationException("主题色格式无效。");
+            _settings.FontName = font.Text; _settings.AccentColor = accent.Text; ApplyAppearance(); SaveSettings(); return Task.CompletedTask;
+        }));
         var vlc = new TextBox { Text = _settings.VlcLibraryDirectory, Watermark = "libvlc 所在目录（使用系统 VLC 时可留空）" };
         var loop = new CheckBox { Content = "循环播放", IsChecked = _settings.LoopMusic };
         var volume = new Slider { Minimum = 0, Maximum = 100, Value = _settings.MusicVolume };
@@ -71,8 +81,20 @@ public sealed partial class MainWindow
         panel.Children.Add(ActionButton("保存媒体设置", _ => { _settings.VlcLibraryDirectory = vlc.Text; _settings.MusicVolume = (int)volume.Value; _settings.LoopMusic = loop.IsChecked == true; SaveSettings(); return Task.CompletedTask; }));
         return new ScrollViewer { Content = panel };
     }
+    private void ApplyAppearance()
+    {
+        FontFamily = string.IsNullOrWhiteSpace(_settings.FontName) ? global::Avalonia.Media.FontFamily.Default : new FontFamily(_settings.FontName);
+        if (Color.TryParse(_settings.AccentColor, out var color) && Application.Current is { } app)
+        {
+            app.Resources["SystemAccentColor"] = color;
+            app.Resources["SystemAccentColorLight1"] = color;
+            app.Resources["SystemAccentColorDark1"] = color;
+        }
+        _background.Opacity = Math.Clamp(_settings.BackgroundOpacity, 0, 1);
+    }
     private void ApplyBackground()
     {
+        ApplyAppearance();
         _background.Source = null; _backgroundBitmap?.Dispose(); _backgroundBitmap = null;
         if (_settings.BackgroundImage is { } file && File.Exists(file)) { _backgroundBitmap = new Bitmap(file); _background.Source = _backgroundBitmap; }
     }

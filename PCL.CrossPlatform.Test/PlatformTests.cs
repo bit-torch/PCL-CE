@@ -12,6 +12,45 @@ namespace PCL.CrossPlatform.Test;
 public class PlatformTests
 {
     [TestMethod]
+    public void CoreMetadataIsAvailableUnderAnUnrelatedTestHost()
+    {
+        Assert.IsFalse(string.IsNullOrWhiteSpace(PCL.Core.App.Basics.VersionName));
+        Assert.IsTrue(PCL.Core.App.Basics.VersionCode > 0);
+        Assert.IsTrue(Path.IsPathFullyQualified(PCL.Core.App.Basics.ExecutableDirectory));
+    }
+
+    [TestMethod]
+    public void SecondaryInstanceActivatesPrimaryAcrossThreads()
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            try { using var probe = new System.Net.Sockets.Socket(System.Net.Sockets.AddressFamily.Unix, System.Net.Sockets.SocketType.Stream, System.Net.Sockets.ProtocolType.Unspecified); }
+            catch (System.Net.Sockets.SocketException ex) when (ex.SocketErrorCode == System.Net.Sockets.SocketError.AccessDenied)
+            { Assert.Inconclusive("This container prohibits Unix-domain sockets; IPC is verified by the three-system CI."); }
+        }
+        var name = "pcl-test-" + Guid.NewGuid().ToString("N");
+        using var primary = new SingleInstanceHost(name);
+        Assert.IsTrue(primary.OwnsInstance);
+        using var activated = new ManualResetEventSlim();
+        primary.ActivateRequested += () => activated.Set(); primary.Listen();
+        Exception? failure = null;
+        var secondaryThread = new Thread(() =>
+        {
+            try
+            {
+                using var secondary = new SingleInstanceHost(name);
+                Assert.IsFalse(secondary.OwnsInstance);
+                secondary.ActivatePrimaryAsync().GetAwaiter().GetResult();
+            }
+            catch (Exception ex) { failure = ex; }
+        });
+        secondaryThread.Start();
+        Assert.IsTrue(secondaryThread.Join(TimeSpan.FromSeconds(8)));
+        if (failure is not null) throw failure;
+        Assert.IsTrue(activated.Wait(TimeSpan.FromSeconds(5)));
+    }
+
+    [TestMethod]
     public void DomainAssembliesDoNotDependOnDesktopFrameworks()
     {
         foreach (var assembly in new[] { typeof(PCL.Core.App.Basics).Assembly, typeof(LauncherCommon).Assembly })

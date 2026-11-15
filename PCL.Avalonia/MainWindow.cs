@@ -29,7 +29,7 @@ public sealed partial class MainWindow : Window
     private readonly TextBox _offlineName = new();
     private readonly TextBox _clientId = new();
     private readonly NumericUpDown _memory = new() { Minimum = 256, Maximum = 131072, Increment = 512 };
-    private readonly CheckBox _useAccount = new() { Content = "使用已登录账户" };
+    private readonly CheckBox _useAccount = new() { Content = "使用当前账户" };
     private readonly TextBlock _account = new() { Text = "尚未登录", TextWrapping = TextWrapping.Wrap };
     private readonly TextBlock _status = new() { Text = "就绪", TextWrapping = TextWrapping.Wrap };
     private readonly TextBox _log = new() { IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, MinHeight = 300 };
@@ -111,6 +111,12 @@ public sealed partial class MainWindow : Window
             RefreshInstalled();
             if (startupError is not null) Report(startupError);
             else if (_java.Text is "java" or "java.exe") await RunOperation(ScanJava);
+            if (_settings.CheckUpdatesOnStartup) await RunOperation(async token =>
+            {
+                var release = await new DesktopUpdater(_http).LatestAsync(false, token);
+                var current = PCL.Core.App.Basics.VersionName;
+                Report(release.Version.TrimStart('v') == current ? "已是最新版本。" : "可用更新：" + release.Version + "，可在工具的更新页下载。");
+            });
         };
     }
 
@@ -182,6 +188,11 @@ public sealed partial class MainWindow : Window
             if (files.Count > 0 && files[0].TryGetLocalPath() is { } path) _java.Text = path;
         })));
         panel.Children.Add(Label("最大内存（MiB）")); panel.Children.Add(_memory);
+        panel.Children.Add(Label("游戏启动后的窗口行为"));
+        var behavior = new ComboBox { ItemsSource = Enum.GetValues<LaunchWindowBehavior>(), SelectedItem = _settings.WindowBehavior };
+        behavior.SelectionChanged += (_, _) => { if (behavior.SelectedItem is LaunchWindowBehavior value) _settings.WindowBehavior = value; }; panel.Children.Add(behavior);
+        var analyze = new CheckBox { Content = "游戏异常退出后自动分析日志", IsChecked = _settings.AutoAnalyzeCrash };
+        analyze.IsCheckedChanged += (_, _) => _settings.AutoAnalyzeCrash = analyze.IsChecked == true; panel.Children.Add(analyze);
         var dark = new CheckBox { Content = "深色主题", IsChecked = _settings.DarkTheme };
         dark.IsCheckedChanged += (_, _) => { _settings.DarkTheme = dark.IsChecked == true; ApplyTheme(_settings.DarkTheme); };
         panel.Children.Add(dark);
@@ -236,7 +247,7 @@ public sealed partial class MainWindow : Window
         if (_useAccount.IsChecked == true)
         {
             var profile = _profile ?? throw new InvalidOperationException("请先登录账户。");
-            if (profile.IsExpired || profile.ProfileType == PCL.Core.Minecraft.Profile.Models.ProfileType.Authlib)
+            if (profile.ProfileType != PCL.Core.Minecraft.Profile.Models.ProfileType.Offline && (profile.IsExpired || profile.ProfileType == PCL.Core.Minecraft.Profile.Models.ProfileType.Authlib))
             {
                 var provider = AccountProvider(profile);
                 if (provider is YggdrasilConnectProvider connect) await connect.InitializeAsync(token);
@@ -244,7 +255,7 @@ public sealed partial class MainWindow : Window
                 _settings.StoreAccount(refreshed); _profile = _settings.SelectedAccount(); SaveSettings(); RefreshAccount();
                 profile = _profile!;
             }
-            account = new(profile.UserName, profile.Uuid, profile.AccessToken, profile.ProfileType == PCL.Core.Minecraft.Profile.Models.ProfileType.Microsoft ? "msa" : "mojang");
+            account = new(profile.UserName, profile.Uuid, profile.AccessToken, profile.ProfileType switch { PCL.Core.Minecraft.Profile.Models.ProfileType.Microsoft => "msa", PCL.Core.Minecraft.Profile.Models.ProfileType.Offline => "legacy", _ => "mojang" });
         }
         else account = LaunchAccount.Offline(_offlineName.Text ?? "");
         token.ThrowIfCancellationRequested();
@@ -254,16 +265,42 @@ public sealed partial class MainWindow : Window
         _game = await Task.Run(() => new GameProcess().Start(root, id, javaPath, account,
             memory, line => Dispatcher.UIThread.Post(() => AppendLog(line)), launchOptions), token);
         _stop.IsEnabled = true; Report($"{id} 已启动。");
-        _ = ObserveGame(_game);
+        if (_settings.WindowBehavior == LaunchWindowBehavior.Exit && !_lobby.IsRunning)
+        { _game.Dispose(); _game = null; Dispatcher.UIThread.Post(Close); return; }
+        if (_settings.WindowBehavior == LaunchWindowBehavior.Hide) Hide();
+        else if (_settings.WindowBehavior == LaunchWindowBehavior.Minimize) WindowState = WindowState.Minimized;
+        _ = ObserveGame(_game, launchOptions.GameDirectory!);
     }
 
-    private async Task ObserveGame(Process process)
+    private async Task ObserveGame(Process process, string gameDirectory)
     {
         await process.WaitForExitAsync();
+        var exitCode = process.ExitCode;
+        string? diagnosis = null;
+        if (exitCode != 0 && _settings.AutoAnalyzeCrash)
+        {
+            var latest = Path.Combine(gameDirectory, "logs", "latest.log");
+            if (File.Exists(latest))
+            {
+                try
+                {
+                    var text = await File.ReadAllTextAsync(latest);
+                    var findings = await Task.Run(() => PortableDiagnostics.Analyze(text));
+                    diagnosis = string.Join("\n", findings.Select(f => "诊断：" + f.Cause + " · " + string.Join(", ", f.Evidence)));
+                }
+                catch (Exception ex) { diagnosis = "自动诊断失败：" + ex.Message; }
+            }
+        }
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            Report($"游戏已退出，退出码：{process.ExitCode}"); _stop.IsEnabled = false;
-            _game = null; process.Dispose();
+            if (ReferenceEquals(_game, process))
+            {
+                Show(); WindowState = WindowState.Normal;
+                Report($"游戏已退出，退出码：{exitCode}"); _stop.IsEnabled = false;
+                if (!string.IsNullOrWhiteSpace(diagnosis)) Report(diagnosis);
+                _game = null;
+            }
+            process.Dispose();
         });
     }
 
@@ -322,7 +359,7 @@ public sealed partial class MainWindow : Window
 
     private void RefreshAccount()
     {
-        _account.Text = _profile is null ? "尚未登录，可使用离线用户名启动游戏。" : $"已登录：{_profile.UserName}";
+        _account.Text = _profile is null ? "尚未登录，可使用离线用户名启动游戏。" : $"当前账户：{_profile.UserName}";
         _useAccount.IsChecked = _profile is not null;
     }
     private static void ApplyTheme(bool dark) => Application.Current!.RequestedThemeVariant = dark ? ThemeVariant.Dark : ThemeVariant.Light;

@@ -69,7 +69,11 @@ public sealed class LoaderInstaller(HttpClient client)
             var manifest = JsonNode.Parse(await client.GetStringAsync("https://releases.r2.labymod.net/api/v1/manifest/production/latest.json", token))!;
             var commit = manifest["commitReference"]?.ToString() ?? manifest["commit_reference"]?.ToString()
                 ?? throw new InvalidDataException("LabyMod 未返回版本标识。");
-            return [new(kind, commit, minecraft, $"https://releases.r2.labymod.net/api/v1/download/manifest/labymod4/production/{game}/{commit}.json")];
+            var supported = manifest["minecraftVersions"]?.AsArray().FirstOrDefault(v => v?["version"]?.ToString() == minecraft);
+            if (supported is null) return [];
+            var url = supported["customManifestUrl"]?.ToString()
+                ?? $"https://releases.r2.labymod.net/api/v1/download/manifest/labymod4/production/{game}/{commit}.json";
+            return [new(kind, manifest["labyModVersion"]?.ToString() ?? commit, minecraft, url)];
         }
         throw new InvalidOperationException("请选择已下载的安装器进行本地安装。");
     }

@@ -33,6 +33,12 @@ public sealed class DesktopSettings
     public bool LoopMusic { get; set; } = true;
     public string? MusicFile { get; set; }
     public string? EasyTierDirectory { get; set; }
+    public LaunchWindowBehavior WindowBehavior { get; set; }
+    public bool CheckUpdatesOnStartup { get; set; }
+    public bool AutoAnalyzeCrash { get; set; } = true;
+    public string AccentColor { get; set; } = "#0078D4";
+    public string? FontName { get; set; }
+    public double BackgroundOpacity { get; set; } = 0.18;
     public bool DarkTheme { get; set; }
 
     public static string FilePath => Path.Combine(Paths.SharedData, "avalonia.settings.json");
@@ -100,3 +106,5 @@ public sealed class InstancePreferences
     public string ServerAddress { get; set; } = "";
 }
 public sealed record FavoriteResource(PCL.CrossPlatform.ResourceProvider Provider, string Id, string Title, string Url);
+
+public enum LaunchWindowBehavior { Keep, Minimize, Hide, Exit }

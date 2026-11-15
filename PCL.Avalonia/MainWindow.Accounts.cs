@@ -17,6 +17,13 @@ public sealed partial class MainWindow
     {
         var panel = Page(); var list = new ListBox { Height = 280 };
         void Refresh() { list.ItemsSource = _settings.Accounts().Select(p => new AccountItem(p)).ToArray(); }
+        var offline = new TextBox { Watermark = "新离线账户名称" };
+        panel.Children.Add(offline); panel.Children.Add(ActionButton("添加离线账户", _ =>
+        {
+            var account = LaunchAccount.Offline(offline.Text ?? "");
+            StoreAuthenticated(new AuthenticationResult { ProfileType = ProfileType.Offline, UserName = account.Name, Uuid = account.Uuid, AccessToken = "0" });
+            Refresh(); return Task.CompletedTask;
+        }));
         panel.Children.Add(Heading("管理账户")); panel.Children.Add(ActionButton("刷新账户", _ => { Refresh(); return Task.CompletedTask; })); panel.Children.Add(list);
         panel.Children.Add(Row(ActionButton("使用此账户", _ =>
         {
@@ -47,7 +54,7 @@ public sealed partial class MainWindow
         {
             RequireHttps(server.Text);
             var result = await new AuthlibProvider(server.Text!).AuthenticateAsync(new AuthenticationRequest
-            { Username = username.Text, Password = password.Text, ProfileSelector = SelectAuthenticationProfile }, token);
+            { Username = username.Text, Password = password.Text, ProfileSelector = SelectAuthenticationProfile, ForceReselectProfile = true }, token);
             password.Text = ""; StoreAuthenticated(result);
         }));
         panel.Children.Add(discovery); panel.Children.Add(clientId);
@@ -56,7 +63,7 @@ public sealed partial class MainWindow
             RequireHttps(discovery.Text);
             var provider = new YggdrasilConnectProvider(discovery.Text!, clientId.Text, server.Text);
             await provider.InitializeAsync(token);
-            var result = await provider.AuthenticateAsync(new AuthenticationRequest { DeviceCodeHandler = PollThirdPartyDevice, ProfileSelector = SelectAuthenticationProfile }, token);
+            var result = await provider.AuthenticateAsync(new AuthenticationRequest { DeviceCodeHandler = PollThirdPartyDevice, ProfileSelector = SelectAuthenticationProfile, ForceReselectProfile = true }, token);
             _settings.ProviderClientIds[discovery.Text!] = clientId.Text ?? ""; StoreAuthenticated(result);
         }));
         return new ScrollViewer { Content = panel };
@@ -105,6 +112,7 @@ public sealed partial class MainWindow
             if (server.EndsWith("/authserver")) server = server[..^11]; RequireHttps(server);
             var metadata = JsonNode.Parse(await _http.GetStringAsync("https://authlib-injector.yushi.moe/artifact/latest.json", token))!;
             var hash = metadata["checksums"]?["sha256"]!.ToString() ?? throw new InvalidDataException("认证补丁缺少校验信息。");
+            if (hash.Length != 64 || !hash.All(Uri.IsHexDigit)) throw new InvalidDataException("认证补丁校验格式无效。");
             var path = Path.Combine(PCL.Core.App.Paths.SharedLocalData, "authlib-injector-" + hash + ".jar");
             await new GameInstaller(_http).DownloadAsync(metadata["download_url"]!.ToString(), path, null, null, token);
             await using var input = File.OpenRead(path);
@@ -118,7 +126,7 @@ public sealed partial class MainWindow
             var pair = line.Trim().Split('=', 2); if (pair.Length != 2 || string.IsNullOrWhiteSpace(pair[0])) throw new InvalidDataException("环境变量格式应为 NAME=VALUE。");
             environment[pair[0]] = pair[1];
         }
-        return new LaunchOptions { GameDirectory = CurrentDataDirectory, JvmArguments = jvm,
+        return new LaunchOptions { CaptureLogs = _settings.WindowBehavior != LaunchWindowBehavior.Exit || _lobby.IsRunning, GameDirectory = CurrentDataDirectory, JvmArguments = jvm,
             GameArguments = GameProcess.SplitLegacyArguments(preferences.GameArguments).ToArray(), Environment = environment,
             Width = preferences.Width, Height = preferences.Height, ServerAddress = preferences.ServerAddress };
     }
