@@ -62,8 +62,13 @@ public static class GameManifest
         merged["libraries"] = new JsonArray(libraries.ToArray());
         var arguments = new JsonObject();
         foreach (var kind in new[] { "jvm", "game" })
-            arguments[kind] = new JsonArray((parent["arguments"]?[kind]?.AsArray() ?? [])
+        {
+            var inherited = parent["arguments"]?[kind]?.AsArray();
+            if (kind == "game" && inherited is null && parent["minecraftArguments"] is { } legacy)
+                inherited = new JsonArray(GameProcess.SplitLegacyArguments(legacy.ToString()).Select(value => (JsonNode?)JsonValue.Create(value)).ToArray());
+            arguments[kind] = new JsonArray((inherited ?? [])
                 .Concat(child["arguments"]?[kind]?.AsArray() ?? []).Select(arg => arg?.DeepClone()).ToArray());
+        }
         if (parent["arguments"] is not null || child["arguments"] is not null) merged["arguments"] = arguments;
         return merged;
     }

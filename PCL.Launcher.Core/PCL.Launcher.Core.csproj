@@ -21,6 +21,9 @@
         <PackageReference Include="protobuf-net" Version="3.2.56" />
     </ItemGroup>
     <ItemGroup>
+        <EmbeddedResource Include="../Plain Craft Launcher 2/Resources/forge-installer.jar" LogicalName="PCL.ForgeInstallerHelper" />
+    </ItemGroup>
+    <ItemGroup>
         <Using Include="PCL.Text" />
         <Using Include="System.Text.Json" />
         <Using Include="System.Text.Json.Nodes" />

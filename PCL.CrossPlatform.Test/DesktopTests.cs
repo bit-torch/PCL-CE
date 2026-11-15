@@ -24,13 +24,18 @@ public class DesktopTests
                 var window = new MainWindow(new DesktopSettings { JavaPath = "/test/java" });
                 window.Show();
                 Dispatcher.UIThread.RunJobs();
-                var tabs = window.GetVisualDescendants().OfType<TabControl>().Single();
-                Assert.AreEqual(5, tabs.ItemCount);
+                var tabs = window.GetVisualDescendants().OfType<TabControl>().First();
+                Assert.AreEqual(8, tabs.ItemCount);
+                var visited = 0;
                 for (var i = 0; i < tabs.ItemCount; i++)
                 {
                     tabs.SelectedIndex = i;
                     Dispatcher.UIThread.RunJobs();
                     Assert.IsNotNull(tabs.SelectedContent);
+                    if (tabs.SelectedContent is TabControl nested)
+                    {
+                        foreach (var item in nested.Items.OfType<TabItem>()) { nested.SelectedItem = item; Dispatcher.UIThread.RunJobs(); Assert.IsNotNull(nested.SelectedContent); visited++; }
+                    }
                     if (Environment.GetEnvironmentVariable("PCL_TEST_SCREENSHOTS") is { } folder)
                     {
                         Directory.CreateDirectory(folder);
@@ -39,6 +44,7 @@ public class DesktopTests
                         frameImage.Save(Path.Combine(folder, $"desktop-{i}.png"));
                     }
                 }
+                Assert.IsTrue(visited >= 20, "Feature pages must be connected to navigation.");
                 var dispatcher = new AvaloniaUiDispatcher();
                 Assert.IsTrue(dispatcher.CheckAccess());
                 var frame = dispatcher.CreateModalFrame();
@@ -51,6 +57,6 @@ public class DesktopTests
         if (OperatingSystem.IsWindows()) thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
         Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(30)), "Avalonia initialization timed out.");
-        if (failure is not null) throw new AssertFailedException("Avalonia window failed to initialize.", failure);
+        if (failure is not null) throw new AssertFailedException("Avalonia window failed to initialize: " + failure, failure);
     }
 }

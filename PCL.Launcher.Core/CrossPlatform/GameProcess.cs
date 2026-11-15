@@ -26,8 +26,14 @@ public sealed class GameProcess(RuntimePlatform? platform = null)
     private readonly RuntimePlatform _platform = platform ?? RuntimePlatform.Current;
 
     public ProcessStartInfo CreateStartInfo(string root, string id, string java, LaunchAccount account,
-        int memoryMb, string nativesDirectory)
+        int memoryMb, string nativesDirectory, LaunchOptions? options = null)
     {
+        options ??= new LaunchOptions();
+        var gameDirectory = Path.GetFullPath(options.GameDirectory ?? root);
+        Directory.CreateDirectory(gameDirectory);
+        var features = new Dictionary<string, bool> { ["has_custom_resolution"] = options.Width.HasValue && options.Height.HasValue };
+        var quickPlay = !string.IsNullOrWhiteSpace(options.ServerAddress) && manifestQuickPlay(root, id);
+        features["has_quick_playsupport"] = quickPlay; features["is_quick_play_multiplayer"] = quickPlay;
         if (memoryMb < 256) throw new ArgumentOutOfRangeException(nameof(memoryMb));
         var manifest = GameManifest.Load(root, id);
         var classpath = new List<string>();
@@ -49,28 +55,33 @@ public sealed class GameProcess(RuntimePlatform? platform = null)
             ["auth_access_token"] = account.AccessToken, ["auth_session"] = "token:" + account.AccessToken + ":" + account.Uuid,
             ["user_type"] = account.UserType, ["user_properties"] = "{}", ["profile_properties"] = "{}",
             ["version_name"] = id, ["version_type"] = manifest["type"]?.ToString() ?? "release",
-            ["game_directory"] = Path.GetFullPath(root), ["assets_root"] = Path.GetFullPath(Path.Combine(root, "assets")),
+            ["game_directory"] = gameDirectory, ["assets_root"] = Path.GetFullPath(Path.Combine(root, "assets")),
             ["assets_index_name"] = assetId, ["game_assets"] = Path.GetFullPath(Path.Combine(root, "assets", "virtual", assetId)),
             ["natives_directory"] = nativesDirectory, ["library_directory"] = Path.GetFullPath(Path.Combine(root, "libraries")),
             ["classpath"] = string.Join(_platform.ClasspathSeparator, classpath),
             ["classpath_separator"] = _platform.ClasspathSeparator.ToString(),
             ["launcher_name"] = "PCL-CE", ["launcher_version"] = "cross-platform",
-            ["clientid"] = "", ["auth_xuid"] = ""
+            ["clientid"] = "", ["auth_xuid"] = "",
+            ["resolution_width"] = (options.Width ?? 854).ToString(), ["resolution_height"] = (options.Height ?? 480).ToString(),
+            ["quickPlayMultiplayer"] = options.ServerAddress ?? "", ["quickPlaySingleplayer"] = "", ["quickPlayRealms"] = "",
+            ["quickPlayPath"] = Path.Combine(gameDirectory, "logs", "quickplay.json")
         };
         string Expand(string arg) => Regex.Replace(arg, @"\$\{([^}]+)\}", match =>
             replacements.TryGetValue(match.Groups[1].Value, out var value) ? value
                 : throw new InvalidDataException($"Unsupported game argument: {match.Value}"));
         var psi = new ProcessStartInfo(java)
         {
-            UseShellExecute = false, WorkingDirectory = Path.GetFullPath(root),
+            UseShellExecute = false, WorkingDirectory = gameDirectory,
             RedirectStandardOutput = true, RedirectStandardError = true, CreateNoWindow = true
         };
         psi.ArgumentList.Add($"-Xmx{memoryMb}M");
-        var jvm = ExpandArguments(manifest["arguments"]?["jvm"] as JsonArray).ToList();
-        if (jvm.Count == 0)
-            jvm.AddRange(["-Djava.library.path=${natives_directory}", "-cp", "${classpath}"]);
+        var jvm = ExpandArguments(manifest["arguments"]?["jvm"] as JsonArray, features).ToList();
+        if (!jvm.Any(arg => arg.StartsWith("-Djava.library.path=", StringComparison.Ordinal)))
+            jvm.Add("-Djava.library.path=${natives_directory}");
+        if (!jvm.Any(arg => arg is "-cp" or "-classpath" or "--class-path"))
+            jvm.AddRange(["-cp", "${classpath}"]);
         if (_platform.Os == "osx" && !jvm.Contains("-XstartOnFirstThread")) jvm.Add("-XstartOnFirstThread");
-        foreach (var arg in jvm) psi.ArgumentList.Add(Expand(arg));
+        foreach (var arg in jvm.Concat(options.JvmArguments)) psi.ArgumentList.Add(Expand(arg));
         if (manifest["logging"]?["client"] is { } logging)
         {
             var configId = logging["file"]?["id"]?.ToString();
@@ -84,12 +95,23 @@ public sealed class GameProcess(RuntimePlatform? platform = null)
         psi.ArgumentList.Add(manifest["mainClass"]?.ToString() ?? throw new InvalidDataException("Missing mainClass."));
         var game = manifest["arguments"]?["game"] as JsonArray;
         foreach (var arg in game is not null && game.Count != 0
-                     ? ExpandArguments(game) : SplitLegacyArguments(manifest["minecraftArguments"]?.ToString() ?? ""))
+                     ? ExpandArguments(game, features) : SplitLegacyArguments(manifest["minecraftArguments"]?.ToString() ?? ""))
             psi.ArgumentList.Add(Expand(arg));
+        foreach (var arg in options.GameArguments) psi.ArgumentList.Add(Expand(arg));
+        if (!quickPlay && !string.IsNullOrWhiteSpace(options.ServerAddress))
+        {
+            var server = new Uri("minecraft://" + options.ServerAddress);
+            psi.ArgumentList.Add("--server"); psi.ArgumentList.Add(server.Host);
+            psi.ArgumentList.Add("--port"); psi.ArgumentList.Add((server.Port < 0 ? 25565 : server.Port).ToString());
+        }
+        foreach (var (key, value) in options.Environment) psi.Environment[key] = value;
         return psi;
     }
 
-    public Process Start(string root, string id, string java, LaunchAccount account, int memoryMb, Action<string>? log = null)
+    private static bool manifestQuickPlay(string root, string id) =>
+        GameManifest.Load(root, id)["arguments"]?.ToJsonString().Contains("${quickPlayMultiplayer}", StringComparison.Ordinal) == true;
+
+    public Process Start(string root, string id, string java, LaunchAccount account, int memoryMb, Action<string>? log = null, LaunchOptions? options = null)
     {
         var manifest = GameManifest.Load(root, id);
         var nativeDir = Path.Combine(Path.GetTempPath(), "PCLCE", "natives", Guid.NewGuid().ToString("N"));
@@ -98,7 +120,7 @@ public sealed class GameProcess(RuntimePlatform? platform = null)
         {
             ExtractNatives(root, manifest, nativeDir);
             MaterializeLegacyAssets(root, manifest);
-            var process = new Process { StartInfo = CreateStartInfo(root, id, java, account, memoryMb, nativeDir), EnableRaisingEvents = true };
+            var process = new Process { StartInfo = CreateStartInfo(root, id, java, account, memoryMb, nativeDir, options), EnableRaisingEvents = true };
             void LogLine(object sender, DataReceivedEventArgs e)
             {
                 if (e.Data is { } line)
@@ -126,13 +148,13 @@ public sealed class GameProcess(RuntimePlatform? platform = null)
         }
     }
 
-    private IEnumerable<string> ExpandArguments(JsonArray? arguments)
+    private IEnumerable<string> ExpandArguments(JsonArray? arguments, IReadOnlyDictionary<string, bool>? features = null)
     {
         if (arguments is null) yield break;
         foreach (var argument in arguments)
         {
             if (argument is JsonValue value) yield return value.ToString();
-            else if (argument is JsonObject item && _platform.Allows(item["rules"] as JsonArray))
+            else if (argument is JsonObject item && _platform.Allows(item["rules"] as JsonArray, features))
             {
                 if (item["value"] is JsonArray values)
                 {

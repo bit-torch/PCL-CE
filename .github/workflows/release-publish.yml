@@ -40,6 +40,7 @@ jobs:
         run: |
           version="${INPUT_VERSION:-${REF_NAME#v}}"
           configuration="${INPUT_CONFIGURATION:-Release}"
+          [[ "$version" =~ ^[0-9][0-9A-Za-z.+-]*$ ]] || { echo "Invalid release version" >&2; exit 1; }
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "configuration=$configuration" >> "$GITHUB_OUTPUT"
 
@@ -59,6 +60,12 @@ jobs:
       configuration: ${{ matrix.configuration }}
       architecture: ${{ matrix.architecture }}
     secrets: inherit
+
+  desktop:
+    needs: [prepare]
+    uses: ./.github/workflows/cross-platform.yml
+    with:
+      configuration: ${{ needs.prepare.outputs.configuration }}
 
   changelog:
     needs: [prepare]
@@ -145,3 +152,41 @@ jobs:
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           tag_name: v${{ needs.prepare.outputs.version }}
+
+  publish_desktop:
+    needs: [prepare, desktop, changelog]
+    permissions:
+      actions: read
+      contents: write
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download desktop packages
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: desktop-*
+          merge-multiple: true
+          path: artifact
+      - name: Add release version to package names
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          for path in artifact/PCL-CE-*.tar.gz; do
+            name=$(basename "$path" .tar.gz)
+            mv "$path" "$name-$VERSION.tar.gz"
+          done
+      - name: Sign desktop packages
+        uses: sigstore/gh-action-sigstore-python@790bc6befb9d733738f18d8f895854b453640ec9 # v3.5.0
+        with:
+          inputs: PCL-CE-*.tar.gz
+          verify: true
+          verify-cert-identity: https://github.com/${{ github.repository }}/.github/workflows/release-publish.yml@${{ github.ref }}
+          verify-oidc-issuer: https://token.actions.githubusercontent.com
+      - name: Attach desktop packages to release
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+        with:
+          draft: true
+          tag_name: v${{ needs.prepare.outputs.version }}
+          files: |
+            PCL-CE-*.tar.gz
+            PCL-CE-*.sigstore.json

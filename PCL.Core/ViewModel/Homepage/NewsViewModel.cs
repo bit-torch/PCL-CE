@@ -89,7 +89,7 @@ public partial class NewsViewModel : ObservableObject
         Basics.OpenPath(url!);
     }
 
-    internal static bool IsSafeNewsLink(string? url)
+    public static bool IsSafeNewsLink(string? url)
     {
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return false;
         if (!uri.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase) &&

@@ -16,11 +16,11 @@ using PCL.CrossPlatform;
 
 namespace PCL.Avalonia;
 
-public sealed class MainWindow : Window
+public sealed partial class MainWindow : Window
 {
     private readonly DesktopSettings _settings;
     private readonly bool _canSave;
-    private readonly HttpClient _http = new() { Timeout = TimeSpan.FromMinutes(10) };
+    private readonly HttpClient _http;
     private readonly List<Control> _operationControls = [];
     private readonly ComboBox _installed = new() { MinWidth = 320, HorizontalAlignment = HorizontalAlignment.Stretch };
     private readonly ListBox _available = new() { Height = 280 };
@@ -38,6 +38,8 @@ public sealed class MainWindow : Window
     private readonly Button _stop = new() { Content = "停止游戏", IsEnabled = false };
     private CancellationTokenSource? _operation;
     private Process? _game;
+    private bool _allowClose;
+    private TaskCompletionSource? _operationFinished;
     private McProfile? _profile;
 
     public MainWindow(DesktopSettings? settings = null)
@@ -47,13 +49,18 @@ public sealed class MainWindow : Window
         string? startupError = null;
         try { _settings = settings ?? DesktopSettings.Load(); _canSave = true; }
         catch (Exception ex) { _settings = new(); startupError = "设置文件无法读取，已保留原文件：" + ex.Message; }
+        _http = new HttpClient(new DownloadRoutingHandler(() => _settings.DownloadMirror, new SocketsHttpHandler { Proxy = PCL.Core.IO.Net.Http.HttpProxyManager.Instance })) { Timeout = TimeSpan.FromMinutes(10) };
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("PCL-CE/1.0");
+        ApplyProxySettings();
+        _localization.ApplyLanguageResources("zh-CN", _settings.Language);
+        PCL.Core.Platform.PlatformServices.Localization = _localization;
         _root.Text = _settings.GameDirectory;
         _java.Text = _settings.JavaPath;
         _offlineName.Text = _settings.OfflineName;
         _clientId.Text = _settings.MicrosoftClientId;
         _memory.Value = Math.Clamp(_settings.MemoryMb, 256, 131072);
         ApplyTheme(_settings.DarkTheme);
-        try { _profile = _settings.LoadAccount(); }
+        try { _profile = _settings.SelectedAccount(); }
         catch (Exception ex) { startupError = "已保存的账户无法解密，原数据已保留：" + ex.Message; }
         RefreshAccount();
 
@@ -61,10 +68,13 @@ public sealed class MainWindow : Window
         header.Children.Add(new TextBlock { Text = "PCL Community Edition", FontSize = 27, FontWeight = FontWeight.SemiBold });
         header.Children.Add(new TextBlock { Text = $"跨平台预览 · {RuntimePlatform.Current.Os} / {RuntimePlatform.Current.Architecture}", Opacity = .65 });
         var tabs = new TabControl { Margin = new Thickness(20, 0) };
+        tabs.Items.Add(new TabItem { Header = "主页", Content = HomepagePage() });
         tabs.Items.Add(new TabItem { Header = "启动", Content = LaunchPage() });
-        tabs.Items.Add(new TabItem { Header = "下载", Content = DownloadPage() });
-        tabs.Items.Add(new TabItem { Header = "账户", Content = AccountPage() });
-        tabs.Items.Add(new TabItem { Header = "设置", Content = SettingsPage() });
+        tabs.Items.Add(new TabItem { Header = "安装与资源", Content = InstallationPages() });
+        tabs.Items.Add(new TabItem { Header = "实例管理", Content = InstancePages() });
+        tabs.Items.Add(new TabItem { Header = "账户", Content = AccountPages() });
+        tabs.Items.Add(new TabItem { Header = "设置", Content = PreferencePages() });
+        tabs.Items.Add(new TabItem { Header = "工具", Content = ToolsPages() });
         tabs.Items.Add(new TabItem { Header = "日志", Content = new ScrollViewer { Content = _log, Margin = new Thickness(6, 16) } });
         var footer = new StackPanel { Margin = new Thickness(26, 12, 26, 18), Spacing = 10 };
         footer.Children.Add(_progress);
@@ -77,17 +87,25 @@ public sealed class MainWindow : Window
             catch (Exception ex) { Report(ex.Message); }
         };
         var layout = new Grid { RowDefinitions = new RowDefinitions("Auto,*,Auto") };
+        Grid.SetRowSpan(_background, 3); layout.Children.Add(_background);
         layout.Children.Add(header); Grid.SetRow(tabs, 1); layout.Children.Add(tabs);
         Grid.SetRow(footer, 2); layout.Children.Add(footer); Content = layout;
-        Closing += (_, e) =>
+        ApplyBackground(); TranslateVisuals(this);
+        Closing += async (_, e) =>
         {
+            if (_allowClose) return;
             if (_game is { HasExited: false })
             {
                 e.Cancel = true; Report("游戏正在运行，请先退出游戏或点击“停止游戏”。"); return;
             }
-            _operation?.Cancel();
+            if (_operationFinished is not null || _lobby.IsRunning)
+            {
+                e.Cancel = true; _operation?.Cancel();
+                if (_operationFinished is { } pending) await pending.Task;
+                await _lobby.DisposeAsync(); _allowClose = true; Close();
+            }
         };
-        Closed += (_, _) => { _http.Dispose(); _game?.Dispose(); };
+        Closed += async (_, _) => { await _lobby.DisposeAsync(); _mediaPlayer.Dispose(); _backgroundBitmap?.Dispose(); _http.Dispose(); _game?.Dispose(); };
         Opened += async (_, _) =>
         {
             RefreshInstalled();
@@ -107,7 +125,7 @@ public sealed class MainWindow : Window
         panel.Children.Add(Row(ActionButton("启动游戏", Launch), ActionButton("检查并修复文件", Repair)));
         panel.Children.Add(new TextBlock
         {
-            Text = "支持原版安装与标准版本 JSON 的启动。已安装的 Fabric / Forge 版本可尝试启动；整合包安装、联机与旧版自定义主页尚在迁移。",
+            Text = "可在“安装与资源”安装加载器和整合包，在“实例管理”管理 Mod、存档与服务器。",
             TextWrapping = TextWrapping.Wrap, Opacity = .65, Margin = new Thickness(0, 18, 0, 0)
         });
         return new ScrollViewer { Content = panel };
@@ -143,7 +161,7 @@ public sealed class MainWindow : Window
         panel.Children.Add(new TextBlock { Text = "使用已获 Minecraft API 权限的应用客户端 ID。授权时会显示设备码，并在浏览器中完成登录。", TextWrapping = TextWrapping.Wrap, Opacity = .65 });
         panel.Children.Add(Row(ActionButton("微软账户登录", Login), ActionButton("退出账户", _ =>
         {
-            _profile = null; _settings.EncryptedAccount = null; SaveSettings(); RefreshAccount(); return Task.CompletedTask;
+            _settings.RemoveSelectedAccount(); _profile = _settings.SelectedAccount(); SaveSettings(); RefreshAccount(); return Task.CompletedTask;
         })));
         return new ScrollViewer { Content = panel };
     }
@@ -198,7 +216,7 @@ public sealed class MainWindow : Window
                 throw new TimeoutException("设备授权已超时，请重新登录。");
             }
         }, token);
-        _settings.StoreAccount(result); _profile = _settings.LoadAccount(); SaveSettings(); RefreshAccount();
+        _settings.StoreAccount(result); _profile = _settings.SelectedAccount(); SaveSettings(); RefreshAccount();
         Report("登录成功。");
     }
 
@@ -218,20 +236,23 @@ public sealed class MainWindow : Window
         if (_useAccount.IsChecked == true)
         {
             var profile = _profile ?? throw new InvalidOperationException("请先登录账户。");
-            if (profile.IsExpired)
+            if (profile.IsExpired || profile.ProfileType == PCL.Core.Minecraft.Profile.Models.ProfileType.Authlib)
             {
-                var refreshed = await new MicrosoftProvider(_clientId.Text).RefreshAsync(profile, token);
-                _settings.StoreAccount(refreshed); _profile = _settings.LoadAccount(); SaveSettings(); RefreshAccount();
+                var provider = AccountProvider(profile);
+                if (provider is YggdrasilConnectProvider connect) await connect.InitializeAsync(token);
+                var refreshed = await provider.RefreshAsync(profile, token);
+                _settings.StoreAccount(refreshed); _profile = _settings.SelectedAccount(); SaveSettings(); RefreshAccount();
                 profile = _profile!;
             }
-            account = new(profile.UserName, profile.Uuid, profile.AccessToken);
+            account = new(profile.UserName, profile.Uuid, profile.AccessToken, profile.ProfileType == PCL.Core.Minecraft.Profile.Models.ProfileType.Microsoft ? "msa" : "mojang");
         }
         else account = LaunchAccount.Offline(_offlineName.Text ?? "");
         token.ThrowIfCancellationRequested();
         var root = GameRoot;
+        var launchOptions = await BuildLaunchOptions(token);
         var memory = (int)(_memory.Value ?? 2048);
         _game = await Task.Run(() => new GameProcess().Start(root, id, javaPath, account,
-            memory, line => Dispatcher.UIThread.Post(() => AppendLog(line))), token);
+            memory, line => Dispatcher.UIThread.Post(() => AppendLog(line)), launchOptions), token);
         _stop.IsEnabled = true; Report($"{id} 已启动。");
         _ = ObserveGame(_game);
     }
@@ -317,6 +338,7 @@ public sealed class MainWindow : Window
     {
         if (_operation is not null) return;
         using var source = new CancellationTokenSource(); _operation = source;
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously); _operationFinished = completion;
         foreach (var control in _operationControls) control.IsEnabled = false;
         _cancel.IsEnabled = true; _progress.Value = 0;
         try { await action(source.Token); }
@@ -324,7 +346,7 @@ public sealed class MainWindow : Window
         catch (Exception ex) { Report("操作失败：" + ex.Message); }
         finally
         {
-            _operation = null; _cancel.IsEnabled = false;
+            _operation = null; _operationFinished = null; completion.TrySetResult(); _cancel.IsEnabled = false;
             foreach (var control in _operationControls) control.IsEnabled = true;
         }
     }

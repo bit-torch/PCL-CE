@@ -1,6 +1,12 @@
 name: Cross-platform desktop
 
 on:
+  workflow_call:
+    inputs:
+      configuration:
+        type: string
+        default: Release
+        required: false
   push:
     branches: [main, dev]
     paths: &paths
@@ -20,13 +26,14 @@ permissions:
   contents: read
 
 concurrency:
-  group: desktop-${{ github.ref }}
+  group: desktop-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: '1'
   AVALONIA_TELEMETRY_OPTOUT: '1'
   DOTNET_NOLOGO: '1'
+  BUILD_CONFIGURATION: ${{ inputs.configuration || 'Release' }}
 
 jobs:
   desktop:
@@ -55,7 +62,7 @@ jobs:
         shell: bash
         run: |
           for rid in ${{ matrix.rids }}; do
-            dotnet publish PCL.Avalonia/PCL.Avalonia.csproj -c Release -r "$rid" --self-contained true -o "artifact/$rid"
+            dotnet publish PCL.Avalonia/PCL.Avalonia.csproj -c "$BUILD_CONFIGURATION" -r "$rid" --self-contained true -o "artifact/$rid"
             if [[ "$rid" == osx-* ]]; then
               app="artifact/$rid/PCL CE.app/Contents"
               mkdir -p "$app/MacOS" "$app/Resources"

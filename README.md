@@ -43,7 +43,7 @@ PCL CE 是基于 PCL 开源代码二次开发的社区版本，包括了主线�
 
 **❌ 不支持**：PCL CE 在这些平台的可用性较低，甚至压根打不开。请升级操作系统以使用 PCL CE。
 
-**🧪 跨平台预览**：通过 `PCL.Avalonia` 提供原版安装、版本选择、Java 检测和游戏启动。原 WPF 全部功能尚未迁移，详见 [跨平台构建、使用与功能范围](docs/cross-platform.md)。
+**🧪 跨平台预览**：通过 `PCL.Avalonia` 提供安装、资源与整合包、实例管理、多账户、联机和工具页面。兼容范围与外部运行依赖详见 [跨平台构建、使用与功能范围](docs/cross-platform.md)。
 
 ```bash
 dotnet run --project PCL.Avalonia/PCL.Avalonia.csproj
