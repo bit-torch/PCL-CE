@@ -5,7 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageDownloadMod"
     PanScroll="{Binding ElementName=Content, Path=ListScroll}"
-    xmlns:loc="https://ce.pclc.cc/core/localization">
+    xmlns:loc="clr-namespace:PCL.Core.App.Localization;assembly=PCL.Core.Wpf">
     <local:PageComp x:Name="Content" PageType="Mod">
         <local:MyComboBoxItem Content="{loc:Loc Common.Option.All}" Tag="" IsSelected="True" />
         <local:MyComboBoxItem Content="{loc:Loc Download.Comp.Category.WorldGen}"

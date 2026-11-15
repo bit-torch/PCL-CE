@@ -4,7 +4,7 @@
     xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageLogRight"
-    xmlns:loc="https://ce.pclc.cc/core/localization">
+    xmlns:loc="clr-namespace:PCL.Core.App.Localization;assembly=PCL.Core.Wpf">
     <Grid>
         <Grid x:Name="PanAllBack">
             <local:MyCard Margin="16,16,16,100" x:Name="PanLogCard">

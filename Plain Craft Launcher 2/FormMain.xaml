@@ -32,7 +32,7 @@
         WindowStartupLocation="CenterScreen"
         WindowStyle="SingleBorderWindow"
         AllowsTransparency="False"
-        xmlns:loc="https://ce.pclc.cc/core/localization">
+        xmlns:loc="clr-namespace:PCL.Core.App.Localization;assembly=PCL.Core.Wpf">
     <Window.TaskbarItemInfo>
         <TaskbarItemInfo ThumbnailClipMargin="{Binding Margin, ElementName=PanForm}" />
     </Window.TaskbarItemInfo>

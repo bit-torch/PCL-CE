@@ -5,7 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageInstanceInstall"
     PanScroll="{Binding ElementName=PanBack}"
-    xmlns:loc="https://ce.pclc.cc/core/localization">
+    xmlns:loc="clr-namespace:PCL.Core.App.Localization;assembly=PCL.Core.Wpf">
     <Grid>
         <Grid x:Name="PanAllBack">
             <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"

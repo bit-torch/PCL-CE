@@ -1,4 +1,4 @@
-<Application x:Class="PCL.Application"
+﻿<Application x:Class="PCL.Application"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:PCL"
@@ -6,7 +6,7 @@
              xmlns:behaviors="clr-namespace:PCL.Controls.Behaviors"
              xmlns:controls="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core.Wpf"
              xmlns:cvt="clr-namespace:PCL.Core.UI.Converters;assembly=PCL.Core.Wpf"
-             xmlns:loc="https://ce.pclc.cc/core/localization"
+             xmlns:loc="clr-namespace:PCL.Core.App.Localization;assembly=PCL.Core.Wpf"
              ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
         <ResourceDictionary>
