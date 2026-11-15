@@ -312,7 +312,7 @@
     <!-- Download -->
 
     <sys:String x:Key="Download.Error.OperationFailed">A download page operation failed. See the details below.</sys:String>
-    <sys:String x:Key="Download.Error.CustomSourceRequired">No download source has been added. Please fill in a custom download source in Settings → Game Management before downloading game or modpack resources.</sys:String>
+    <sys:String x:Key="Download.Error.CustomSourceRequired">No download source has been added. Please add one in Settings → Game Management → Manage Download Sources before downloading game or modpack resources.</sys:String>
 
     <!-- Download.Comp -->
 
@@ -2723,9 +2723,15 @@
     <sys:String x:Key="Setup.GameManage.Source.UseOfficial">Prefer official sources</sys:String>
     <sys:String x:Key="Setup.GameManage.Source.Version">Version list source</sys:String>
     <sys:String x:Key="Setup.GameManage.Source.Version.Mirror">Prefer mirror sources (recently released versions may be missing)</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Title">Download Sources</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Description">At least one download source is required before downloading games or modpacks. You can add multiple sources; the selected one is used for downloads.</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Empty">No download source has been added.</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Add">Add</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Add.Hint">Enter a mirror URL, e.g. https://example.com</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Add.Invalid">Please enter a valid HTTP(S) download source URL.</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Add.Duplicate">This download source already exists.</sys:String>
     <sys:String x:Key="Setup.GameManage.Source.Custom">Custom download source</sys:String>
-    <sys:String x:Key="Setup.GameManage.Source.Custom.Hint">Required. Downloads are unavailable while this is empty.</sys:String>
-    <sys:String x:Key="Setup.GameManage.Source.Custom.ToolTip">Manually enter the mirror source URL (must be compatible with the BMCLAPI path layout); it will be used for all mirror downloads.</sys:String>
+    <sys:String x:Key="Setup.GameManage.Source.Manage">Manage Download Sources</sys:String>
 
     <!-- Setup.GameManage.Accessibility -->
 
@@ -2976,6 +2982,7 @@
     <sys:String x:Key="Setup.Left.Item.Feedback">Feedback</sys:String>
     <sys:String x:Key="Setup.Left.Item.GameLink">Multiplayer</sys:String>
     <sys:String x:Key="Setup.Left.Item.GameManage">Management</sys:String>
+    <sys:String x:Key="Setup.Left.Item.DownloadSource">Download Sources</sys:String>
     <sys:String x:Key="Setup.Left.Item.Java">Java</sys:String>
     <sys:String x:Key="Setup.Left.Item.Launch">Launch</sys:String>
     <sys:String x:Key="Setup.Left.Item.Log">Logs</sys:String>

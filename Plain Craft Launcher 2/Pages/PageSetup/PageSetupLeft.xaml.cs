@@ -30,6 +30,7 @@ public partial class PageSetupLeft : IPageView
         if (ItemLaunch.Checked && hide.SetupLaunch) isHiddenPage = true;
         if (ItemJava.Checked && hide.SetupJava) isHiddenPage = true;
         if (ItemGameManage.Checked && hide.SetupGameManage)  isHiddenPage = true;
+        if (ItemDownloadSource.Checked && hide.SetupGameManage) isHiddenPage = true;
         if (ItemGameLink.Checked && hide.SetupGameLink) isHiddenPage = true;
         if (ItemUI.Checked && hide.SetupUi) isHiddenPage = true;
         if (ItemLauncherLanguage.Checked && hide.SetupLauncherLanguage) isHiddenPage = true;
@@ -126,6 +127,14 @@ public partial class PageSetupLeft : IPageView
                         Launcher.frmSetupGameLink = new PageSetupGameLink();
                     Launcher.frmSetupGameLink.Reset();
                     ItemGameLink.Checked = true;
+                    break;
+                }
+                case FormMain.PageSubType.SetupDownloadSource:
+                {
+                    if (Launcher.frmSetupDownloadSource is null)
+                        Launcher.frmSetupDownloadSource = new PageSetupDownloadSource();
+                    Launcher.frmSetupDownloadSource.Reset();
+                    ItemDownloadSource.Checked = true;
                     break;
                 }
                 case FormMain.PageSubType.SetupLauncherLanguage:
@@ -295,6 +304,12 @@ public partial class PageSetupLeft : IPageView
                 if (Launcher.frmSetupGameLink is null)
                     Launcher.frmSetupGameLink = new PageSetupGameLink();
                 return Launcher.frmSetupGameLink;
+            }
+            case FormMain.PageSubType.SetupDownloadSource:
+            {
+                if (Launcher.frmSetupDownloadSource is null)
+                    Launcher.frmSetupDownloadSource = new PageSetupDownloadSource();
+                return Launcher.frmSetupDownloadSource;
             }
             case FormMain.PageSubType.SetupLauncherLanguage:
             {

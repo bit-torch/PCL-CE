@@ -270,7 +270,7 @@
     <!-- Download -->
 
     <sys:String x:Key="Download.Error.OperationFailed">下載頁面操作失敗。請檢視錯誤詳情。</sys:String>
-    <sys:String x:Key="Download.Error.CustomSourceRequired">尚未新增下載來源，請先在「設定 → 遊戲管理 → 遊戲資源取得行為」中填寫自訂下載來源，然後再下載遊戲或整合包資源。</sys:String>
+    <sys:String x:Key="Download.Error.CustomSourceRequired">尚未新增下載來源，請先在「設定 → 遊戲管理 → 管理下載來源」中新增下載來源，然後再下載遊戲或整合包資源。</sys:String>
 
     <!-- Download.Comp -->
 
@@ -2628,9 +2628,15 @@
     <sys:String x:Key="Setup.GameManage.Source.UseOfficial">盡量使用官方源</sys:String>
     <sys:String x:Key="Setup.GameManage.Source.Version">版本清單源</sys:String>
     <sys:String x:Key="Setup.GameManage.Source.Version.Mirror">盡量使用鏡像來源（可能缺少剛更新的版本）</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Title">下載來源管理</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Description">下載遊戲與整合包前需要至少新增一個下載來源。可以新增多個來源，目前選取的來源用於下載。</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Empty">尚未新增下載來源。</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Add">新增</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Add.Hint">輸入鏡像來源位址，如 https://example.com</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Add.Invalid">請輸入有效的 HTTP(S) 下載來源位址。</sys:String>
+    <sys:String x:Key="Setup.DownloadSource.Add.Duplicate">該下載來源已存在。</sys:String>
     <sys:String x:Key="Setup.GameManage.Source.Custom">自訂下載來源</sys:String>
-    <sys:String x:Key="Setup.GameManage.Source.Custom.Hint">必填，留空將無法下載遊戲與整合包資源</sys:String>
-    <sys:String x:Key="Setup.GameManage.Source.Custom.ToolTip">手動填寫鏡像來源位址（需與 BMCLAPI 路徑結構相容），該位址將用於取代所有鏡像來源位址</sys:String>
+    <sys:String x:Key="Setup.GameManage.Source.Manage">管理下載來源</sys:String>
 
     <!-- Setup.GameManage.Accessibility -->
 
@@ -2872,6 +2878,7 @@
     <sys:String x:Key="Setup.Left.Item.Feedback">回饋</sys:String>
     <sys:String x:Key="Setup.Left.Item.GameLink">連線</sys:String>
     <sys:String x:Key="Setup.Left.Item.GameManage">管理</sys:String>
+    <sys:String x:Key="Setup.Left.Item.DownloadSource">下載來源</sys:String>
     <sys:String x:Key="Setup.Left.Item.Java">Java</sys:String>
     <sys:String x:Key="Setup.Left.Item.Launch">啟動</sys:String>
     <sys:String x:Key="Setup.Left.Item.Log">檢視日誌</sys:String>

@@ -796,6 +796,9 @@ public partial class PageSetupUI : IPageView
                 Launcher.frmSetupLeft.ItemGameManage.Visibility = !HiddenForceShow && conf.SetupGameManage
                     ? Visibility.Collapsed
                     : Visibility.Visible;
+                Launcher.frmSetupLeft.ItemDownloadSource.Visibility = !HiddenForceShow && conf.SetupGameManage
+                    ? Visibility.Collapsed
+                    : Visibility.Visible;
                 Launcher.frmSetupLeft.ItemLauncherMisc.Visibility = !HiddenForceShow && conf.SetupLauncherMisc
                     ? Visibility.Collapsed
                     : Visibility.Visible;

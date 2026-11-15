@@ -7,17 +7,45 @@ namespace PCL;
 /// <summary>下载源排序与镜像地址生成，供业务模块共享。</summary>
 public static class DownloadSources
 {
+    /// <summary>当前已添加的自定义镜像源基址列表。</summary>
+    public static IReadOnlyList<string> MirrorBases
+    {
+        get
+        {
+            var raw = Config.Download.CustomSource ?? "";
+            if (raw.Length == 0)
+                return [];
+
+            List<string> result = [];
+            foreach (var part in raw.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
+            {
+                var normalized = NormalizeSource(part);
+                if (normalized.Length == 0 || !IsValidSource(normalized))
+                    continue;
+                if (!result.Contains(normalized, StringComparer.OrdinalIgnoreCase))
+                    result.Add(normalized);
+            }
+            return result;
+        }
+    }
+
+    /// <summary>当前使用的自定义下载源序号；未添加时返回 0。</summary>
+    public static int ActiveIndex
+    {
+        get
+        {
+            var count = MirrorBases.Count;
+            return count == 0 ? 0 : Math.Clamp(Config.Download.CustomSourceIndex, 0, count - 1);
+        }
+    }
+
     /// <summary>当前使用的自定义镜像源基址；未配置时为空字符串。</summary>
     public static string MirrorBase
     {
         get
         {
-            var custom = (Config.Download.CustomSource ?? "").Trim();
-            if (string.IsNullOrEmpty(custom))
-                return "";
-            if (!custom.Contains("://"))
-                custom = "https://" + custom;
-            return custom.TrimEnd('/');
+            var bases = MirrorBases;
+            return bases.Count == 0 ? "" : bases[ActiveIndex];
         }
     }
 
@@ -30,6 +58,44 @@ public static class DownloadSources
         if (HasCustomSource) return true;
         HintService.Show(Hints.Error(Lang.Text("Download.Error.CustomSourceRequired")));
         return false;
+    }
+
+    /// <summary>规范化下载源地址：去除首尾空白、补全协议、移除末尾斜杠。</summary>
+    public static string NormalizeSource(string? source)
+    {
+        var value = (source ?? "").Trim();
+        if (value.Length == 0)
+            return "";
+        if (!value.Contains("://", StringComparison.Ordinal))
+            value = "https://" + value;
+        return value.TrimEnd('/');
+    }
+
+    /// <summary>判断下载源是否为有效的 HTTP(S) 地址。</summary>
+    public static bool IsValidSource(string? source)
+    {
+        return Uri.TryCreate(source, UriKind.Absolute, out var uri)
+               && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+               && !string.IsNullOrEmpty(uri.Host);
+    }
+
+    /// <summary>保存下载源列表与当前选中的序号。</summary>
+    public static void SaveSources(IReadOnlyList<string> sources, int activeIndex = 0)
+    {
+        List<string> normalized = [];
+        foreach (var source in sources)
+        {
+            var value = NormalizeSource(source);
+            if (value.Length == 0 || !IsValidSource(value))
+                continue;
+            if (!normalized.Contains(value, StringComparer.OrdinalIgnoreCase))
+                normalized.Add(value);
+        }
+
+        Config.Download.CustomSource = string.Join('\n', normalized);
+        Config.Download.CustomSourceIndex = normalized.Count == 0
+            ? 0
+            : Math.Clamp(activeIndex, 0, normalized.Count - 1);
     }
 
     /// <summary>下载文件时是否优先使用官方源。</summary>
