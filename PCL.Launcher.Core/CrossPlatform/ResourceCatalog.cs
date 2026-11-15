@@ -104,7 +104,22 @@ public sealed class ResourceCatalog(HttpClient client, string? curseForgeKey = n
                 var hash = provider == ResourceProvider.Modrinth ? file["hashes"]?["sha1"]?.ToString()
                     : file["hashes"]?.AsArray().FirstOrDefault(h => h?["algo"]?.GetValue<int>() == 1)?["value"]?.ToString();
                 var size = file[provider == ResourceProvider.Modrinth ? "size" : "fileLength"]?.GetValue<long>();
-                await new GameInstaller(client).DownloadAsync(url, target, hash, size, token);
+                if (!File.Exists(target)) await new GameInstaller(client).DownloadAsync(url, target, hash, size, token);
+                else
+                {
+                    // Verify the replacement before touching an existing resource, retaining a recoverable copy.
+                    var staged = target + ".update-" + Guid.NewGuid().ToString("N");
+                    string? backup = null;
+                    try
+                    {
+                        await new GameInstaller(client).DownloadAsync(url, staged, hash, size, token);
+                        token.ThrowIfCancellationRequested();
+                        backup = InstanceFiles.Archive(target, Path.Combine(destination, ".pcl-trash"));
+                        try { File.Move(staged, target); }
+                        catch { if (!File.Exists(target)) File.Move(backup, target); throw; }
+                    }
+                    finally { if (File.Exists(staged)) File.Delete(staged); }
+                }
                 installed.Add(target);
             }
         }

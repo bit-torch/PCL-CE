@@ -32,7 +32,9 @@ public class CliNetTest
         public required bool SupportIPv6;
     }
 
-    public async static Task<NetStatus?> GetNetStatusAsync(CancellationToken cancellationToken = default)
+    public static Task<NetStatus?> GetNetStatusAsync() => GetNetStatusAsync(CancellationToken.None);
+
+    public async static Task<NetStatus?> GetNetStatusAsync(CancellationToken cancellationToken)
     {
         using var cliProcess = new Process();
         cliProcess.StartInfo = new ProcessStartInfo

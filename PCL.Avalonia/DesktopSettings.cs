@@ -97,6 +97,8 @@ public sealed class DesktopSettings
 
 public sealed class InstancePreferences
 {
+    public string? JavaPath { get; set; }
+    public int MemoryMb { get; set; }
     public bool Isolated { get; set; }
     public string JvmArguments { get; set; } = "";
     public string GameArguments { get; set; } = "";

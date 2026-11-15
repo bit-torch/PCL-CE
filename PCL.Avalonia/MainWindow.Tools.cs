@@ -27,6 +27,9 @@ public sealed partial class MainWindow
                 if (folders.FirstOrDefault()?.TryGetLocalPath() is { } path) { directory.Text = path; _settings.EasyTierDirectory = path; SaveSettings(); }
             })));
         panel.Children.Add(port); panel.Children.Add(code); panel.Children.Add(relays);
+        var players = new ListBox { Height = 130 };
+        panel.Children.Add(ActionButton("刷新大厅成员", _ => { players.ItemsSource = _lobby.Players.ToArray(); return Task.CompletedTask; }));
+        panel.Children.Add(players);
         void Configure()
         {
             EasyTierMetadata.DirectoryOverride = string.IsNullOrWhiteSpace(directory.Text) ? null : directory.Text;

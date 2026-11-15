@@ -21,6 +21,23 @@ public class ResourceAndPackTests
     }
 
     [TestMethod]
+    public async Task ExistingResourceIsBackedUpAndInvalidReplacementLeavesItUntouched()
+    {
+        using var temp = new TemporaryDirectory(); var handler = new FixtureHttp(); using var client = new HttpClient(handler);
+        var release = Release("a", "unused"); release["dependencies"] = new JsonArray();
+        handler.Files["https://files.test/a.jar"] = Encoding.UTF8.GetBytes("a");
+        var original = Path.Combine(temp.Path, "a.jar"); File.WriteAllText(original, "previous");
+        var catalog = new ResourceCatalog(client);
+        await catalog.InstallAsync(ResourceProvider.Modrinth, new("a", "A", release), temp.Path, "", "", default);
+        Assert.AreEqual("a", File.ReadAllText(original));
+        Assert.IsTrue(Directory.GetFiles(Path.Combine(temp.Path, ".pcl-trash"), "*", SearchOption.AllDirectories).Any(f => File.ReadAllText(f) == "previous"));
+        handler.Files["https://files.test/a.jar"] = Encoding.UTF8.GetBytes("corrupt");
+        await Assert.ThrowsExactlyAsync<InvalidDataException>(() => catalog.InstallAsync(ResourceProvider.Modrinth, new("a", "A", release), temp.Path, "", "", default));
+        Assert.AreEqual("a", File.ReadAllText(original));
+        Assert.AreEqual(0, Directory.GetFiles(temp.Path, "*.update-*", SearchOption.AllDirectories).Length);
+    }
+
+    [TestMethod]
     public async Task LabyModUsesSupportedVersionManifestAndRejectsUnsupportedMinecraft()
     {
         var handler = new FixtureHttp(); using var client = new HttpClient(handler);

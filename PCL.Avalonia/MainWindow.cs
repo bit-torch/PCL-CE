@@ -75,7 +75,7 @@ public sealed partial class MainWindow : Window
         tabs.Items.Add(new TabItem { Header = "账户", Content = AccountPages() });
         tabs.Items.Add(new TabItem { Header = "设置", Content = PreferencePages() });
         tabs.Items.Add(new TabItem { Header = "工具", Content = ToolsPages() });
-        tabs.Items.Add(new TabItem { Header = "日志", Content = new ScrollViewer { Content = _log, Margin = new Thickness(6, 16) } });
+        tabs.Items.Add(new TabItem { Header = "日志", Content = LogsPage() });
         var footer = new StackPanel { Margin = new Thickness(26, 12, 26, 18), Spacing = 10 };
         footer.Children.Add(_progress);
         footer.Children.Add(_status);
@@ -235,7 +235,7 @@ public sealed partial class MainWindow : Window
     {
         if (_game is { HasExited: false }) throw new InvalidOperationException("游戏已经在运行。");
         var id = SelectedVersion; SaveSettings();
-        var javaPath = _java.Text?.Trim() ?? "";
+        var javaPath = (string.IsNullOrWhiteSpace(InstanceOptions.JavaPath) ? _java.Text : InstanceOptions.JavaPath)?.Trim() ?? "";
         if (!Path.IsPathFullyQualified(javaPath) || !File.Exists(javaPath))
             throw new InvalidOperationException("请在设置中选择 Java，或使用自动检测。");
         IJavaParser parser = OperatingSystem.IsWindows() ? new PeHeaderParser() : new ReleaseFileJavaParser();
@@ -261,7 +261,7 @@ public sealed partial class MainWindow : Window
         token.ThrowIfCancellationRequested();
         var root = GameRoot;
         var launchOptions = await BuildLaunchOptions(token);
-        var memory = (int)(_memory.Value ?? 2048);
+        var memory = InstanceOptions.MemoryMb > 0 ? InstanceOptions.MemoryMb : (int)(_memory.Value ?? 2048);
         _game = await Task.Run(() => new GameProcess().Start(root, id, javaPath, account,
             memory, line => Dispatcher.UIThread.Post(() => AppendLog(line)), launchOptions), token);
         _stop.IsEnabled = true; Report($"{id} 已启动。");
@@ -364,10 +364,31 @@ public sealed partial class MainWindow : Window
     }
     private static void ApplyTheme(bool dark) => Application.Current!.RequestedThemeVariant = dark ? ThemeVariant.Dark : ThemeVariant.Light;
     private void Report(string text) { _status.Text = text; AppendLog(text); }
+    private string _logText = "";
+    private readonly TextBox _logSearch = new() { Watermark = "筛选日志（忽略大小写）" };
+    private Control LogsPage()
+    {
+        var panel = Page(); panel.Children.Add(_logSearch);
+        _logSearch.TextChanged += (_, _) => RefreshLogView();
+        panel.Children.Add(Row(ActionButton("导出日志", async token =>
+        {
+            var target = await PickSave("导出启动器日志", "launcher.log");
+            if (target is not null) await File.WriteAllTextAsync(target, _logText, token);
+        }), ActionButton("复制筛选结果", async _ => { if (Clipboard is not null) await Clipboard.SetTextAsync(_log.Text); }),
+            ActionButton("清空日志", _ => { _logText = ""; RefreshLogView(); return Task.CompletedTask; })));
+        panel.Children.Add(_log); return new ScrollViewer { Content = panel };
+    }
     private void AppendLog(string text)
     {
-        var combined = (_log.Text ?? "") + text + Environment.NewLine;
-        _log.Text = combined.Length > 40000 ? combined[^30000..] : combined;
+        var combined = _logText + text + Environment.NewLine;
+        _logText = combined.Length > 40000 ? combined[^30000..] : combined;
+        RefreshLogView();
+    }
+    private void RefreshLogView()
+    {
+        var query = _logSearch.Text;
+        _log.Text = string.IsNullOrWhiteSpace(query) ? _logText : string.Join(Environment.NewLine,
+            _logText.Split(Environment.NewLine).Where(line => line.Contains(query, StringComparison.OrdinalIgnoreCase)));
         _log.CaretIndex = _log.Text.Length;
     }
 

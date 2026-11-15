@@ -30,18 +30,21 @@ public sealed partial class MainWindow
         var environment = new TextBox { Watermark = "环境变量，每行 NAME=VALUE", AcceptsReturn = true, Height = 80 };
         var width = new NumericUpDown { Minimum = 320, Maximum = 16384, Value = 854 }; var height = new NumericUpDown { Minimum = 240, Maximum = 16384, Value = 480 };
         var server = new TextBox { Watermark = "启动后加入的服务器地址（可留空）" };
+        var java = new TextBox { Watermark = "此版本的 Java 绝对路径（留空使用全局设置）" };
+        var memory = new NumericUpDown { Minimum = 0, Maximum = 1048576, Value = 0 };
         panel.Children.Add(ActionButton("载入当前版本设置", _ =>
         {
-            var options = InstanceOptions; isolated.IsChecked = options.Isolated; jvm.Text = options.JvmArguments;
+            var options = InstanceOptions; java.Text = options.JavaPath; memory.Value = options.MemoryMb; isolated.IsChecked = options.Isolated; jvm.Text = options.JvmArguments;
             arguments.Text = options.GameArguments; environment.Text = options.EnvironmentVariables;
             width.Value = options.Width; height.Value = options.Height; server.Text = options.ServerAddress;
             Report("已载入 " + SelectedVersion + " 的设置。"); return Task.CompletedTask;
         }));
+        panel.Children.Add(java); panel.Children.Add(Label("此版本最大内存（MiB，0 使用全局设置）")); panel.Children.Add(memory);
         panel.Children.Add(isolated); panel.Children.Add(jvm); panel.Children.Add(arguments); panel.Children.Add(environment);
         panel.Children.Add(Label("游戏窗口宽度与高度")); panel.Children.Add(Row(width, height)); panel.Children.Add(server);
         panel.Children.Add(ActionButton("保存当前版本设置", _ =>
         {
-            var options = InstanceOptions; options.Isolated = isolated.IsChecked == true; options.JvmArguments = jvm.Text ?? "";
+            var options = InstanceOptions; options.JavaPath = java.Text; options.MemoryMb = (int)(memory.Value ?? 0); options.Isolated = isolated.IsChecked == true; options.JvmArguments = jvm.Text ?? "";
             options.GameArguments = arguments.Text ?? ""; options.EnvironmentVariables = environment.Text ?? "";
             options.Width = (int)(width.Value ?? 854); options.Height = (int)(height.Value ?? 480); options.ServerAddress = server.Text ?? "";
             SaveSettings(); Report("实例设置已保存。"); return Task.CompletedTask;
