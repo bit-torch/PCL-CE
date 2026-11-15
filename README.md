@@ -2,7 +2,7 @@
 
 > [!IMPORTANT]
 > 本仓库（`bit-torch/PCL-CE`）由[比特火炬](https://github.com/bit-torch)维护，派生自上游仓库 [PCL-Community/PCL-CE](https://github.com/PCL-Community/PCL-CE)，并会不定期 rebase 上游更改。
-> 本仓库仅提供非官方发布与支持，请勿在此提交 Issue 或 Pull Request；非下载功能相关问题与反馈请前往[上游仓库](https://github.com/PCL-Community/PCL-CE/issues)。
+> 本仓库仅提供非官方发布与支持；非下载功能相关问题与反馈请前往[上游仓库](https://github.com/PCL-Community/PCL-CE/issues)。
 > 上游项目 PCL CE 基于 [Meloong-Git/PCL](https://github.com/Meloong-Git/PCL) 二次开发。
 > 本项目已脱离原fork网络（不要再查了）
 
