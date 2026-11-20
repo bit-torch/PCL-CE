@@ -6,7 +6,6 @@ namespace PCL.Test;
 
 /// <summary>架构边界：业务程序集不得引用 WPF。</summary>
 [TestClass]
-[TestCategory("KnownFailure")]
 public sealed class ArchitectureTest
 {
     [TestMethod]

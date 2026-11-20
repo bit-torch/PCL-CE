@@ -17,8 +17,7 @@
         <Platforms>AnyCPU;x64;ARM64</Platforms>
         <ProjectGuid>{A0C2209D-64FB-4C11-9459-8E86304B6F94}</ProjectGuid>
         <RootNamespace>PCL.Core</RootNamespace>
-        <TargetFramework>net10.0-windows</TargetFramework>
-        <EnableWindowsTargeting>true</EnableWindowsTargeting>
+        <TargetFramework>net10.0</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>15.0</LangVersion>
         <Nullable>enable</Nullable>
@@ -46,7 +45,6 @@
     <ItemGroup>
         <!-- UI -->
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
         <PackageReference Include="Wacton.Unicolour" Version="8.0.0" />
         <!-- 语言和系统特性 -->
         <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
@@ -87,6 +85,9 @@
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="**\*.cs" Exclude="bin\**;obj\**;publish\**;**\*.g.cs;SourceGenerators\**" />
+    </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="../Plain Craft Launcher 2/metadata.json" LogicalName="PCL.metadata.json" />
     </ItemGroup>
     <!-- 项目自定义源生成器 -->
     <ItemGroup>

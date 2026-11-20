@@ -131,7 +131,7 @@ public class JavaManager(
 
     private void _ScanInternal()
     {
-        var pathSet = new ConcurrentDictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        var pathSet = new ConcurrentDictionary<string, bool>(OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 
         Parallel.ForEach(_scanners, scanner =>
         {
@@ -183,6 +183,7 @@ public class JavaManager(
 
     private static bool _ShouldEnableByDefault(JavaInstallation inst)
     {
+        if (!OperatingSystem.IsWindows()) return inst.IsStillAvailable;
         var libDir = Path.Combine(Directory.GetParent(inst.JavaFolder)!.FullName, "lib");
         var isUsable = (!inst.IsJre && File.Exists(Path.Combine(libDir, "jvm.lib"))) ||
                        (inst.IsJre && File.Exists(Path.Combine(libDir, "rt.jar")));

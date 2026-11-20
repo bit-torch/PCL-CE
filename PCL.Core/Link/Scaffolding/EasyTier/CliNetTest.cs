@@ -1,6 +1,6 @@
 using System;
 using System.Diagnostics;
-using System.IO.Pipelines;
+using System.Threading;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -32,12 +32,14 @@ public class CliNetTest
         public required bool SupportIPv6;
     }
 
-    public async static Task<NetStatus?> GetNetStatusAsync()
+    public static Task<NetStatus?> GetNetStatusAsync() => GetNetStatusAsync(CancellationToken.None);
+
+    public async static Task<NetStatus?> GetNetStatusAsync(CancellationToken cancellationToken)
     {
         using var cliProcess = new Process();
         cliProcess.StartInfo = new ProcessStartInfo
         {
-            FileName = $"{EasyTierMetadata.EasyTierFilePath}\\easytier-cli.exe",
+            FileName = EasyTierMetadata.ExecutablePath("easytier-cli"),
             WorkingDirectory = EasyTierMetadata.EasyTierFilePath,
             Arguments = $"-o json stun",
             ErrorDialog = false,
@@ -53,18 +55,30 @@ public class CliNetTest
         };
         cliProcess.EnableRaisingEvents = true;
         cliProcess.Start();
-        var reader = PipeReader.Create(cliProcess.StandardOutput.BaseStream);
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(TimeSpan.FromSeconds(30));
+        using var registration = timeout.Token.Register(() =>
+        {
+            try { if (!cliProcess.HasExited) cliProcess.Kill(entireProcessTree: true); }
+            catch (InvalidOperationException) { }
+        });
+        // Drain stderr concurrently; a full redirected buffer must not deadlock STUN.
+        var stderr = cliProcess.StandardError.ReadToEndAsync(timeout.Token);
 
         StunInfo? stunInfo = null;
         try
         {
-            stunInfo = await JsonSerializer.DeserializeAsync<StunInfo>(reader, JsonCompat.SerializerOptions);
+            stunInfo = await JsonSerializer.DeserializeAsync<StunInfo>(cliProcess.StandardOutput.BaseStream, JsonCompat.SerializerOptions, timeout.Token);
         }
+        catch (OperationCanceledException) { throw; }
         catch (Exception ex)
         {
             LogWrapper.Warn(ex, "Link", "Failed to do net test");
         }
-        if (stunInfo is null) return null;
+        await cliProcess.WaitForExitAsync(timeout.Token);
+        await stderr;
+        cancellationToken.ThrowIfCancellationRequested();
+        if (stunInfo is null || cliProcess.ExitCode != 0) return null;
 
         var supportIPv6 = false;
         foreach (var ip in stunInfo.Ips)

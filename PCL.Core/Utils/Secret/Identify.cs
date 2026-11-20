@@ -14,6 +14,9 @@ public class Identify
 
     private static byte[] _GetRawId()
     {
+        if (!OperatingSystem.IsWindows())
+            return Encoding.UTF8.GetBytes(SHA512Provider.Instance.ComputeHash(
+                Environment.MachineName + "|" + Environment.UserName).ToHexString());
         var code = new StringBuilder();
         try
         {

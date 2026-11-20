@@ -8,7 +8,7 @@ using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
-using System.Windows;
+using PCL.Core.Platform;
 
 namespace PCL.Core.Logging;
 
@@ -46,7 +46,7 @@ public class LogService : ILifecycleLogService
     public Task StartAsync()
     {
         Context.Trace("正在初始化 Logger 实例");
-        var config = new LoggerConfiguration(Path.Combine(Basics.ExecutableDirectory, "PCL", "Log"));
+        var config = new LoggerConfiguration(Path.Combine(Paths.Data, "Log"));
         _logger = new Logger(config);
         Context.Trace("正在注册日志事件");
         LogWrapper.OnLog += _OnWrapperLog;
@@ -120,11 +120,10 @@ public class LogService : ILifecycleLogService
                     "SystemDialog.Fatal.Message.WithFeedbackGuidance",
                     _ComposeUserError(plain, entry.Exception));
 
-                MessageBox.Show(
-                    message,
-                    Lang.Text("SystemDialog.Fatal.Title"),
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                if (PlatformServices.DialogService is { } dialogs)
+                    dialogs.ShowFatal(message, Lang.Text("SystemDialog.Fatal.Title"));
+                else
+                    Console.Error.WriteLine(message);
 
                 break;
             }
