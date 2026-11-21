@@ -39,12 +39,12 @@
 | `Plain Craft Launcher 2/Images/**` | 图片 | 47 个（方块 16、头像 11、皮肤 9、图标 8、背景 1、根图标 2） | PCL 资产，部分含作者头像 | PCL 同源 | 新 UI 不复用；后续替换为自建图形或合法授权素材 |
 | `Plain Craft Launcher 2/Images/icon.ico`、`icon.png` | 应用图标 | 2 | PCL | PCL 同源 | 新桌面端需独立图标 |
 | `Plain Craft Launcher 2/Resources/Font.ttf` | 字体 | 1 | 待核 | 待核 | 确认许可证后再决定替换或保留 |
-| `Plain Craft Launcher 2/Resources/forge-installer.jar` | 第三方二进制 | 1 | Forge 项目 | 第三方 | 新方案改为直接下载官方安装器，不随包分发 |
-| `Plain Craft Launcher 2/Resources/legacyfix.jar` | 第三方二进制 | 1 | 评估记录为 GPL-3.0 | 第三方 | 不进入新方案；如需使用须单独合规评审 |
-| `Plain Craft Launcher 2/Resources/java-wrapper.jar` | 包装器 | 1 | 待核 | 待核 | 新方案直接使用 Java 进程，不依赖包装器 |
-| `Plain Craft Launcher 2/Resources/lwjgl-unsafe-agent.jar` | Java Agent | 1 | 待核 | 待核 | 迁移期不引入 |
-| `Plain Craft Launcher 2/Resources/transformer.jar` | Java Agent | 1 | 待核 | 待核 | 迁移期不引入 |
-| `Plain Craft Launcher 2/Resources/linkd.exe` | 联机组件 | 1 | EasyTier 相关 | 第三方 | 新方案联机模块尚未实现，先登记 |
+| `Plain Craft Launcher 2/Resources/forge-installer.jar` | 第三方二进制 | 1（6 KB） | `com.bangbang93.ForgeInstaller` | 第三方 | 新方案改为直接下载官方安装器，不随包分发 |
+| `Plain Craft Launcher 2/Resources/legacyfix.jar` | 第三方二进制 | 1（976 KB） | Betacraft LegacyFix，GPL-3.0 | 第三方（GPL-3.0） | 不进入新方案；如需使用须单独合规评审 |
+| `Plain Craft Launcher 2/Resources/java-wrapper.jar` | 包装器 | 1（16 KB） | `oolloo.jlw` 1.4.3，许可证待核 | 待核 | 新方案直接使用 Java 进程，不依赖包装器 |
+| `Plain Craft Launcher 2/Resources/lwjgl-unsafe-agent.jar` | Java Agent | 1（12 KB） | `org.glavo.lwjgl.UnsafeAgent`，许可证待核 | 待核 | 迁移期不引入 |
+| `Plain Craft Launcher 2/Resources/transformer.jar` | Java Agent | 1（4 KB） | HMCL `HMCLTransformerDiscoveryService`，GPL-3.0 | 第三方（GPL-3.0） | 迁移期不引入 |
+| `Plain Craft Launcher 2/Resources/linkd.exe` | Windows 工具 | 1（12 KB） | Microsoft `linkd` 5.2.3790.0，微软版权 | 第三方（再分发待核） | 新方案不使用目录联接即可，建议移除 |
 | `Plain Craft Launcher 2/Resources/hints/*.txt` | 文案 | 2 | PCL | PCL 同源 | 替换为新文案 |
 | `Plain Craft Launcher 2/Resources/log4j2-*.xml` | 日志配置 | 2 | PCL | PCL 同源 | 新方案按需自建 |
 | `Plain Craft Launcher 2/Resources/Markdown.xaml` | 样式 | 1 | PCL | PCL 同源 | 新 UI 不复用 |
@@ -62,6 +62,22 @@
 | `PCL.Desktop/Styles/Theme.axaml` | 自建颜色、卡片、按钮、导航样式 | 新实现 |
 | `PCL.Desktop/ViewModels/NavItem.cs` | 自绘 `StreamGeometry` 图标，未使用 PCL 图片 | 新实现 |
 | `Avalonia.Fonts.Inter` | Inter 字体，OFL-1.1 | 第三方 |
+
+### 3.1 随包二进制审计
+
+首轮审计基于归档内清单、类名与版本资源，未做法律意见：
+
+| 文件 | 关键证据 | 结论 |
+| --- | --- | --- |
+| `legacyfix.jar` | `uk.betacraft.legacyfix.LegacyFixAgent`，无归档内许可证文件 | Betacraft LegacyFix，GPL-3.0（沿用评估记录） |
+| `transformer.jar` | `org.jackhuang.hmcl.HMCLTransformerDiscoveryService` | HMCL 组件，GPL-3.0，新方案不得复制 |
+| `java-wrapper.jar` | `oolloo.jlw.Wrapper`，`libjlw-*-1.4.3.dll` | `oolloo` JLW 1.4.3，许可证待核 |
+| `lwjgl-unsafe-agent.jar` | `org.glavo.lwjgl.UnsafeAgent` | Glavo 作品，许可证待核 |
+| `forge-installer.jar` | `com.bangbang93.ForgeInstaller` | bangbang93 作品，许可证待核 |
+| `linkd.exe` | 版本资源指向 Microsoft `linkd` 5.2.3790.0 | 微软 Windows Resource Kit 工具，再分发条款待核；与 EasyTier 无关，此前判断需更正 |
+| `Font.ttf` | 无版权信息随包 | 待核，需追溯来源 |
+
+结论：仓库内存在两个 GPL-3.0 二进制（`legacyfix.jar`、`transformer.jar`）。二者均未进入新方案；在彻底移除前，仓库整体分发仍需评估 GPL 义务。
 
 ## 4. 专有逻辑台账
 
@@ -130,12 +146,36 @@
 | MSTest | 4.3.0 | 旧测试 | MIT |
 | Lucide Icons | 仓库内置 | 图标 | ISC |
 
-## 6. 待办与验收
+### 5.3 SBOM
+
+新方案依赖清单已生成：[sbom/rebuild.slnx.json](sbom/rebuild.slnx.json)。
+
+- 生成命令：`dotnet list PCL.Rebuild.slnx package --include-transitive --format json`
+- 覆盖项目：`PCL.Desktop`、`PCL.Kernel`、`PCL.Kernel.Abstractions`、`PCL.Tests`
+- 路径已改为仓库相对路径；依赖变更后需重新生成。
+- 旧方案仅在删除前保留，不再单独生成 SBOM。
+
+## 6. 标识扫描快照
+
+扫描时间：2026-11-22；范围：`.cs` / `.xaml` / `.json`；数字为命中文件数。
+
+| 标识 | 旧栈 | 新栈 | 说明 |
+| --- | --- | --- | --- |
+| `PCL2` | 15 | 0 | 旧客户端与 UA |
+| `LTCat` | 7 | 2 | 新栈命中为关于页与启动前劝导，属过渡期许可义务 |
+| `pclc.cc` | 8 | 0 | 旧文档与社区链接 |
+| `afdian` | 3 | 2 | 新栈命中同上，赞助入口保留至许可义务解除 |
+| `RequestSigning` | 4 | 0 | 旧请求签名，新方案不实现 |
+| `McLaunchPrecheck` | 1 | 0 | 旧启动前置校验 |
+
+新栈未引入旧网络标识、请求签名或 PCL2 UA；剩余命中均为必须保留的署名/劝导。
+
+## 7. 待办与验收
 
 - [ ] 旧项目删除前，逐项确认上表「PCL 同源」已有新方案替代。
 - [ ] 建立新 UI 的独立字符串目录与图标资源，替换 `Resources/Font.ttf`、`Images/**`。
-- [ ] 为 `legacyfix.jar`、`linkd.exe`、`java-wrapper.jar`、`transformer.jar` 补齐来源与许可证。
+- [x] 完成首轮二进制审计（见 3.1）：确认 `legacyfix.jar`、`transformer.jar` 为 GPL-3.0；`linkd.exe` 实为微软工具。`java-wrapper.jar`、`lwjgl-unsafe-agent.jar`、`forge-installer.jar`、`Font.ttf` 仍待核。
 - [ ] 完成 Forge / NeoForge、资源下载、账户、联机、更新器的干净实现。
-- [ ] 全仓库扫描 `PCL2`、`LTCat`、`pclc.cc`、`afdian`、`McLaunchPrecheck` 等标识，确认仅剩过渡期许可义务。
-- [ ] 建立 SBOM（`dotnet list package --include-transitive`）。
+- [x] 完成标识扫描并记录快照（见第 6 节）；新栈仅剩过渡期署名与劝导。
+- [x] 生成新方案 SBOM（见 5.3）；依赖变更后需重新生成。
 - [ ] 新桌面包接入 CI 发布后，下线旧 WPF 发布路径。
