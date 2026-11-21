@@ -1,23 +1,11 @@
-name: Test (CI)
+name: Legacy tests (manual)
 
 permissions:
   contents: read
 
+# 冻结：旧测试套件不再随 push / PR 自动运行。
+# 仅保留手动触发，用于迁移期回归。
 on:
-  push:
-    branches: [main, dev]
-    paths: &paths
-      - 'PCL.Core/**'
-      - 'PCL.Core.Wpf/**'
-      - 'PCL.Launcher.Core/**'
-      - 'PCL.Core.SourceGenerators/**'
-      - 'PCL.Core.Test/**'
-      - 'Plain Craft Launcher 2.slnx'
-      - 'Directory.Build.*'
-      - 'global.json'
-      - '.github/workflows/test.yml'
-  pull_request:
-    paths: *paths
   workflow_dispatch:
     inputs:
       run_all:

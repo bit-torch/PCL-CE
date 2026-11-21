@@ -1,23 +1,11 @@
-name: Build (CI)
+name: Legacy WPF (manual)
 
 permissions:
   contents: read
 
+# 冻结：旧 WPF 客户端不再参与默认 CI。
+# 仅保留手动触发，用于迁移期的临时回归验证。
 on:
-  push:
-    branches: [main, dev]
-    paths-ignore: &ignored
-      - '**/.editorconfig'
-      - '**/.gitignore'
-      - '**/.gitattributes'
-      - '**/*.md'
-      - '**/LICENSE'
-      - '**/LICENCE'
-      - 'PCL.Core.Test/**'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/FUNDING.yml'
-  pull_request:
-    paths-ignore: *ignored
   workflow_dispatch:
 
 concurrency:
