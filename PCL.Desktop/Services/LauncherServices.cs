@@ -2,6 +2,7 @@ using PCL.Kernel;
 using PCL.Kernel.Abstractions;
 using PCL.Kernel.App;
 using PCL.Kernel.Install;
+using PCL.Kernel.Java;
 using PCL.Kernel.Launch;
 using PCL.Kernel.Mojang;
 using PCL.Kernel.Net;
@@ -29,6 +30,8 @@ public sealed class LauncherServices : IDisposable
         Downloads = new DownloadClient();
         Manifest = new VersionManifestService(Paths, Downloads);
         Installer = new VanillaInstaller(Paths, Downloads, Manifest);
+        JavaRuntimes = new JavaRuntimeService(Paths, Downloads);
+        JavaInstaller = new JavaRuntimeInstaller(Paths, Downloads, JavaRuntimes);
         Launcher = new GameLauncher(Paths);
         UrlOpener = new SystemUrlOpener();
         Platform = new DesktopPlatformInfo(Paths);
@@ -41,6 +44,10 @@ public sealed class LauncherServices : IDisposable
     public VersionManifestService Manifest { get; }
 
     public VanillaInstaller Installer { get; }
+
+    public JavaRuntimeService JavaRuntimes { get; }
+
+    public JavaRuntimeInstaller JavaInstaller { get; }
 
     public GameLauncher Launcher { get; }
 

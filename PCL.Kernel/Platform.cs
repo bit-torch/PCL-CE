@@ -47,6 +47,8 @@ public sealed class LauncherPaths
 
     public string LogDirectory => Path.Combine(DataDirectory, "logs");
 
+    public string RuntimesDirectory => Path.Combine(DataDirectory, "runtimes");
+
     public string SettingsPath => Path.Combine(DataDirectory, "launcher.settings.json");
 
     public string VersionsDirectory => Path.Combine(GameDirectory, "versions");
@@ -78,6 +80,7 @@ public sealed class LauncherPaths
         Directory.CreateDirectory(DataDirectory);
         Directory.CreateDirectory(CacheDirectory);
         Directory.CreateDirectory(LogDirectory);
+        Directory.CreateDirectory(RuntimesDirectory);
         Directory.CreateDirectory(GameDirectory);
         Directory.CreateDirectory(VersionsDirectory);
         Directory.CreateDirectory(LibrariesDirectory);

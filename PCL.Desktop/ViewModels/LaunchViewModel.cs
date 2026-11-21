@@ -4,8 +4,10 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Desktop.Services;
+using PCL.Kernel.Install;
 using PCL.Kernel.Java;
 using PCL.Kernel.Launch;
+using PCL.Kernel.Mojang;
 using PCL.Kernel.Versions;
 
 namespace PCL.Desktop.ViewModels;
@@ -88,6 +90,30 @@ public partial class LaunchViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task InstallJavaAsync()
+    {
+        if (SelectedVersion is null)
+        {
+            Status = "请先选择一个版本";
+            return;
+        }
+
+        try
+        {
+            Status = "正在准备 Java 运行时…";
+            JavaPath = await InstallJavaRuntimeAsync();
+
+            _services.Settings.JavaPath = JavaPath;
+            _services.SaveSettings();
+            Status = "Java 运行时已就绪";
+        }
+        catch (Exception ex)
+        {
+            Status = "Java 运行时安装失败：" + ex.Message;
+        }
+    }
+
+    [RelayCommand]
     private async Task LaunchAsync()
     {
         if (IsRunning)
@@ -99,11 +125,22 @@ public partial class LaunchViewModel : ObservableObject
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(JavaPath))
+        if (string.IsNullOrWhiteSpace(JavaPath) || !File.Exists(JavaPath))
         {
             await DetectJavaAsync();
-            if (string.IsNullOrWhiteSpace(JavaPath))
-                return;
+            if (string.IsNullOrWhiteSpace(JavaPath) || !File.Exists(JavaPath))
+            {
+                Status = "未找到系统 Java，正在安装 Mojang 运行时…";
+                try
+                {
+                    JavaPath = await InstallJavaRuntimeAsync();
+                }
+                catch (Exception ex)
+                {
+                    Status = "Java 运行时安装失败：" + ex.Message;
+                    return;
+                }
+            }
         }
 
         // 在 PCL 代码与资源完全替换前，保留 PCL 许可要求的正版购买劝导。
@@ -204,5 +241,34 @@ public partial class LaunchViewModel : ObservableObject
 
         if (Log.Length > 200_000)
             Log = Log[^200_000..];
+    }
+
+    private async Task<string> InstallJavaRuntimeAsync()
+    {
+        var component = await ResolveJavaComponentAsync();
+        var progress = new Progress<InstallProgress>(value =>
+            Status = value.Total > 0
+                ? $"{value.Stage} {value.Completed}/{value.Total}"
+                : value.Stage);
+
+        return await _services.JavaInstaller.InstallAsync(component, progress);
+    }
+
+    private async Task<string> ResolveJavaComponentAsync()
+    {
+        if (SelectedVersion is null)
+            return JavaRuntimeService.DefaultComponent;
+
+        try
+        {
+            var detail = await VersionManifestService.ReadDetailAsync(SelectedVersion.JsonPath);
+            return string.IsNullOrWhiteSpace(detail.JavaVersion?.Component)
+                ? JavaRuntimeService.DefaultComponent
+                : detail.JavaVersion.Component;
+        }
+        catch (Exception)
+        {
+            return JavaRuntimeService.DefaultComponent;
+        }
     }
 }

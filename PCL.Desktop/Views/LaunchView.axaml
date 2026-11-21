@@ -62,13 +62,17 @@
 
                 <StackPanel Spacing="7">
                     <TextBlock Text="Java 路径" Classes="caption" />
-                    <Grid ColumnDefinitions="*,10,Auto">
-                        <TextBox Text="{Binding JavaPath}" Watermark="选择或自动检测 java 可执行文件" />
-                        <Button Grid.Column="2"
-                                Classes="ghost"
+                    <TextBox Text="{Binding JavaPath}" Watermark="选择或自动检测 java 可执行文件" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Classes="ghost"
+                                Content="安装 Java 运行时"
+                                Command="{Binding InstallJavaCommand}" />
+                        <Button Classes="ghost"
                                 Content="自动检测"
                                 Command="{Binding DetectJavaCommand}" />
-                    </Grid>
+                    </StackPanel>
+                    <TextBlock Classes="caption"
+                               Text="留空时会在启动前自动检测；若系统没有可用 Java，则下载 Mojang 官方运行时并校验。" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" Spacing="10">

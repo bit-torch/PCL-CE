@@ -1,6 +1,7 @@
 using System.Text.Json;
 using PCL.Kernel;
 using PCL.Kernel.App;
+using PCL.Kernel.Java;
 using PCL.Kernel.Launch;
 using PCL.Kernel.Mojang;
 using PCL.Kernel.Versions;
@@ -204,6 +205,98 @@ public sealed class InstalledVersionScannerTests
 
         if (withJar)
             File.WriteAllBytes(Path.Combine(directory, id + ".jar"), []);
+    }
+}
+
+public sealed class JavaRuntimeServiceTests
+{
+    private const string CatalogJson = """
+        {
+          "linux": {
+            "java-runtime-gamma": [
+              {
+                "manifest": {
+                  "sha1": "abc123",
+                  "size": 42,
+                  "url": "https://example.test/linux.json"
+                },
+                "version": { "name": "17.0.8" }
+              }
+            ],
+            "jre-legacy": [
+              {
+                "manifest": {
+                  "sha1": "def456",
+                  "size": 10,
+                  "url": "https://example.test/legacy.json"
+                },
+                "version": { "name": "8u51" }
+              }
+            ]
+          },
+          "windows-x64": {}
+        }
+        """;
+
+    [Fact]
+    public void PlatformKey_IsKnown()
+    {
+        Assert.Contains(JavaRuntimeService.GetPlatformKey(), new[]
+        {
+            "windows-x64", "windows-x86", "windows-arm64",
+            "mac-os", "mac-os-arm64",
+            "linux", "linux-i386"
+        });
+    }
+
+    [Fact]
+    public void SelectPackage_ReturnsManifestAndVersion()
+    {
+        var catalog = JsonSerializer.Deserialize<JavaRuntimeCatalog>(
+            CatalogJson, JsonDefaults.Options)!;
+
+        var package = JavaRuntimeService.SelectPackage(catalog, "java-runtime-gamma", "linux");
+
+        Assert.NotNull(package);
+        Assert.Equal("17.0.8", package!.Version);
+        Assert.Equal("https://example.test/linux.json", package.ManifestUrl);
+        Assert.Equal("abc123", package.ManifestSha1);
+        Assert.Equal(42, package.ManifestSize);
+    }
+
+    [Fact]
+    public void SelectPackage_ReturnsNullForUnknownComponentOrPlatform()
+    {
+        var catalog = JsonSerializer.Deserialize<JavaRuntimeCatalog>(
+            CatalogJson, JsonDefaults.Options)!;
+
+        Assert.Null(JavaRuntimeService.SelectPackage(catalog, "java-runtime-gamma", "unknown"));
+        Assert.Null(JavaRuntimeService.SelectPackage(catalog, "missing", "linux"));
+    }
+
+    [Fact]
+    public void FindExecutable_LocatesJavaInRuntimeDirectory()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "pcl-tests-" + Guid.NewGuid().ToString("N"));
+        var directory = Path.Combine(root, "java-runtime-gamma-linux");
+
+        try
+        {
+            var relative = OperatingSystem.IsWindows()
+                ? "bin/java.exe"
+                : "jre.bundle/Contents/Home/bin/java";
+            var path = Path.Combine(directory, relative);
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, "");
+
+            Assert.Equal(path, JavaRuntimeInstaller.FindExecutable(directory));
+            Assert.Null(JavaRuntimeInstaller.FindExecutable(Path.Combine(root, "missing")));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, true);
+        }
     }
 }
 
