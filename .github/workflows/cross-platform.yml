@@ -59,7 +59,11 @@ jobs:
               done
               cp PCL.Avalonia/Info.plist "$app/Info.plist"
             fi
-            tar -czf "artifact/PCL-CE-$rid.tar.gz" -C "artifact/$rid" .
+            name="PCL-CE-$rid"
+            if [[ "$BUILD_CONFIGURATION" == "Beta" ]]; then
+              name="PCL-CE-Beta-$rid"
+            fi
+            tar -czf "artifact/$name.tar.gz" -C "artifact/$rid" .
           done
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
