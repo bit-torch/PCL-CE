@@ -1,5 +1,12 @@
 [简体中文](README.md) | [English](README-EN.md) | **繁體中文**
 
+> [!IMPORTANT]
+> 本儲存庫（`bit-torch/PCL-CE`）由[比特火炬](https://github.com/bit-torch)維護，派生自上游儲存庫 [PCL-Community/PCL-CE](https://github.com/PCL-Community/PCL-CE)。本儲存庫不再 rebase 上游變更，轉為獨立演進。
+> 本儲存庫僅提供非官方發佈與支援。
+> 由於對上游改動較大並新增跨平台支援，歡迎測試並回饋問題。
+> 上游專案 PCL CE 基於 [Meloong-Git/PCL](https://github.com/Meloong-Git/PCL) 二次開發。
+> 本專案已脫離原 fork 網路。
+
 <div align="center">
 
 <img src="Plain Craft Launcher 2/Images/icon.ico" alt="Logo" width="80" height="80">
@@ -36,7 +43,7 @@ PCL CE 是基於 PCL 開放原始碼二次開發的社群版本，包括了主�
 
 ## 跨平台桌面預覽
 
-`PCL.Avalonia` 提供 Windows/Linux/macOS 原生桌面預覽，包含原版安裝、Java 偵測、帳戶登入及遊戲啟動。尚未完整取代原 WPF 功能，請參閱[建置說明與功能範圍](docs/cross-platform.md)。使用 .NET 11 SDK 建置 `PCL.CrossPlatform.slnx`，或執行 `dotnet run --project PCL.Avalonia/PCL.Avalonia.csproj`。
+`PCL.Avalonia` 提供 Windows/Linux/macOS 原生桌面預覽，包含安裝、資源與整合包、實例管理、多帳戶、聯機和工具頁面。尚未完整取代原 WPF 功能，請參閱[建置說明與功能範圍](docs/cross-platform.md)。使用 .NET 11 SDK 建置 `PCL.CrossPlatform.slnx`，或執行 `dotnet run --project PCL.Avalonia/PCL.Avalonia.csproj`。
 
 ## 💻 支援平台
 

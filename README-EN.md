@@ -1,5 +1,12 @@
 [简体中文](README.md) | **English** | [繁體中文](README-ZH_TW.md)
 
+> [!IMPORTANT]
+> This repository (`bit-torch/PCL-CE`) is maintained by [bit-torch](https://github.com/bit-torch) and derived from the upstream repository [PCL-Community/PCL-CE](https://github.com/PCL-Community/PCL-CE). It no longer rebases upstream changes and now evolves independently.
+> This repository provides unofficial distributions and support only.
+> Because it diverges significantly from upstream and adds cross-platform support, testing and feedback are welcome.
+> The upstream PCL CE project is a secondary development based on [Meloong-Git/PCL](https://github.com/Meloong-Git/PCL).
+> This project has left the original fork network.
+
 <div align="center">
 
 <img src="Plain Craft Launcher 2/Images/icon.ico" alt="Logo" width="80" height="80">
