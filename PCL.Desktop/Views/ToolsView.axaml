@@ -3,6 +3,7 @@
              xmlns:vm="using:PCL.Desktop.ViewModels"
              xmlns:loc="using:PCL.Desktop.Localization"
              xmlns:data="using:PCL.Kernel.GameData"
+             xmlns:services="using:PCL.Desktop.Services"
              x:Class="PCL.Desktop.Views.ToolsView"
              x:DataType="vm:ToolsViewModel">
 
@@ -10,22 +11,37 @@
         <StackPanel Spacing="18">
 
             <Border Classes="card">
-                <Grid ColumnDefinitions="*,Auto">
-                    <StackPanel Spacing="5">
-                        <TextBlock Text="{loc:Localize Key=tools.title}" Classes="h2" />
-                        <TextBlock Classes="muted"
-                                   TextWrapping="Wrap"
-                                   Text="{loc:Localize Key=tools.description}" />
-                        <TextBlock Classes="caption"
-                                   TextWrapping="Wrap"
-                                   Text="{Binding GameDirectory}" />
+                <StackPanel Spacing="6">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="{loc:Localize Key=tools.title}" Classes="h2" />
+                            <TextBlock Classes="muted"
+                                       TextWrapping="Wrap"
+                                       Text="{loc:Localize Key=tools.description}" />
+                            <TextBlock Classes="caption"
+                                       TextWrapping="Wrap"
+                                       Text="{Binding GameDirectory}" />
+                        </StackPanel>
+                        <Button Grid.Column="1"
+                                Classes="ghost"
+                                VerticalAlignment="Center"
+                                Content="{loc:Localize Key=tools.action.refresh}"
+                                Command="{Binding RefreshCommand}" />
+                    </Grid>
+
+                    <StackPanel Spacing="6" Margin="0,14,0,0">
+                        <TextBlock Text="{loc:Localize Key=tools.target.label}" Classes="caption" />
+                        <ComboBox HorizontalAlignment="Stretch"
+                                  ItemsSource="{Binding Targets}"
+                                  SelectedItem="{Binding SelectedTarget}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="services:InstanceTarget">
+                                    <TextBlock Text="{Binding Label}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                     </StackPanel>
-                    <Button Grid.Column="1"
-                            Classes="ghost"
-                            VerticalAlignment="Center"
-                            Content="{loc:Localize Key=tools.action.refresh}"
-                            Command="{Binding RefreshCommand}" />
-                </Grid>
+                </StackPanel>
             </Border>
 
             <Grid ColumnDefinitions="*,18,*">
@@ -168,6 +184,76 @@
                     </StackPanel>
                 </Border>
             </Grid>
+
+            <Border Classes="card">
+                <StackPanel Spacing="10">
+                    <Grid ColumnDefinitions="*,Auto,Auto">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="{loc:Localize Key=tools.logs.viewerTitle}" Classes="section" />
+                            <TextBlock Classes="caption"
+                                       TextWrapping="Wrap"
+                                       Text="{Binding LogsDirectory}" />
+                        </StackPanel>
+                        <Button Grid.Column="1"
+                                Classes="ghost"
+                                Content="{loc:Localize Key=tools.logs.refresh}"
+                                Command="{Binding RefreshLogsCommand}" />
+                        <Button Grid.Column="2"
+                                Classes="ghost"
+                                Margin="10,0,0,0"
+                                Content="{loc:Localize Key=tools.logs.openFolder}"
+                                Command="{Binding OpenLogsFolderCommand}" />
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,18,*">
+                        <ListBox Grid.Column="0"
+                                 ItemsSource="{Binding LogFiles}"
+                                 SelectedItem="{Binding SelectedLog}"
+                                 MaxHeight="200"
+                                 IsVisible="{Binding HasLogFiles}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="data:LogFileEntry">
+                                    <Grid ColumnDefinitions="*,Auto" Margin="0,3">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                        <TextBlock Grid.Column="1"
+                                                   Classes="caption"
+                                                   Text="{Binding LastModifiedLabel}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <TextBlock Grid.Column="0"
+                                   Classes="caption"
+                                   IsVisible="{Binding !HasLogFiles}"
+                                   Text="{loc:Localize Key=tools.logs.none}" />
+
+                        <StackPanel Grid.Column="2" Spacing="8">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBox Text="{Binding LogFilter}"
+                                         Watermark="{loc:Localize Key=tools.logs.filterHint}" />
+                                <Button Grid.Column="1"
+                                        Classes="ghost"
+                                        Margin="10,0,0,0"
+                                        Content="{loc:Localize Key=tools.logs.search}"
+                                        IsEnabled="{Binding HasSelectedLog}"
+                                        Command="{Binding SearchLogCommand}" />
+                            </Grid>
+                            <TextBox Classes="log"
+                                     Height="220"
+                                     Text="{Binding LogContent}"
+                                     IsReadOnly="True"
+                                     AcceptsReturn="True"
+                                     TextWrapping="NoWrap"
+                                     FontFamily="Cascadia Mono, Consolas, monospace"
+                                     FontSize="12"
+                                     VerticalContentAlignment="Top"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Auto" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
 
             <Border Classes="card">
                 <StackPanel Spacing="10">

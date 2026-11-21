@@ -342,5 +342,46 @@
   "license.action.purchase": "购买正版",
   "license.action.sponsor": "赞助原 PCL 作者",
   "license.action.later": "稍后再说",
-  "license.action.accept": "我已了解，继续启动"
+  "license.action.accept": "我已了解，继续启动",
+
+  "common.target.global": "全局游戏目录",
+
+  "tools.target.label": "操作目标",
+  "tools.logs.viewerTitle": "日志查看器",
+  "tools.logs.refresh": "刷新日志",
+  "tools.logs.openFolder": "打开日志目录",
+  "tools.logs.filterHint": "输入关键词筛选，留空显示末尾 500 行",
+  "tools.logs.search": "筛选",
+  "tools.logs.none": "logs 目录中还没有日志文件。",
+  "tools.logs.readError": "读取日志失败：",
+
+  "resources.target.label": "安装目标",
+
+  "launch.action.export": "导出实例",
+  "launch.export.dialog": "导出实例压缩包",
+  "launch.status.exporting": "正在导出实例…",
+  "launch.status.exported": "已导出到 {0}（{1} 个文件）",
+  "launch.error.export": "导出实例失败：",
+
+  "settings.download.title": "下载",
+  "settings.download.description": "配置下载镜像、并发线程、限速与代理。",
+  "settings.download.mirror": "镜像源基址",
+  "settings.download.mirrorHint": "留空使用官方源；常见镜像如 BMCLAPI。",
+  "settings.download.preferOfficial": "优先使用官方源，失败时回退到镜像",
+  "settings.download.threads": "并发线程数",
+  "settings.download.speed": "单文件限速",
+  "settings.download.speedHint": "0 表示不限速。",
+  "settings.download.proxy": "HTTP 代理",
+  "settings.download.proxyUser": "代理用户名（可选）",
+  "settings.download.proxyPass": "代理密码（可选）",
+  "settings.download.restartHint": "代理设置在重启启动器后生效；其他下载设置保存后立即生效。",
+  "settings.launch.title": "启动参数",
+  "settings.launch.description": "追加到 JVM 与游戏进程的参数，以及游戏窗口尺寸。",
+  "settings.launch.jvm": "JVM 额外参数",
+  "settings.launch.jvmHint": "例如 -XX:+UseG1GC，按空白拆分",
+  "settings.launch.game": "游戏额外参数",
+  "settings.launch.gameHint": "例如 --demo，按空白拆分",
+  "settings.launch.width": "窗口宽度",
+  "settings.launch.height": "窗口高度",
+  "settings.launch.fullscreen": "以全屏启动"
 }

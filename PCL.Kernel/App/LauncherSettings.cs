@@ -36,6 +36,21 @@ public sealed class LauncherSettings
     /// <summary>启动时自动检查启动器更新。</summary>
     public bool CheckUpdatesOnStartup { get; set; } = true;
 
+    /// <summary>下载源、线程、限速与代理。</summary>
+    public DownloadSettings Download { get; set; } = new();
+
+    /// <summary>追加到 JVM 的参数，按空白拆分并支持引号。</summary>
+    public string JvmArguments { get; set; } = "";
+
+    /// <summary>追加到游戏进程的参数。</summary>
+    public string GameArguments { get; set; } = "";
+
+    public int GameWindowWidth { get; set; } = 854;
+
+    public int GameWindowHeight { get; set; } = 480;
+
+    public bool GameFullScreen { get; set; }
+
     public bool LicensePrecheckAccepted { get; set; }
 
     public int LaunchCount { get; set; }
@@ -49,6 +64,12 @@ public sealed class LauncherSettings
         OfflineAccounts ??= [];
         Accounts ??= [];
         JavaPaths ??= [];
+        Download ??= new DownloadSettings();
+        Download.Normalize();
+        JvmArguments ??= "";
+        GameArguments ??= "";
+        GameWindowWidth = Math.Clamp(GameWindowWidth, 0, 16384);
+        GameWindowHeight = Math.Clamp(GameWindowHeight, 0, 16384);
 
         if (!OfflineAccounts.Contains(OfflineUsername, StringComparer.OrdinalIgnoreCase))
             OfflineAccounts.Add(OfflineUsername);

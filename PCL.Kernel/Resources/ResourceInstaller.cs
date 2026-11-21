@@ -28,7 +28,8 @@ public sealed class ResourceInstaller
         string? gameVersion = null,
         string? loader = null,
         IProgress<InstallProgress>? progress = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? gameDirectory = null)
     {
         progress?.Report(new InstallProgress("解析依赖", 0, 1, 0));
         var dependencies = await _modrinth.ResolveRequiredDependenciesAsync(
@@ -38,7 +39,7 @@ public sealed class ResourceInstaller
         var targets = new List<ResourceVersion> { version };
         targets.AddRange(dependencies);
 
-        var directory = TargetDirectory(type);
+        var directory = TargetDirectory(type, gameDirectory);
         Directory.CreateDirectory(directory);
 
         var installed = new List<string>();
@@ -73,12 +74,16 @@ public sealed class ResourceInstaller
         return new ResourceInstallResult(installed, directory);
     }
 
-    public string TargetDirectory(ResourceType type) => type switch
+    public string TargetDirectory(ResourceType type, string? gameDirectory = null)
     {
-        ResourceType.Mod => Path.Combine(_paths.GameDirectory, "mods"),
-        ResourceType.ResourcePack => Path.Combine(_paths.GameDirectory, "resourcepacks"),
-        ResourceType.Shader => Path.Combine(_paths.GameDirectory, "shaderpacks"),
-        ResourceType.DataPack => Path.Combine(_paths.GameDirectory, "datapacks"),
-        _ => Path.Combine(_paths.GameDirectory, "mods")
-    };
+        var root = gameDirectory ?? _paths.GameDirectory;
+        return type switch
+        {
+            ResourceType.Mod => Path.Combine(root, "mods"),
+            ResourceType.ResourcePack => Path.Combine(root, "resourcepacks"),
+            ResourceType.Shader => Path.Combine(root, "shaderpacks"),
+            ResourceType.DataPack => Path.Combine(root, "datapacks"),
+            _ => Path.Combine(root, "mods")
+        };
+    }
 }

@@ -31,6 +31,20 @@ public partial class SettingsViewModel : ObservableObject
         yggdrasilStatus = _strings["settings.auth.idle"];
         darkTheme = services.Settings.DarkTheme;
         checkUpdatesOnStartup = services.Settings.CheckUpdatesOnStartup;
+
+        downloadMirror = services.Settings.Download.Mirror;
+        preferOfficialDownload = services.Settings.Download.PreferOfficial;
+        downloadThreadLimit = services.Settings.Download.ThreadLimit;
+        downloadSpeedLimitKb = services.Settings.Download.SpeedLimitKb;
+        proxyAddress = services.Settings.Download.ProxyAddress;
+        proxyUsername = services.Settings.Download.ProxyUsername;
+        proxyPassword = services.Settings.Download.ProxyPassword;
+
+        jvmArguments = services.Settings.JvmArguments;
+        gameArguments = services.Settings.GameArguments;
+        gameWindowWidth = services.Settings.GameWindowWidth;
+        gameWindowHeight = services.Settings.GameWindowHeight;
+        gameFullScreen = services.Settings.GameFullScreen;
         var languageCode = string.IsNullOrWhiteSpace(services.Settings.Language)
             ? _strings.Language
             : services.Settings.Language;
@@ -72,6 +86,42 @@ public partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     private bool checkUpdatesOnStartup;
+
+    [ObservableProperty]
+    private string downloadMirror;
+
+    [ObservableProperty]
+    private bool preferOfficialDownload;
+
+    [ObservableProperty]
+    private double downloadThreadLimit;
+
+    [ObservableProperty]
+    private double downloadSpeedLimitKb;
+
+    [ObservableProperty]
+    private string proxyAddress;
+
+    [ObservableProperty]
+    private string proxyUsername;
+
+    [ObservableProperty]
+    private string proxyPassword;
+
+    [ObservableProperty]
+    private string jvmArguments;
+
+    [ObservableProperty]
+    private string gameArguments;
+
+    [ObservableProperty]
+    private double gameWindowWidth;
+
+    [ObservableProperty]
+    private double gameWindowHeight;
+
+    [ObservableProperty]
+    private bool gameFullScreen;
 
     [ObservableProperty]
     private LanguageOption selectedLanguage;
@@ -181,6 +231,25 @@ public partial class SettingsViewModel : ObservableObject
             _services.Settings.DarkTheme = DarkTheme;
             _services.Settings.Language = SelectedLanguage.Value;
             _services.Settings.CheckUpdatesOnStartup = CheckUpdatesOnStartup;
+
+            _services.Settings.Download.Mirror = DownloadMirror.Trim();
+            _services.Settings.Download.PreferOfficial = PreferOfficialDownload;
+            _services.Settings.Download.ThreadLimit =
+                Math.Clamp((int)DownloadThreadLimit, 1, 64);
+            _services.Settings.Download.SpeedLimitKb =
+                Math.Max(0, (int)DownloadSpeedLimitKb);
+            _services.Settings.Download.ProxyAddress = ProxyAddress.Trim();
+            _services.Settings.Download.ProxyUsername = ProxyUsername.Trim();
+            _services.Settings.Download.ProxyPassword = ProxyPassword;
+            _services.Settings.Download.Normalize();
+
+            _services.Settings.JvmArguments = JvmArguments.Trim();
+            _services.Settings.GameArguments = GameArguments.Trim();
+            _services.Settings.GameWindowWidth =
+                Math.Clamp((int)GameWindowWidth, 0, 16384);
+            _services.Settings.GameWindowHeight =
+                Math.Clamp((int)GameWindowHeight, 0, 16384);
+            _services.Settings.GameFullScreen = GameFullScreen;
 
             if (SelectedAccount is { Kind: AccountKind.Offline } offline)
             {

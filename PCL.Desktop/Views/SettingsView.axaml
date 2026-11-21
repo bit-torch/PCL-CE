@@ -265,6 +265,115 @@
             </Border>
             <Border Classes="card" Padding="20">
                 <StackPanel Spacing="10">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Key=settings.download.title}" Classes="section" />
+                        <TextBlock Classes="caption"
+                                   TextWrapping="Wrap"
+                                   Text="{loc:Localize Key=settings.download.description}" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="{loc:Localize Key=settings.download.mirror}" Classes="caption" />
+                        <TextBox Text="{Binding DownloadMirror}"
+                                 Watermark="https://bmclapi2.bangbang93.com" />
+                        <TextBlock Classes="caption"
+                                   TextWrapping="Wrap"
+                                   Text="{loc:Localize Key=settings.download.mirrorHint}" />
+                    </StackPanel>
+
+                    <CheckBox Content="{loc:Localize Key=settings.download.preferOfficial}"
+                              IsChecked="{Binding PreferOfficialDownload}" />
+
+                    <StackPanel Spacing="5">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="{loc:Localize Key=settings.download.threads}" Classes="caption" />
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding DownloadThreadLimit, StringFormat='{}{0:0}'}"
+                                       Classes="caption" />
+                        </Grid>
+                        <Slider Minimum="1"
+                                Maximum="64"
+                                TickFrequency="1"
+                                IsSnapToTickEnabled="True"
+                                Value="{Binding DownloadThreadLimit}" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="5">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="{loc:Localize Key=settings.download.speed}" Classes="caption" />
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding DownloadSpeedLimitKb, StringFormat='{}{0:0} KB/s'}"
+                                       Classes="caption" />
+                        </Grid>
+                        <Slider Minimum="0"
+                                Maximum="102400"
+                                TickFrequency="1024"
+                                IsSnapToTickEnabled="True"
+                                Value="{Binding DownloadSpeedLimitKb}" />
+                        <TextBlock Classes="caption"
+                                   Text="{loc:Localize Key=settings.download.speedHint}" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="{loc:Localize Key=settings.download.proxy}" Classes="caption" />
+                        <TextBox Text="{Binding ProxyAddress}" Watermark="http://127.0.0.1:7890" />
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,10,*">
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding ProxyUsername}"
+                                 Watermark="{loc:Localize Key=settings.download.proxyUser}" />
+                        <TextBox Grid.Column="2"
+                                 Text="{Binding ProxyPassword}"
+                                 PasswordChar="●"
+                                 Watermark="{loc:Localize Key=settings.download.proxyPass}" />
+                    </Grid>
+
+                    <TextBlock Classes="caption"
+                               TextWrapping="Wrap"
+                               Text="{loc:Localize Key=settings.download.restartHint}" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card" Padding="20">
+                <StackPanel Spacing="10">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Key=settings.launch.title}" Classes="section" />
+                        <TextBlock Classes="caption"
+                                   TextWrapping="Wrap"
+                                   Text="{loc:Localize Key=settings.launch.description}" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="{loc:Localize Key=settings.launch.jvm}" Classes="caption" />
+                        <TextBox Text="{Binding JvmArguments}"
+                                 Watermark="{loc:Localize Key=settings.launch.jvmHint}" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="{loc:Localize Key=settings.launch.game}" Classes="caption" />
+                        <TextBox Text="{Binding GameArguments}"
+                                 Watermark="{loc:Localize Key=settings.launch.gameHint}" />
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,10,*">
+                        <StackPanel Grid.Column="0" Spacing="5">
+                            <TextBlock Text="{loc:Localize Key=settings.launch.width}" Classes="caption" />
+                            <TextBox Text="{Binding GameWindowWidth}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Spacing="5">
+                            <TextBlock Text="{loc:Localize Key=settings.launch.height}" Classes="caption" />
+                            <TextBox Text="{Binding GameWindowHeight}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <CheckBox Content="{loc:Localize Key=settings.launch.fullscreen}"
+                              IsChecked="{Binding GameFullScreen}" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card" Padding="20">
+                <StackPanel Spacing="10">
                     <TextBlock Text="{loc:Localize Key=settings.env.title}" Classes="section" />
                     <TextBlock Text="{Binding PlatformSummary}"
                                Classes="caption"

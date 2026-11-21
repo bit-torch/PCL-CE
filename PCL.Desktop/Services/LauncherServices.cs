@@ -38,7 +38,7 @@ public sealed class LauncherServices : IDisposable
             Paths.EnsureDirectories();
         }
 
-        Downloads = new DownloadClient();
+        Downloads = new DownloadClient(Settings.Download);
         Manifest = new VersionManifestService(Paths, Downloads);
         Installer = new VanillaInstaller(Paths, Downloads, Manifest);
         JavaRuntimes = new JavaRuntimeService(Paths, Downloads);

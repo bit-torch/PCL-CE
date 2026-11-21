@@ -3,6 +3,7 @@
              xmlns:vm="using:PCL.Desktop.ViewModels"
              xmlns:loc="using:PCL.Desktop.Localization"
              xmlns:resources="using:PCL.Kernel.Resources"
+             xmlns:services="using:PCL.Desktop.Services"
              x:Class="PCL.Desktop.Views.ResourcesView"
              x:DataType="vm:ResourcesViewModel">
 
@@ -44,6 +45,19 @@
                           IsVisible="{Binding ShowLoader}"
                           ItemsSource="{Binding LoaderOptions}"
                           SelectedItem="{Binding SelectedLoader}" />
+
+                <StackPanel Spacing="5">
+                    <TextBlock Text="{loc:Localize Key=resources.target.label}" Classes="caption" />
+                    <ComboBox HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding Targets}"
+                              SelectedItem="{Binding SelectedTarget}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="services:InstanceTarget">
+                                <TextBlock Text="{Binding Label}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
             </StackPanel>
         </Border>
 

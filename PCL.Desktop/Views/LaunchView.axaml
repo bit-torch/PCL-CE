@@ -100,6 +100,9 @@
                             Content="{loc:Localize Key=launch.action.delete}"
                             Command="{Binding DeleteVersionCommand}"
                             IsEnabled="{Binding IsDeleteConfirmed}" />
+                    <Button Classes="ghost"
+                            Content="{loc:Localize Key=launch.action.export}"
+                            Click="OnExportInstanceClick" />
                 </StackPanel>
 
                 <Border Classes="soft">

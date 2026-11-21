@@ -342,5 +342,46 @@
   "license.action.purchase": "Buy genuine copy",
   "license.action.sponsor": "Sponsor the original PCL author",
   "license.action.later": "Later",
-  "license.action.accept": "Understood, continue"
+  "license.action.accept": "Understood, continue",
+
+  "common.target.global": "Global game directory",
+
+  "tools.target.label": "Target",
+  "tools.logs.viewerTitle": "Log viewer",
+  "tools.logs.refresh": "Refresh logs",
+  "tools.logs.openFolder": "Open log folder",
+  "tools.logs.filterHint": "Filter by keyword; leave empty for the last 500 lines",
+  "tools.logs.search": "Filter",
+  "tools.logs.none": "No log files in the logs directory yet.",
+  "tools.logs.readError": "Failed to read log: ",
+
+  "resources.target.label": "Install target",
+
+  "launch.action.export": "Export instance",
+  "launch.export.dialog": "Export instance archive",
+  "launch.status.exporting": "Exporting instance…",
+  "launch.status.exported": "Exported to {0} ({1} files)",
+  "launch.error.export": "Failed to export instance: ",
+
+  "settings.download.title": "Downloads",
+  "settings.download.description": "Configure the mirror, concurrency, speed limit and proxy.",
+  "settings.download.mirror": "Mirror base URL",
+  "settings.download.mirrorHint": "Leave empty to use official sources; e.g. BMCLAPI.",
+  "settings.download.preferOfficial": "Prefer official sources, fall back to mirror",
+  "settings.download.threads": "Concurrent threads",
+  "settings.download.speed": "Per-file speed limit",
+  "settings.download.speedHint": "0 means unlimited.",
+  "settings.download.proxy": "HTTP proxy",
+  "settings.download.proxyUser": "Proxy username (optional)",
+  "settings.download.proxyPass": "Proxy password (optional)",
+  "settings.download.restartHint": "Proxy changes apply after restarting the launcher; other download settings apply immediately.",
+  "settings.launch.title": "Launch arguments",
+  "settings.launch.description": "Extra JVM and game arguments, plus the game window size.",
+  "settings.launch.jvm": "Extra JVM arguments",
+  "settings.launch.jvmHint": "e.g. -XX:+UseG1GC; split by whitespace",
+  "settings.launch.game": "Extra game arguments",
+  "settings.launch.gameHint": "e.g. --demo; split by whitespace",
+  "settings.launch.width": "Window width",
+  "settings.launch.height": "Window height",
+  "settings.launch.fullscreen": "Start fullscreen"
 }

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using PCL.Kernel.Mojang;
@@ -44,6 +45,25 @@ public sealed class GameLauncher
         var gameArguments = ArgumentParser
             .Parse(detail.Arguments, "game", variables, detail.MinecraftArguments)
             .ToList();
+
+        if (options.WindowWidth > 0 && options.WindowHeight > 0)
+        {
+            if (!gameArguments.Contains("--width"))
+            {
+                gameArguments.Add("--width");
+                gameArguments.Add(options.WindowWidth.ToString(CultureInfo.InvariantCulture));
+            }
+
+            if (!gameArguments.Contains("--height"))
+            {
+                gameArguments.Add("--height");
+                gameArguments.Add(options.WindowHeight.ToString(CultureInfo.InvariantCulture));
+            }
+        }
+
+        if (options.FullScreen && !gameArguments.Contains("--fullscreen"))
+            gameArguments.Add("--fullscreen");
+
         gameArguments.AddRange(options.ExtraGameArgs);
 
         if (string.IsNullOrWhiteSpace(detail.MainClass))
@@ -160,8 +180,12 @@ public sealed class GameLauncher
             ["launcher_version"] = "1.0",
             ["classpath"] = classpath,
             ["game_assets"] = Path.Combine(_paths.AssetsDirectory, "virtual", "legacy"),
-            ["resolution_width"] = "854",
-            ["resolution_height"] = "480",
+            ["resolution_width"] = options.WindowWidth > 0
+                ? options.WindowWidth.ToString(CultureInfo.InvariantCulture)
+                : "854",
+            ["resolution_height"] = options.WindowHeight > 0
+                ? options.WindowHeight.ToString(CultureInfo.InvariantCulture)
+                : "480",
             ["quickPlayPath"] = "",
             ["quickPlaySingleplayer"] = "",
             ["quickPlayMultiplayer"] = "",

@@ -29,7 +29,9 @@ public partial class ToolsViewModel : ObservableObject
         importStatus = _strings["tools.modpack.hint"];
         updateStatus = _strings["tools.update.idle"];
 
+        LoadTargets();
         Refresh();
+        _ = RefreshLogsAsync();
     }
 
     public ObservableCollection<SaveEntry> Saves { get; } = [];
@@ -44,6 +46,11 @@ public partial class ToolsViewModel : ObservableObject
 
     public ObservableCollection<LogIssue> LogIssues { get; } = [];
 
+    /// <summary>全局游戏目录或启用隔离的实例目录。</summary>
+    public ObservableCollection<InstanceTarget> Targets { get; } = [];
+
+    public ObservableCollection<LogFileEntry> LogFiles { get; } = [];
+
     public bool HasSaves => Saves.Count > 0;
 
     public bool HasServers => Servers.Count > 0;
@@ -56,6 +63,12 @@ public partial class ToolsViewModel : ObservableObject
 
     public bool HasLogIssues => LogIssues.Count > 0;
 
+    public bool HasLogFiles => LogFiles.Count > 0;
+
+    public bool HasSelectedLog => SelectedLog is not null;
+
+    public string LogsDirectory => Path.Combine(GameDirectory, "logs");
+
     public bool HasSelectedSave => SelectedSave is not null;
 
     public bool HasSelectedServer => SelectedServer is not null;
@@ -64,7 +77,9 @@ public partial class ToolsViewModel : ObservableObject
 
     public bool HasSelectedResourcePack => SelectedResourcePack is not null;
 
-    public string GameDirectory => _services.Paths.GameDirectory;
+    /// <summary>当前操作目标目录：全局游戏目录或所选隔离实例目录。</summary>
+    public string GameDirectory =>
+        SelectedTarget?.GameDirectory ?? _services.Paths.GameDirectory;
 
     public string ImportDialogTitle => _strings["tools.modpack.dialog"];
 
@@ -123,6 +138,20 @@ public partial class ToolsViewModel : ObservableObject
     private ResourcePackEntry? selectedResourcePack;
 
     [ObservableProperty]
+    private InstanceTarget? selectedTarget;
+
+    [ObservableProperty]
+    private LogFileEntry? selectedLog;
+
+    [ObservableProperty]
+    private string logContent = "";
+
+    [ObservableProperty]
+    private string logFilter = "";
+
+    private bool _targetsReady;
+
+    [ObservableProperty]
     private string newServerName = "";
 
     [ObservableProperty]
@@ -143,6 +172,35 @@ public partial class ToolsViewModel : ObservableObject
     partial void OnSelectedResourcePackChanged(ResourcePackEntry? value) =>
         OnPropertyChanged(nameof(HasSelectedResourcePack));
 
+    partial void OnSelectedTargetChanged(InstanceTarget? value)
+    {
+        OnPropertyChanged(nameof(GameDirectory));
+        OnPropertyChanged(nameof(LogsDirectory));
+
+        if (!_targetsReady)
+            return;
+
+        Refresh();
+        _ = RefreshLogsAsync();
+    }
+
+    partial void OnSelectedLogChanged(LogFileEntry? value)
+    {
+        OnPropertyChanged(nameof(HasSelectedLog));
+        if (value is not null)
+            _ = LoadLogAsync();
+    }
+
+    private void LoadTargets()
+    {
+        Targets.Clear();
+        foreach (var target in InstanceTargets.Build(_services, _strings))
+            Targets.Add(target);
+
+        SelectedTarget = Targets[0];
+        _targetsReady = true;
+    }
+
     private string? _updateUrl;
 
     public bool CanDownloadUpdate =>
@@ -157,7 +215,7 @@ public partial class ToolsViewModel : ObservableObject
     {
         try
         {
-            var gameDirectory = _services.Paths.GameDirectory;
+            var gameDirectory = GameDirectory;
 
             SelectedSave = null;
             SelectedServer = null;
@@ -208,6 +266,68 @@ public partial class ToolsViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task RefreshLogsAsync()
+    {
+        try
+        {
+            LogFiles.Clear();
+            foreach (var entry in LogScanner.Scan([GameDirectory]))
+                LogFiles.Add(entry);
+
+            OnPropertyChanged(nameof(HasLogFiles));
+
+            SelectedLog = null;
+            SelectedLog = LogFiles.FirstOrDefault(item =>
+                              item.Name.Equals("latest.log", StringComparison.OrdinalIgnoreCase))
+                          ?? LogFiles.FirstOrDefault();
+
+            if (SelectedLog is null)
+            {
+                LogContent = "";
+                OnPropertyChanged(nameof(HasSelectedLog));
+            }
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["tools.status.error"] + ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private Task SearchLogAsync() => LoadLogAsync();
+
+    private async Task LoadLogAsync()
+    {
+        if (SelectedLog is not { } entry)
+            return;
+
+        try
+        {
+            LogContent = string.IsNullOrWhiteSpace(LogFilter)
+                ? await LogReader.ReadTailAsync(entry.Path)
+                : await LogReader.SearchAsync(entry.Path, LogFilter);
+        }
+        catch (Exception ex)
+        {
+            LogContent = _strings["tools.logs.readError"] + ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private void OpenLogsFolder()
+    {
+        try
+        {
+            Directory.CreateDirectory(LogsDirectory);
+            Process.Start(new ProcessStartInfo(LogsDirectory) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["tools.status.error"] + ex.Message;
+        }
+    }
+
+    [RelayCommand]
     private void ToggleMod()
     {
         if (SelectedMod is null)
@@ -217,7 +337,7 @@ public partial class ToolsViewModel : ObservableObject
         try
         {
             var name = ModScanner.SetEnabled(
-                _services.Paths.GameDirectory, mod.FileName, !mod.Enabled);
+                GameDirectory, mod.FileName, !mod.Enabled);
             Refresh();
             Status = string.Format(_strings["tools.status.toggled"], name);
         }
@@ -236,7 +356,7 @@ public partial class ToolsViewModel : ObservableObject
         var name = SelectedMod.DisplayName;
         try
         {
-            ModScanner.Delete(_services.Paths.GameDirectory, SelectedMod.FileName);
+            ModScanner.Delete(GameDirectory, SelectedMod.FileName);
             Refresh();
             Status = string.Format(_strings["tools.status.deleted"], name);
         }
@@ -256,7 +376,7 @@ public partial class ToolsViewModel : ObservableObject
         try
         {
             ResourcePackManager.SetEnabled(
-                _services.Paths.GameDirectory, pack.Name, !pack.Enabled);
+                GameDirectory, pack.Name, !pack.Enabled);
             Refresh();
             Status = string.Format(
                 _strings["tools.status.resourcePackToggled"], pack.DisplayName);
@@ -281,7 +401,7 @@ public partial class ToolsViewModel : ObservableObject
         var pack = SelectedResourcePack;
         try
         {
-            if (!ResourcePackManager.Move(_services.Paths.GameDirectory, pack.Name, offset))
+            if (!ResourcePackManager.Move(GameDirectory, pack.Name, offset))
                 return;
 
             Refresh();
@@ -305,7 +425,7 @@ public partial class ToolsViewModel : ObservableObject
         var name = SelectedSave.Name;
         try
         {
-            SaveManager.Delete(_services.Paths.GameDirectory, name);
+            SaveManager.Delete(GameDirectory, name);
             Refresh();
             Status = string.Format(_strings["tools.status.deleted"], name);
         }
@@ -326,7 +446,7 @@ public partial class ToolsViewModel : ObservableObject
         {
             var list = Servers.ToList();
             list.Remove(SelectedServer);
-            ServerList.Save(_services.Paths.GameDirectory, list);
+            ServerList.Save(GameDirectory, list);
             Refresh();
             Status = string.Format(_strings["tools.status.deleted"], name);
         }
@@ -352,7 +472,7 @@ public partial class ToolsViewModel : ObservableObject
         {
             var list = Servers.ToList();
             list.Add(new ServerEntry(name, ip, null));
-            ServerList.Save(_services.Paths.GameDirectory, list);
+            ServerList.Save(GameDirectory, list);
             NewServerName = "";
             NewServerIp = "";
             Refresh();
@@ -374,7 +494,7 @@ public partial class ToolsViewModel : ObservableObject
         var save = SelectedSave;
         try
         {
-            var gameDirectory = _services.Paths.GameDirectory;
+            var gameDirectory = GameDirectory;
             var path = await Task.Run(() => SaveManager.Export(gameDirectory, save.Name, destinationPath));
             Status = string.Format(_strings["tools.status.saveExported"], path);
         }
@@ -388,7 +508,7 @@ public partial class ToolsViewModel : ObservableObject
     {
         try
         {
-            var gameDirectory = _services.Paths.GameDirectory;
+            var gameDirectory = GameDirectory;
             var directory = await Task.Run(() => SaveManager.Import(gameDirectory, archivePath));
             Refresh();
             Status = string.Format(
@@ -411,7 +531,7 @@ public partial class ToolsViewModel : ObservableObject
 
         try
         {
-            var installer = new MrPackInstaller(_services.Paths.GameDirectory, _services.Downloads);
+            var installer = new MrPackInstaller(GameDirectory, _services.Downloads);
             var reporter = new Progress<InstallProgress>(value =>
             {
                 Progress = Math.Clamp(value.Fraction * 100, 0, 100);
@@ -440,7 +560,7 @@ public partial class ToolsViewModel : ObservableObject
     {
         try
         {
-            var gameDirectory = _services.Paths.GameDirectory;
+            var gameDirectory = GameDirectory;
             var version = UpdateChecker.CurrentVersion;
             var result = await Task.Run(() =>
                 DiagnosticExporter.Export(gameDirectory, destinationPath, version));

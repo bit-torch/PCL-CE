@@ -31,6 +31,14 @@ public sealed record LaunchOptions
 
     public string? GameDirectory { get; init; }
 
+    /// <summary>游戏窗口宽度；0 表示使用版本默认值。</summary>
+    public int WindowWidth { get; init; }
+
+    /// <summary>游戏窗口高度；0 表示使用版本默认值。</summary>
+    public int WindowHeight { get; init; }
+
+    public bool FullScreen { get; init; }
+
     public IReadOnlyList<string> ExtraJvmArgs { get; init; } = [];
 
     public IReadOnlyList<string> ExtraGameArgs { get; init; } = [];

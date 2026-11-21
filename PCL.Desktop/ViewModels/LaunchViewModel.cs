@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Text;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -35,6 +36,10 @@ public partial class LaunchViewModel : ObservableObject
     }
 
     public ObservableCollection<InstalledVersion> Versions { get; } = [];
+
+    public string ExportDialogTitle => _strings["launch.export.dialog"];
+
+    public string ExportDefaultName => (SelectedVersion?.Id ?? "instance") + ".zip";
 
     [ObservableProperty]
     private InstalledVersion? selectedVersion;
@@ -275,7 +280,12 @@ public partial class LaunchViewModel : ObservableObject
                     : null,
                 AuthlibInjectorPath = authlibPath,
                 MaxMemoryMb = memory,
-                GameDirectory = gameDirectory
+                GameDirectory = gameDirectory,
+                WindowWidth = _services.Settings.GameWindowWidth,
+                WindowHeight = _services.Settings.GameWindowHeight,
+                FullScreen = _services.Settings.GameFullScreen,
+                ExtraJvmArgs = ParseArguments(_services.Settings.JvmArguments),
+                ExtraGameArgs = ParseArguments(_services.Settings.GameArguments)
             });
 
             _session = session;
@@ -314,6 +324,75 @@ public partial class LaunchViewModel : ObservableObject
         {
             Status = _strings["launch.error.stop"] + ex.Message;
         }
+    }
+
+    public async Task ExportInstanceAsync(string destination)
+    {
+        if (SelectedVersion is null)
+        {
+            Status = _strings["launch.status.select"];
+            return;
+        }
+
+        Status = _strings["launch.status.exporting"];
+
+        try
+        {
+            var gameDirectory = _services.VersionManager.ResolveGameDirectory(
+                SelectedVersion.Id, _services.Settings.IsolateVersions);
+            var result = await InstanceExporter.ExportAsync(
+                SelectedVersion, destination, gameDirectory);
+
+            Status = string.Format(
+                _strings["launch.status.exported"], result.ArchivePath, result.FileCount);
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["launch.error.export"] + ex.Message;
+        }
+    }
+
+    /// <summary>按空白拆分参数，双引号或单引号内的空白保留。</summary>
+    public static IReadOnlyList<string> ParseArguments(string? text)
+    {
+        var result = new List<string>();
+        if (string.IsNullOrWhiteSpace(text))
+            return result;
+
+        var current = new StringBuilder();
+        var quote = '\0';
+
+        foreach (var character in text)
+        {
+            if (quote != '\0')
+            {
+                if (character == quote)
+                    quote = '\0';
+                else
+                    current.Append(character);
+            }
+            else if (character is '"' or '\'')
+            {
+                quote = character;
+            }
+            else if (char.IsWhiteSpace(character))
+            {
+                if (current.Length > 0)
+                {
+                    result.Add(current.ToString());
+                    current.Clear();
+                }
+            }
+            else
+            {
+                current.Append(character);
+            }
+        }
+
+        if (current.Length > 0)
+            result.Add(current.ToString());
+
+        return result;
     }
 
     [RelayCommand]

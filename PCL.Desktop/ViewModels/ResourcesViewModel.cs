@@ -41,6 +41,10 @@ public partial class ResourcesViewModel : ObservableObject
         selectedLoader = LoaderOptions[0];
         status = _strings["resources.status.idle"];
 
+        foreach (var target in InstanceTargets.Build(_services, _strings))
+            Targets.Add(target);
+        selectedTarget = Targets[0];
+
         _ = LoadGameVersionsAsync();
     }
 
@@ -53,6 +57,12 @@ public partial class ResourcesViewModel : ObservableObject
     public ObservableCollection<ResourceVersion> Versions { get; } = [];
 
     public ObservableCollection<string> GameVersions { get; } = [];
+
+    /// <summary>全局游戏目录或启用隔离的实例目录。</summary>
+    public ObservableCollection<InstanceTarget> Targets { get; } = [];
+
+    [ObservableProperty]
+    private InstanceTarget? selectedTarget;
 
     [ObservableProperty]
     private string searchQuery = "";
@@ -207,7 +217,8 @@ public partial class ResourcesViewModel : ObservableObject
                 type,
                 SelectedGameVersion,
                 SelectedLoader?.Value,
-                reporter);
+                reporter,
+                gameDirectory: SelectedTarget?.GameDirectory);
 
             Progress = 100;
             Status = string.Format(_strings["resources.status.done"],

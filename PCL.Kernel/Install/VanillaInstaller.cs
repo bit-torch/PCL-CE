@@ -167,7 +167,7 @@ public sealed class VanillaInstaller
                 index.Objects,
                 new ParallelOptions
                 {
-                    MaxDegreeOfParallelism = 8,
+                    MaxDegreeOfParallelism = _downloads.ThreadLimit,
                     CancellationToken = cancellationToken
                 },
                 async (entry, token) =>
