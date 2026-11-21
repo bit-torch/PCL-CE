@@ -1,0 +1,82 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PCL.Desktop.ViewModels"
+             xmlns:mojang="using:PCL.Kernel.Mojang"
+             x:Class="PCL.Desktop.Views.InstallView"
+             x:DataType="vm:InstallViewModel">
+
+    <StackPanel Spacing="18">
+
+        <Border Classes="card">
+            <StackPanel Spacing="18">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="选择要安装的版本" Classes="h2" />
+                        <TextBlock Classes="muted"
+                                   Text="仅使用 Mojang 官方版本清单与资源源。安装过程不会写入 PCL 的签名、统计或更新逻辑。" />
+                    </StackPanel>
+                    <Button Grid.Column="1" Classes="ghost" Content="刷新清单"
+                            Command="{Binding LoadVersionsCommand}" />
+                </Grid>
+
+                <Grid ColumnDefinitions="*,14,Auto">
+                    <ComboBox Grid.Column="0"
+                              HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding Versions}"
+                              SelectedItem="{Binding SelectedVersion}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="mojang:VersionSummary">
+                                <Grid ColumnDefinitions="*,110">
+                                    <TextBlock Text="{Binding Id}" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Type}"
+                                               Classes="caption"
+                                               HorizontalAlignment="Right" />
+                                </Grid>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <Button Grid.Column="2"
+                            Classes="primary"
+                            Content="安装所选版本"
+                            Command="{Binding InstallCommand}"
+                            IsEnabled="{Binding !IsBusy}" />
+                </Grid>
+
+                <StackPanel Spacing="8" IsVisible="{Binding IsBusy}">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding Stage}" Classes="muted" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding Progress, StringFormat='{}{0:0}%'}"
+                                   Classes="caption" />
+                    </Grid>
+                    <ProgressBar Value="{Binding Progress}" Maximum="100" />
+                </StackPanel>
+
+                <TextBlock Text="{Binding Status}" Classes="muted" />
+            </StackPanel>
+        </Border>
+
+        <Grid ColumnDefinitions="*,18,*">
+            <Border Grid.Column="0" Classes="card">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="安装内容" Classes="section" />
+                    <TextBlock Classes="muted" Text="• 版本 JSON 与客户端 JAR" />
+                    <TextBlock Classes="muted" Text="• 按规则筛选后的依赖库与 natives" />
+                    <TextBlock Classes="muted" Text="• 资源索引与资源对象（SHA-1 校验）" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2" Classes="card">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="目录约定" Classes="section" />
+                    <TextBlock Classes="muted"
+                               Text="版本安装到当前游戏目录的 versions 下；依赖库与资源分别进入 libraries 与 assets。" />
+                    <TextBlock Classes="caption"
+                               Text="安装完成后可在“启动”页选择该版本。" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </StackPanel>
+</UserControl>

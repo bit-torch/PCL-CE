@@ -1,0 +1,125 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PCL.Desktop.ViewModels"
+             xmlns:versions="using:PCL.Kernel.Versions"
+             x:Class="PCL.Desktop.Views.LaunchView"
+             x:DataType="vm:LaunchViewModel">
+
+    <Grid ColumnDefinitions="430,18,*">
+
+        <Border Grid.Column="0" Classes="card">
+            <StackPanel Spacing="16">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="启动配置" Classes="h2" />
+                        <TextBlock Text="{Binding Status}" Classes="muted" />
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            Classes="ghost"
+                            Content="刷新版本"
+                            Command="{Binding RefreshVersionsCommand}" />
+                </Grid>
+
+                <StackPanel Spacing="7">
+                    <TextBlock Text="版本" Classes="caption" />
+                    <ComboBox HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding Versions}"
+                              SelectedItem="{Binding SelectedVersion}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="versions:InstalledVersion">
+                                <Grid ColumnDefinitions="*,110">
+                                    <TextBlock Text="{Binding Id}" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Type}"
+                                               Classes="caption"
+                                               HorizontalAlignment="Right" />
+                                </Grid>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+
+                <Grid ColumnDefinitions="*,14,*">
+                    <StackPanel Grid.Column="0" Spacing="7">
+                        <TextBlock Text="离线用户名" Classes="caption" />
+                        <TextBox Text="{Binding Username}" Watermark="Player" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Spacing="5">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="内存" Classes="caption" />
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding MemoryMb, StringFormat='{}{0:0} MB'}"
+                                       Classes="caption" />
+                        </Grid>
+                        <Slider Minimum="512"
+                                Maximum="16384"
+                                TickFrequency="512"
+                                IsSnapToTickEnabled="True"
+                                Value="{Binding MemoryMb}" />
+                    </StackPanel>
+                </Grid>
+
+                <StackPanel Spacing="7">
+                    <TextBlock Text="Java 路径" Classes="caption" />
+                    <Grid ColumnDefinitions="*,10,Auto">
+                        <TextBox Text="{Binding JavaPath}" Watermark="选择或自动检测 java 可执行文件" />
+                        <Button Grid.Column="2"
+                                Classes="ghost"
+                                Content="自动检测"
+                                Command="{Binding DetectJavaCommand}" />
+                    </Grid>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Button Classes="primary"
+                            Content="启动游戏"
+                            Command="{Binding LaunchCommand}"
+                            IsEnabled="{Binding !IsRunning}" />
+                    <Button Classes="ghost"
+                            Content="结束进程"
+                            Command="{Binding StopCommand}"
+                            IsEnabled="{Binding IsRunning}" />
+                    <Button Classes="link"
+                            Content="打开游戏目录"
+                            Command="{Binding OpenGameFolderCommand}" />
+                </StackPanel>
+
+                <Border Classes="soft">
+                    <TextBlock Classes="caption"
+                               Text="启动前会显示正版购买与 PCL 赞助劝导。这是 PCL 代码与资源完全替换前的必要许可步骤。" />
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Column="2" Classes="card">
+            <Grid RowDefinitions="Auto,*">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="运行日志" Classes="h2" />
+                        <TextBlock Text="Java 标准输出与错误输出" Classes="muted" />
+                    </StackPanel>
+                    <Border Grid.Column="1" Classes="chip" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Status}"
+                                   FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                    </Border>
+                </Grid>
+
+                <TextBox Grid.Row="1"
+                         Classes="log"
+                         Margin="0,16,0,0"
+                         Height="480"
+                         Text="{Binding Log}"
+                         IsReadOnly="True"
+                         AcceptsReturn="True"
+                         TextWrapping="NoWrap"
+                         FontFamily="Cascadia Mono, Consolas, monospace"
+                         FontSize="12"
+                         VerticalContentAlignment="Top"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

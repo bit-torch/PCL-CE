@@ -1,0 +1,102 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PCL.Desktop.ViewModels"
+             x:Class="PCL.Desktop.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+    <Grid ColumnDefinitions="*,18,320">
+
+        <StackPanel Grid.Column="0" Spacing="18">
+            <Border Classes="card">
+                <StackPanel Spacing="18">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="游戏与运行时" Classes="h2" />
+                        <TextBlock Text="这些设置保存在新内核自己的配置文件中。"
+                                   Classes="muted" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="7">
+                        <TextBlock Text="游戏目录" Classes="caption" />
+                        <Grid ColumnDefinitions="*,10,Auto">
+                            <TextBox Text="{Binding GameDirectory}"
+                                     Watermark="选择存放 versions、libraries 与 assets 的目录" />
+                            <Button Grid.Column="2"
+                                    Classes="ghost"
+                                    Content="打开数据目录"
+                                    Command="{Binding OpenDataFolderCommand}" />
+                        </Grid>
+                    </StackPanel>
+
+                    <StackPanel Spacing="7">
+                        <TextBlock Text="Java 可执行文件" Classes="caption" />
+                        <Grid ColumnDefinitions="*,10,Auto">
+                            <TextBox Text="{Binding JavaPath}"
+                                     Watermark="留空则在启动时自动检测" />
+                            <Button Grid.Column="2"
+                                    Classes="ghost"
+                                    Content="自动检测"
+                                    Command="{Binding DetectJavaCommand}" />
+                        </Grid>
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,14,*">
+                        <StackPanel Grid.Column="0" Spacing="5">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="最大内存" Classes="caption" />
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding MemoryMb, StringFormat='{}{0:0} MB'}"
+                                           Classes="caption" />
+                            </Grid>
+                            <Slider Minimum="512"
+                                    Maximum="32768"
+                                    TickFrequency="512"
+                                    IsSnapToTickEnabled="True"
+                                    Value="{Binding MemoryMb}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Spacing="7">
+                            <TextBlock Text="离线用户名" Classes="caption" />
+                            <TextBox Text="{Binding Username}" Watermark="Player" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding Status}" Classes="muted"
+                                   VerticalAlignment="Center" />
+                        <Button Grid.Column="1"
+                                Classes="primary"
+                                Content="保存设置"
+                                Command="{Binding SaveCommand}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <StackPanel Grid.Column="2" Spacing="18">
+            <Border Classes="card" Padding="20">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="运行环境" Classes="section" />
+                    <TextBlock Text="{Binding PlatformSummary}"
+                               Classes="caption"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card" Padding="20">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="配置文件" Classes="section" />
+                    <TextBlock Classes="muted"
+                               Text="设置以 JSON 形式写入数据目录，采用临时文件替换，避免写入中断损坏配置。" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="soft">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="许可说明" Classes="section" />
+                    <TextBlock Classes="caption"
+                               Text="在 PCL 代码与资源完全替换前，本项目继续保留 PCL 许可证要求的名称前缀、关于页署名与正版购买劝导。" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </Grid>
+</UserControl>
