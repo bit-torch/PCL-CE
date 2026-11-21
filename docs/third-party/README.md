@@ -60,7 +60,11 @@
 | 路径 | 说明 | 状态 |
 | --- | --- | --- |
 | `PCL.Desktop/Styles/Theme.axaml` | 自建颜色、卡片、按钮、导航样式 | 新实现 |
-| `PCL.Desktop/ViewModels/NavItem.cs` | 自绘 `StreamGeometry` 图标，未使用 PCL 图片 | 新实现 |
+| `PCL.Desktop/ViewModels/NavItem.cs` | 导航绑定 `Assets/Icons.cs`，未使用 PCL 图片 | 新实现 |
+| `PCL.Desktop/Assets/Icons.cs` | 自有线性图标几何（导航、设置、关于等） | 新实现 |
+| `PCL.Desktop/Assets/app-icon.png`、`app-icon.ico` | 自建应用图标：蓝色渐变、白色箭头、青色圆点 | 新实现 |
+| `PCL.Desktop/Localization/Strings.zh-CN.json`、`Strings.en-US.json` | 独立字符串目录，资源内嵌，不读取 PCL 语言文件 | 新实现 |
+| `PCL.Desktop/Localization/LocalizationService.cs` | 按系统语言选择 zh-CN / en-US，缺失键回退中文 | 新实现 |
 | `Avalonia.Fonts.Inter` | Inter 字体，OFL-1.1 | 第三方 |
 
 ### 3.1 随包二进制审计
@@ -170,10 +174,12 @@
 
 新栈未引入旧网络标识、请求签名或 PCL2 UA；剩余命中均为必须保留的署名/劝导。
 
+字符串迁移进度：导航、窗口标题、页面标题/副标题、关于页与启动前许可弹窗已接入独立目录；安装、启动、设置页的正文文案仍为内嵌中文，后续逐页迁移。
+
 ## 7. 待办与验收
 
 - [ ] 旧项目删除前，逐项确认上表「PCL 同源」已有新方案替代。
-- [ ] 建立新 UI 的独立字符串目录与图标资源，替换 `Resources/Font.ttf`、`Images/**`。
+- [x] 建立新 UI 的独立字符串目录与图标资源：`Localization/Strings.*.json`、`Assets/Icons.cs`、`Assets/app-icon.*`；新 UI 已不引用 `Resources/Font.ttf` 与 `Images/**`，旧文件待阶段 4 删除。
 - [x] 完成首轮二进制审计（见 3.1）：确认 `legacyfix.jar`、`transformer.jar` 为 GPL-3.0；`linkd.exe` 实为微软工具。`java-wrapper.jar`、`lwjgl-unsafe-agent.jar`、`forge-installer.jar`、`Font.ttf` 仍待核。
 - [ ] 完成 Forge / NeoForge、资源下载、账户、联机、更新器的干净实现。
 - [x] 完成标识扫描并记录快照（见第 6 节）；新栈仅剩过渡期署名与劝导。

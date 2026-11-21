@@ -10,38 +10,36 @@
 
     <StackPanel Margin="26" Spacing="18">
         <StackPanel Spacing="8">
-            <TextBlock Text="支持正版，也支持原 PCL 作者" Classes="h2" />
-            <TextBlock Classes="muted"
-                       Text="在 PCL 代码与资源完全替换前，本项目需要遵守《PCL 分发有限许可》，在启动游戏前提示购买正版并提供赞助入口。" />
+            <TextBlock x:Name="HeadingText" Classes="h2" />
+            <TextBlock x:Name="IntroText" Classes="muted" />
         </StackPanel>
 
         <Border Classes="soft">
             <StackPanel Spacing="8">
-                <TextBlock Text="Minecraft 需要购买正版账号才能获得完整体验。" Classes="muted" />
-                <TextBlock Classes="caption"
-                           Text="如果你已经在使用正版，可以忽略此提示。" />
+                <TextBlock x:Name="PurchaseHintText" Classes="muted" />
+                <TextBlock x:Name="IgnoreHintText" Classes="caption" />
             </StackPanel>
         </Border>
 
         <StackPanel Orientation="Horizontal" Spacing="10">
-            <Button Classes="primary"
-                    Content="购买正版"
+            <Button x:Name="PurchaseButton"
+                    Classes="primary"
                     Click="OnPurchaseClick" />
-            <Button Classes="ghost"
-                    Content="赞助原 PCL 作者"
+            <Button x:Name="SponsorButton"
+                    Classes="ghost"
                     Click="OnSponsorClick" />
         </StackPanel>
 
         <Grid ColumnDefinitions="*,Auto,Auto">
             <TextBlock Text="" />
-            <Button Grid.Column="1"
+            <Button x:Name="LaterButton"
+                    Grid.Column="1"
                     Classes="link"
-                    Content="稍后再说"
                     Margin="0,0,18,0"
                     Click="OnDeclineClick" />
-            <Button Grid.Column="2"
+            <Button x:Name="AcceptButton"
+                    Grid.Column="2"
                     Classes="ghost"
-                    Content="我已了解，继续启动"
                     Click="OnAcceptClick" />
         </Grid>
     </StackPanel>

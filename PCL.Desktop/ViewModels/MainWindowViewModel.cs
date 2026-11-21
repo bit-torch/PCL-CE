@@ -1,25 +1,36 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using PCL.Desktop.Localization;
 using PCL.Desktop.Services;
 
 namespace PCL.Desktop.ViewModels;
 
 public partial class MainWindowViewModel : ObservableObject
 {
-    private static readonly string[] PageTitles = ["总览", "安装", "启动", "设置", "关于"];
-
-    private static readonly string[] PageSubtitles =
+    private static readonly string[] PageTitleKeys =
     [
-        "干净内核与 Avalonia 新界面的起点",
-        "获取 Mojang 官方版本并安装",
-        "选择版本、Java 与账户后启动游戏",
-        "管理游戏目录、Java 与内存",
-        "许可证、署名与项目状态"
+        "page.home.title",
+        "page.install.title",
+        "page.launch.title",
+        "page.settings.title",
+        "page.about.title"
     ];
+
+    private static readonly string[] PageSubtitleKeys =
+    [
+        "page.home.subtitle",
+        "page.install.subtitle",
+        "page.launch.subtitle",
+        "page.settings.subtitle",
+        "page.about.subtitle"
+    ];
+
+    private readonly LocalizationService _strings;
 
     public MainWindowViewModel(LauncherServices services, Func<Task<bool>> licenseGate)
     {
-        NavItems = NavItem.CreateDefault();
+        _strings = services.Localization;
+        NavItems = NavItem.CreateDefault(_strings);
 
         Launch = new LaunchViewModel(services, licenseGate);
         Install = new InstallViewModel(services, Launch.RefreshList);
@@ -28,8 +39,9 @@ public partial class MainWindowViewModel : ObservableObject
         Home = new HomeViewModel(services, NavigateTo);
 
         currentPage = Home;
-        currentTitle = PageTitles[0];
-        currentSubtitle = PageSubtitles[0];
+        currentTitle = _strings[PageTitleKeys[0]];
+        currentSubtitle = _strings[PageSubtitleKeys[0]];
+        statusText = _strings["shell.status"];
     }
 
     public IReadOnlyList<NavItem> NavItems { get; }
@@ -44,6 +56,12 @@ public partial class MainWindowViewModel : ObservableObject
 
     public AboutViewModel About { get; }
 
+    public string WindowTitle => _strings["app.title"];
+
+    public string ShellBadge => _strings["shell.badge"];
+
+    public string ShellVersion => _strings["shell.version"];
+
     [ObservableProperty]
     private int selectedNavIndex;
 
@@ -57,7 +75,7 @@ public partial class MainWindowViewModel : ObservableObject
     private string currentSubtitle;
 
     [ObservableProperty]
-    private string statusText = "干净内核 · Avalonia";
+    private string statusText;
 
     public void NavigateTo(string key)
     {
@@ -74,8 +92,8 @@ public partial class MainWindowViewModel : ObservableObject
             return;
 
         var item = NavItems[value];
-        CurrentTitle = PageTitles[value];
-        CurrentSubtitle = PageSubtitles[value];
+        CurrentTitle = _strings[PageTitleKeys[value]];
+        CurrentSubtitle = _strings[PageSubtitleKeys[value]];
         CurrentPage = item.Key switch
         {
             "install" => Install,

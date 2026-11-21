@@ -1,6 +1,8 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform;
 using PCL.Desktop.Dialogs;
 using PCL.Desktop.Services;
 using PCL.Desktop.ViewModels;
@@ -17,12 +19,17 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            _services = new LauncherServices();
+            var services = new LauncherServices();
+            _services = services;
 
             var window = new MainWindow();
-            var viewModel = new MainWindowViewModel(_services, async () =>
+            var assembly = typeof(App).Assembly.GetName().Name;
+            window.Icon = new WindowIcon(AssetLoader.Open(
+                new Uri($"avares://{assembly}/Assets/app-icon.png")));
+
+            var viewModel = new MainWindowViewModel(services, async () =>
             {
-                var dialog = new LicensePrecheckWindow();
+                var dialog = new LicensePrecheckWindow(services.Localization);
                 return await dialog.ShowDialog<bool>(window);
             });
 

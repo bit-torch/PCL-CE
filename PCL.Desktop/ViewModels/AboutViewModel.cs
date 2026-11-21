@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using PCL.Desktop.Localization;
 using PCL.Desktop.Services;
 
 namespace PCL.Desktop.ViewModels;
@@ -14,25 +15,39 @@ public partial class AboutViewModel : ObservableObject
     private const string CommunityUrl = "https://github.com/PCL-Community/PCL-CE";
 
     private readonly LauncherServices _services;
+    private readonly LocalizationService _strings;
 
     public AboutViewModel(LauncherServices services)
     {
         _services = services;
+        _strings = services.Localization;
     }
 
-    public string Title => "PCL Community Edition";
+    public string Title => _strings["app.title"];
 
-    public string Version => "新内核预览 · Avalonia";
+    public string Version => _strings["about.version"];
 
-    public string Attribution =>
-        "原 PCL 作者：龙腾猫跃。当前仓库派生自 PCL，并包含 PCL Community 的社区工作。";
+    public string Attribution => _strings["about.attribution"];
 
-    public string LicenseNotice =>
-        "在 PCL 代码与资源完全替换前，本项目继续遵守《PCL 分发有限许可》：保留 PCL 名称前缀、" +
-        "关于页署名、开源、正版购买劝导与 Windows 蓝色主色相。资源替换完成后才会调整许可声明。";
+    public string LicenseSectionTitle => _strings["about.license.title"];
 
-    public string CleanRoomNotice =>
-        "新内核 PCL.Kernel 为独立实现，不复用 PCL 的签名、更新、赞助、统计与本地化资源。";
+    public string LicenseNotice => _strings["about.license.notice"];
+
+    public string CleanRoomSectionTitle => _strings["about.clean.title"];
+
+    public string CleanRoomNotice => _strings["about.clean.notice"];
+
+    public string SupportSectionTitle => _strings["about.support.title"];
+
+    public string SupportDescription => _strings["about.support.description"];
+
+    public string PurchaseLabel => _strings["about.action.purchase"];
+
+    public string SponsorLabel => _strings["about.action.sponsor"];
+
+    public string UpstreamLabel => _strings["about.action.upstream"];
+
+    public string CommunityLabel => _strings["about.action.community"];
 
     [ObservableProperty]
     private string status = "";
@@ -58,7 +73,7 @@ public partial class AboutViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Status = "无法打开链接：" + ex.Message;
+            Status = _strings["about.error.open"] + ex.Message;
         }
     }
 }

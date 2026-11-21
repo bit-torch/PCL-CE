@@ -3,7 +3,7 @@
         xmlns:vm="using:PCL.Desktop.ViewModels"
         x:Class="PCL.Desktop.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="PCL Community Edition"
+        Title="{Binding WindowTitle}"
         Width="1180"
         Height="780"
         MinWidth="1000"
@@ -57,8 +57,8 @@
 
                 <StackPanel Grid.Row="2" Margin="0,0,0,22" Spacing="3"
                             HorizontalAlignment="Center">
-                    <TextBlock Text="独立内核" Classes="caption" HorizontalAlignment="Center" />
-                    <TextBlock Text="v1.0" Classes="caption" HorizontalAlignment="Center" />
+                    <TextBlock Text="{Binding ShellBadge}" Classes="caption" HorizontalAlignment="Center" />
+                    <TextBlock Text="{Binding ShellVersion}" Classes="caption" HorizontalAlignment="Center" />
                 </StackPanel>
             </Grid>
         </Border>

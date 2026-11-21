@@ -30,14 +30,14 @@
         <Grid ColumnDefinitions="*,18,*">
             <Border Grid.Column="0" Classes="card">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="许可证义务" Classes="section" />
+                    <TextBlock Text="{Binding LicenseSectionTitle}" Classes="section" />
                     <TextBlock Text="{Binding LicenseNotice}" Classes="muted" />
                 </StackPanel>
             </Border>
 
             <Border Grid.Column="2" Classes="card">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="干净内核" Classes="section" />
+                    <TextBlock Text="{Binding CleanRoomSectionTitle}" Classes="section" />
                     <TextBlock Text="{Binding CleanRoomNotice}" Classes="muted" />
                 </StackPanel>
             </Border>
@@ -46,26 +46,26 @@
         <Border Classes="card">
             <StackPanel Spacing="16">
                 <StackPanel Spacing="5">
-                    <TextBlock Text="支持作者与项目" Classes="section" />
+                    <TextBlock Text="{Binding SupportSectionTitle}" Classes="section" />
                     <TextBlock Classes="muted"
-                               Text="如果你喜欢这份工作，请优先通过官方渠道购买 Minecraft，也可以赞助原 PCL 作者。" />
+                               Text="{Binding SupportDescription}" />
                 </StackPanel>
 
                 <WrapPanel ItemWidth="210" ItemHeight="46">
                     <Button Classes="primary"
-                            Content="购买正版 Minecraft"
+                            Content="{Binding PurchaseLabel}"
                             Command="{Binding OpenPurchaseCommand}"
                             Margin="0,0,12,10" />
                     <Button Classes="ghost"
-                            Content="赞助原 PCL 作者"
+                            Content="{Binding SponsorLabel}"
                             Command="{Binding OpenSponsorCommand}"
                             Margin="0,0,12,10" />
                     <Button Classes="ghost"
-                            Content="上游仓库"
+                            Content="{Binding UpstreamLabel}"
                             Command="{Binding OpenUpstreamCommand}"
                             Margin="0,0,12,10" />
                     <Button Classes="ghost"
-                            Content="社区仓库"
+                            Content="{Binding CommunityLabel}"
                             Command="{Binding OpenCommunityCommand}"
                             Margin="0,0,12,10" />
                 </WrapPanel>

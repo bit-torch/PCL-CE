@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using PCL.Desktop.Localization;
 using PCL.Desktop.Services;
 
 namespace PCL.Desktop.Dialogs;
@@ -11,9 +12,23 @@ public partial class LicensePrecheckWindow : Window
 
     private const string SponsorUrl = "https://afdian.com/a/LTCat";
 
-    public LicensePrecheckWindow()
+    public LicensePrecheckWindow() : this(new LocalizationService())
+    {
+    }
+
+    public LicensePrecheckWindow(LocalizationService strings)
     {
         InitializeComponent();
+
+        Title = strings["license.title"];
+        HeadingText.Text = strings["license.heading"];
+        IntroText.Text = strings["license.intro"];
+        PurchaseHintText.Text = strings["license.purchase.hint"];
+        IgnoreHintText.Text = strings["license.purchase.ignore"];
+        PurchaseButton.Content = strings["license.action.purchase"];
+        SponsorButton.Content = strings["license.action.sponsor"];
+        LaterButton.Content = strings["license.action.later"];
+        AcceptButton.Content = strings["license.action.accept"];
     }
 
     private void OnPurchaseClick(object? sender, RoutedEventArgs e) => Open(PurchaseUrl);

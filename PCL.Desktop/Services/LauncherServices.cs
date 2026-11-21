@@ -1,3 +1,4 @@
+using PCL.Desktop.Localization;
 using PCL.Kernel;
 using PCL.Kernel.Abstractions;
 using PCL.Kernel.App;
@@ -20,6 +21,7 @@ public sealed class LauncherServices : IDisposable
     {
         Paths = LauncherPaths.CreateDefault();
         Paths.EnsureDirectories();
+        Localization = new LocalizationService();
 
         Settings = SettingsStore.Load(Paths.SettingsPath);
         Settings.Normalize();
@@ -44,6 +46,8 @@ public sealed class LauncherServices : IDisposable
     }
 
     public LauncherPaths Paths { get; }
+
+    public LocalizationService Localization { get; }
 
     public DownloadClient Downloads { get; }
 
