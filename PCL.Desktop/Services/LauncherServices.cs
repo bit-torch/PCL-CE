@@ -24,11 +24,13 @@ public sealed class LauncherServices : IDisposable
     {
         Paths = LauncherPaths.CreateDefault();
         Paths.EnsureDirectories();
-        Localization = new LocalizationService();
-        Loc.Initialize(Localization);
 
         Settings = SettingsStore.Load(Paths.SettingsPath);
         Settings.Normalize();
+
+        Localization = new LocalizationService(
+            string.IsNullOrWhiteSpace(Settings.Language) ? null : Settings.Language);
+        Loc.Initialize(Localization);
 
         if (!string.IsNullOrWhiteSpace(Settings.GameDirectory))
         {

@@ -22,7 +22,7 @@ public static partial class JavaLocator
             if (!File.Exists(candidate))
                 continue;
 
-            var version = await ProbeAsync(candidate, cancellationToken).ConfigureAwait(false);
+            var version = await ProbeVersionAsync(candidate, cancellationToken).ConfigureAwait(false);
             if (version is not null)
                 return new JavaRuntime(candidate, version);
         }
@@ -44,7 +44,7 @@ public static partial class JavaLocator
             if (!File.Exists(candidate))
                 continue;
 
-            var version = await ProbeAsync(candidate, cancellationToken).ConfigureAwait(false);
+            var version = await ProbeVersionAsync(candidate, cancellationToken).ConfigureAwait(false);
             if (version is null || !versions.Add(version))
                 continue;
 
@@ -161,7 +161,21 @@ public static partial class JavaLocator
         }
     }
 
-    private static async Task<string?> ProbeAsync(string javaPath, CancellationToken cancellationToken)
+    /// <summary>探测指定可执行文件，返回 Java 运行时；路径无效或无法运行时返回 null。</summary>
+    public static async Task<JavaRuntime?> ProbeAsync(
+        string javaPath,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(javaPath) || !File.Exists(javaPath))
+            return null;
+
+        var version = await ProbeVersionAsync(javaPath, cancellationToken).ConfigureAwait(false);
+        return version is null ? null : new JavaRuntime(javaPath, version);
+    }
+
+    private static async Task<string?> ProbeVersionAsync(
+        string javaPath,
+        CancellationToken cancellationToken)
     {
         try
         {

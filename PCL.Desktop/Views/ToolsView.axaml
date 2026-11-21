@@ -218,6 +218,64 @@
             </Border>
 
             <Border Classes="card">
+                <StackPanel Spacing="10">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Key=tools.resourcepacks.title}" Classes="section" />
+                        <TextBlock Classes="caption"
+                                   TextWrapping="Wrap"
+                                   Text="{loc:Localize Key=tools.resourcepacks.orderHint}" />
+                    </StackPanel>
+                    <ListBox ItemsSource="{Binding ResourcePacks}"
+                             SelectedItem="{Binding SelectedResourcePack}"
+                             MaxHeight="200"
+                             IsVisible="{Binding HasResourcePacks}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="data:ResourcePackEntry">
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,3">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                                        <TextBlock Classes="caption"
+                                                   Text="{Binding SizeLabel}"
+                                                   IsVisible="{Binding !IsDirectory}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1"
+                                                Orientation="Horizontal"
+                                                Spacing="6"
+                                                VerticalAlignment="Center">
+                                        <Border Classes="accent-chip" IsVisible="{Binding Enabled}">
+                                            <TextBlock Text="{loc:Localize Key=tools.resourcepacks.enabled}" />
+                                        </Border>
+                                        <Border Classes="chip" IsVisible="{Binding !Enabled}">
+                                            <TextBlock Text="{loc:Localize Key=tools.resourcepacks.disabled}" />
+                                        </Border>
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <TextBlock Classes="caption"
+                               IsVisible="{Binding !HasResourcePacks}"
+                               Text="{loc:Localize Key=tools.resourcepacks.empty}" />
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8"
+                                IsVisible="{Binding HasResourcePacks}">
+                        <Button Classes="ghost"
+                                Content="{loc:Localize Key=tools.resourcepacks.toggle}"
+                                IsEnabled="{Binding HasSelectedResourcePack}"
+                                Command="{Binding ToggleResourcePackCommand}" />
+                        <Button Classes="ghost"
+                                Content="{loc:Localize Key=tools.resourcepacks.up}"
+                                IsEnabled="{Binding HasSelectedResourcePack}"
+                                Command="{Binding MoveResourcePackUpCommand}" />
+                        <Button Classes="ghost"
+                                Content="{loc:Localize Key=tools.resourcepacks.down}"
+                                IsEnabled="{Binding HasSelectedResourcePack}"
+                                Command="{Binding MoveResourcePackDownCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card">
                 <StackPanel Spacing="12">
                     <StackPanel Spacing="5">
                         <TextBlock Text="{loc:Localize Key=tools.modpack.title}" Classes="section" />

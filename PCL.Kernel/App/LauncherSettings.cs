@@ -9,6 +9,9 @@ public sealed class LauncherSettings
 
     public string? JavaPath { get; set; }
 
+    /// <summary>已记录的 Java 可执行文件路径；删除记录不会删除文件。</summary>
+    public List<string> JavaPaths { get; set; } = [];
+
     public int MaxMemoryMb { get; set; } = 4096;
 
     public string OfflineUsername { get; set; } = "Player";
@@ -27,6 +30,12 @@ public sealed class LauncherSettings
 
     public bool DarkTheme { get; set; }
 
+    /// <summary>界面语言；空字符串表示跟随系统。</summary>
+    public string Language { get; set; } = "";
+
+    /// <summary>启动时自动检查启动器更新。</summary>
+    public bool CheckUpdatesOnStartup { get; set; } = true;
+
     public bool LicensePrecheckAccepted { get; set; }
 
     public int LaunchCount { get; set; }
@@ -39,6 +48,7 @@ public sealed class LauncherSettings
 
         OfflineAccounts ??= [];
         Accounts ??= [];
+        JavaPaths ??= [];
 
         if (!OfflineAccounts.Contains(OfflineUsername, StringComparer.OrdinalIgnoreCase))
             OfflineAccounts.Add(OfflineUsername);

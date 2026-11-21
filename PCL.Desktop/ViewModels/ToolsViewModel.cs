@@ -38,6 +38,8 @@ public partial class ToolsViewModel : ObservableObject
 
     public ObservableCollection<ModEntry> Mods { get; } = [];
 
+    public ObservableCollection<ResourcePackEntry> ResourcePacks { get; } = [];
+
     public ObservableCollection<ScreenshotEntry> Screenshots { get; } = [];
 
     public ObservableCollection<LogIssue> LogIssues { get; } = [];
@@ -48,6 +50,8 @@ public partial class ToolsViewModel : ObservableObject
 
     public bool HasMods => Mods.Count > 0;
 
+    public bool HasResourcePacks => ResourcePacks.Count > 0;
+
     public bool HasScreenshots => Screenshots.Count > 0;
 
     public bool HasLogIssues => LogIssues.Count > 0;
@@ -57,6 +61,8 @@ public partial class ToolsViewModel : ObservableObject
     public bool HasSelectedServer => SelectedServer is not null;
 
     public bool HasSelectedMod => SelectedMod is not null;
+
+    public bool HasSelectedResourcePack => SelectedResourcePack is not null;
 
     public string GameDirectory => _services.Paths.GameDirectory;
 
@@ -114,6 +120,9 @@ public partial class ToolsViewModel : ObservableObject
     private ModEntry? selectedMod;
 
     [ObservableProperty]
+    private ResourcePackEntry? selectedResourcePack;
+
+    [ObservableProperty]
     private string newServerName = "";
 
     [ObservableProperty]
@@ -130,6 +139,9 @@ public partial class ToolsViewModel : ObservableObject
 
     partial void OnSelectedModChanged(ModEntry? value) =>
         OnPropertyChanged(nameof(HasSelectedMod));
+
+    partial void OnSelectedResourcePackChanged(ResourcePackEntry? value) =>
+        OnPropertyChanged(nameof(HasSelectedResourcePack));
 
     private string? _updateUrl;
 
@@ -150,6 +162,7 @@ public partial class ToolsViewModel : ObservableObject
             SelectedSave = null;
             SelectedServer = null;
             SelectedMod = null;
+            SelectedResourcePack = null;
 
             Saves.Clear();
             foreach (var save in SaveScanner.Scan(gameDirectory))
@@ -163,6 +176,10 @@ public partial class ToolsViewModel : ObservableObject
             foreach (var mod in ModScanner.Scan(gameDirectory))
                 Mods.Add(mod);
 
+            ResourcePacks.Clear();
+            foreach (var pack in ResourcePackManager.Scan(gameDirectory))
+                ResourcePacks.Add(pack);
+
             Screenshots.Clear();
             foreach (var screenshot in ScreenshotScanner.Scan(gameDirectory))
                 Screenshots.Add(screenshot);
@@ -175,6 +192,7 @@ public partial class ToolsViewModel : ObservableObject
             OnPropertyChanged(nameof(HasSaves));
             OnPropertyChanged(nameof(HasServers));
             OnPropertyChanged(nameof(HasMods));
+            OnPropertyChanged(nameof(HasResourcePacks));
             OnPropertyChanged(nameof(HasScreenshots));
             OnPropertyChanged(nameof(HasLogIssues));
             OnPropertyChanged(nameof(GameDirectory));
@@ -221,6 +239,56 @@ public partial class ToolsViewModel : ObservableObject
             ModScanner.Delete(_services.Paths.GameDirectory, SelectedMod.FileName);
             Refresh();
             Status = string.Format(_strings["tools.status.deleted"], name);
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["tools.status.error"] + ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private void ToggleResourcePack()
+    {
+        if (SelectedResourcePack is null)
+            return;
+
+        var pack = SelectedResourcePack;
+        try
+        {
+            ResourcePackManager.SetEnabled(
+                _services.Paths.GameDirectory, pack.Name, !pack.Enabled);
+            Refresh();
+            Status = string.Format(
+                _strings["tools.status.resourcePackToggled"], pack.DisplayName);
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["tools.status.error"] + ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private void MoveResourcePackUp() => MoveResourcePack(-1);
+
+    [RelayCommand]
+    private void MoveResourcePackDown() => MoveResourcePack(1);
+
+    private void MoveResourcePack(int offset)
+    {
+        if (SelectedResourcePack is null)
+            return;
+
+        var pack = SelectedResourcePack;
+        try
+        {
+            if (!ResourcePackManager.Move(_services.Paths.GameDirectory, pack.Name, offset))
+                return;
+
+            Refresh();
+            SelectedResourcePack = ResourcePacks
+                .FirstOrDefault(item => item.Name == pack.Name);
+            Status = string.Format(
+                _strings["tools.status.resourcePackMoved"], pack.DisplayName);
         }
         catch (Exception ex)
         {

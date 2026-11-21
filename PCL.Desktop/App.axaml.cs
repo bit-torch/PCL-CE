@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
+using Avalonia.Styling;
 using PCL.Desktop.Dialogs;
 using PCL.Desktop.Services;
 using PCL.Desktop.ViewModels;
@@ -21,6 +22,9 @@ public partial class App : Application
         {
             var services = new LauncherServices();
             _services = services;
+            RequestedThemeVariant = services.Settings.DarkTheme
+                ? ThemeVariant.Dark
+                : ThemeVariant.Light;
 
             var window = new MainWindow();
             var assembly = typeof(App).Assembly.GetName().Name;

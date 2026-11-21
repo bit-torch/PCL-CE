@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Desktop.Localization;
 using PCL.Desktop.Services;
+using PCL.Kernel.Updates;
 
 namespace PCL.Desktop.ViewModels;
 
@@ -48,6 +49,23 @@ public partial class MainWindowViewModel : ObservableObject
         currentTitle = _strings[PageTitleKeys[0]];
         currentSubtitle = _strings[PageSubtitleKeys[0]];
         statusText = _strings["shell.status"];
+
+        if (services.Settings.CheckUpdatesOnStartup)
+            _ = CheckUpdatesOnStartupAsync(services);
+    }
+
+    private async Task CheckUpdatesOnStartupAsync(LauncherServices services)
+    {
+        try
+        {
+            var info = await services.UpdateChecker.CheckAsync(UpdateChecker.CurrentVersion);
+            if (info.IsAvailable)
+                StatusText = string.Format(_strings["shell.updateAvailable"], info.LatestVersion);
+        }
+        catch (Exception)
+        {
+            // 启动时静默处理网络错误，用户仍可在工具页手动检查。
+        }
     }
 
     public IReadOnlyList<NavItem> NavItems { get; }

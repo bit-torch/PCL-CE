@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using Avalonia;
+using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Desktop.Localization;
@@ -27,6 +29,16 @@ public partial class SettingsViewModel : ObservableObject
         microsoftClientId = services.Settings.MicrosoftClientId;
         microsoftStatus = _strings["settings.auth.idle"];
         yggdrasilStatus = _strings["settings.auth.idle"];
+        darkTheme = services.Settings.DarkTheme;
+        checkUpdatesOnStartup = services.Settings.CheckUpdatesOnStartup;
+        var languageCode = string.IsNullOrWhiteSpace(services.Settings.Language)
+            ? _strings.Language
+            : services.Settings.Language;
+        selectedLanguage = Languages.FirstOrDefault(item => item.Value == languageCode)
+                           ?? Languages[0];
+
+        foreach (var path in services.Settings.JavaPaths)
+            JavaRuntimes.Add(new JavaRuntime(path, null));
 
         foreach (var account in services.Settings.Accounts)
             Accounts.Add(account);
@@ -37,6 +49,45 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     public ObservableCollection<LauncherAccount> Accounts { get; } = [];
+
+    public ObservableCollection<JavaRuntime> JavaRuntimes { get; } = [];
+
+    public IReadOnlyList<LanguageOption> Languages { get; } =
+    [
+        new("zh-CN", "简体中文"),
+        new("en-US", "English")
+    ];
+
+    [ObservableProperty]
+    private JavaRuntime? selectedJavaRuntime;
+
+    [ObservableProperty]
+    private string newJavaPath = "";
+
+    [ObservableProperty]
+    private bool isScanningJava;
+
+    [ObservableProperty]
+    private bool darkTheme;
+
+    [ObservableProperty]
+    private bool checkUpdatesOnStartup;
+
+    [ObservableProperty]
+    private LanguageOption selectedLanguage;
+
+    public bool HasSelectedJavaRuntime => SelectedJavaRuntime is not null;
+
+    partial void OnSelectedJavaRuntimeChanged(JavaRuntime? value) =>
+        OnPropertyChanged(nameof(HasSelectedJavaRuntime));
+
+    partial void OnDarkThemeChanged(bool value)
+    {
+        if (Application.Current is { } application)
+            application.RequestedThemeVariant = value
+                ? ThemeVariant.Dark
+                : ThemeVariant.Light;
+    }
 
     [ObservableProperty]
     private LauncherAccount? selectedAccount;
@@ -127,6 +178,9 @@ public partial class SettingsViewModel : ObservableObject
             _services.Settings.MaxMemoryMb = Math.Clamp((int)MemoryMb, 512, 65536);
             _services.Settings.IsolateVersions = IsolateVersions;
             _services.Settings.MicrosoftClientId = MicrosoftClientId.Trim();
+            _services.Settings.DarkTheme = DarkTheme;
+            _services.Settings.Language = SelectedLanguage.Value;
+            _services.Settings.CheckUpdatesOnStartup = CheckUpdatesOnStartup;
 
             if (SelectedAccount is { Kind: AccountKind.Offline } offline)
             {
@@ -327,12 +381,107 @@ public partial class SettingsViewModel : ObservableObject
             }
 
             JavaPath = java.Path;
+            UpsertJava(java);
+            PersistJavaPaths();
             Status = string.Format(_strings["settings.status.javaFound"], java.DisplayName);
         }
         catch (Exception ex)
         {
             Status = _strings["settings.error.java"] + ex.Message;
         }
+    }
+
+    [RelayCommand]
+    private async Task ScanJavaAsync()
+    {
+        if (IsScanningJava)
+            return;
+
+        IsScanningJava = true;
+        Status = _strings["settings.status.scanningJava"];
+        try
+        {
+            var found = await JavaLocator.FindAllAsync();
+            foreach (var java in found)
+                UpsertJava(java);
+
+            PersistJavaPaths();
+            Status = string.Format(_strings["settings.status.javaScanned"], found.Count);
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["settings.error.java"] + ex.Message;
+        }
+        finally
+        {
+            IsScanningJava = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task AddJavaAsync()
+    {
+        var path = NewJavaPath.Trim().Trim('"');
+        if (path.Length == 0)
+        {
+            Status = _strings["settings.java.pathRequired"];
+            return;
+        }
+
+        try
+        {
+            var java = await JavaLocator.ProbeAsync(path);
+            if (java is null)
+            {
+                Status = _strings["settings.java.invalid"];
+                return;
+            }
+
+            UpsertJava(java);
+            PersistJavaPaths();
+            NewJavaPath = "";
+            SelectedJavaRuntime = java;
+            Status = string.Format(_strings["settings.status.javaAdded"], java.DisplayName);
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["settings.error.java"] + ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private void UseSelectedJava()
+    {
+        if (SelectedJavaRuntime is null)
+        {
+            Status = _strings["settings.java.selectRequired"];
+            return;
+        }
+
+        JavaPath = SelectedJavaRuntime.Path;
+        _services.Settings.JavaPath = JavaPath;
+        _services.SaveSettings();
+        Status = string.Format(
+            _strings["settings.status.javaSelected"], SelectedJavaRuntime.DisplayName);
+    }
+
+    [RelayCommand]
+    private void RemoveJava()
+    {
+        if (SelectedJavaRuntime is null)
+        {
+            Status = _strings["settings.java.selectRequired"];
+            return;
+        }
+
+        var removed = SelectedJavaRuntime;
+        JavaRuntimes.Remove(removed);
+        if (string.Equals(JavaPath, removed.Path, StringComparison.OrdinalIgnoreCase))
+            JavaPath = "";
+
+        PersistJavaPaths();
+        SelectedJavaRuntime = JavaRuntimes.FirstOrDefault();
+        Status = string.Format(_strings["settings.status.javaRemoved"], removed.DisplayName);
     }
 
     [RelayCommand]
@@ -349,6 +498,27 @@ public partial class SettingsViewModel : ObservableObject
         {
             Status = _strings["settings.error.openData"] + ex.Message;
         }
+    }
+
+    private void UpsertJava(JavaRuntime java)
+    {
+        for (var i = 0; i < JavaRuntimes.Count; i++)
+        {
+            if (!string.Equals(
+                    JavaRuntimes[i].Path, java.Path, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            JavaRuntimes[i] = java;
+            return;
+        }
+
+        JavaRuntimes.Add(java);
+    }
+
+    private void PersistJavaPaths()
+    {
+        _services.Settings.JavaPaths = JavaRuntimes.Select(java => java.Path).ToList();
+        _services.SaveSettings();
     }
 
     private void UpsertAccount(LauncherAccount account)
@@ -377,4 +547,9 @@ public partial class SettingsViewModel : ObservableObject
             .ToList();
         _services.Settings.SelectedAccountId = SelectedAccount?.Id;
     }
+}
+
+public sealed record LanguageOption(string Value, string Label)
+{
+    public override string ToString() => Label;
 }

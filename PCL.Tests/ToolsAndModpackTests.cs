@@ -446,6 +446,77 @@ public sealed class ToolsAndModpackTests
     }
 
     [Fact]
+    public void ResourcePackManager_TogglesAndReorders()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var packs = Path.Combine(root, "resourcepacks");
+            Directory.CreateDirectory(packs);
+            File.WriteAllText(Path.Combine(packs, "Alpha.zip"), "a");
+            File.WriteAllText(Path.Combine(packs, "Beta.zip"), "b");
+            Directory.CreateDirectory(Path.Combine(packs, "Gamma"));
+            File.WriteAllText(Path.Combine(packs, "notes.txt"), "ignore");
+            File.WriteAllText(Path.Combine(root, "options.txt"),
+                "language:zh_cn\nresourcePacks:[\"vanilla\"]\n" +
+                "incompatibleResourcePacks:[]\n");
+
+            var initial = ResourcePackManager.Scan(root);
+            Assert.Equal(3, initial.Count);
+            Assert.All(initial, pack => Assert.False(pack.Enabled));
+
+            ResourcePackManager.SetEnabled(root, "Alpha.zip", true);
+            ResourcePackManager.SetEnabled(root, "Beta.zip", true);
+
+            var enabled = ResourcePackManager.Scan(root)
+                .Where(pack => pack.Enabled)
+                .Select(pack => pack.Name)
+                .ToArray();
+            Assert.Equal(["Alpha.zip", "Beta.zip"], enabled);
+
+            Assert.True(ResourcePackManager.Move(root, "Beta.zip", -1));
+            var reordered = ResourcePackManager.Scan(root)
+                .Where(pack => pack.Enabled)
+                .Select(pack => pack.Name)
+                .ToArray();
+            Assert.Equal(["Beta.zip", "Alpha.zip"], reordered);
+
+            ResourcePackManager.SetEnabled(root, "Alpha.zip", false);
+
+            var options = File.ReadAllText(Path.Combine(root, "options.txt"));
+            Assert.Contains("\"vanilla\",\"file/Beta.zip\"", options);
+            Assert.Contains("language:zh_cn", options);
+            Assert.Contains("incompatibleResourcePacks:[]", options);
+
+            var afterDisable = ResourcePackManager.Scan(root);
+            Assert.Equal("Beta.zip", afterDisable[0].Name);
+            Assert.True(afterDisable[0].Enabled);
+            Assert.Contains(afterDisable, pack => pack.Name == "Alpha.zip" && !pack.Enabled);
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
+    [Fact]
+    public void ResourcePackManager_RejectsUnsafeNames()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            Assert.Throws<InvalidDataException>(() =>
+                ResourcePackManager.SetEnabled(root, "../escape.zip", true));
+            Assert.Throws<InvalidDataException>(() =>
+                ResourcePackManager.Move(root, "sub/Beta.zip", 1));
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
+    [Fact]
     public void ServerList_SaveAndReadRoundTrip()
     {
         var root = CreateTempDirectory();
