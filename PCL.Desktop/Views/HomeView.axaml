@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:PCL.Desktop.ViewModels"
+             xmlns:loc="using:PCL.Desktop.Localization"
              x:Class="PCL.Desktop.Views.HomeView"
              x:DataType="vm:HomeViewModel">
 
@@ -10,27 +11,27 @@
             <Grid ColumnDefinitions="*,280">
                 <StackPanel Spacing="14" VerticalAlignment="Center">
                     <Border Classes="accent-chip" HorizontalAlignment="Left">
-                        <TextBlock Text="独立内核 · Avalonia"
+                        <TextBlock Text="{loc:Localize Key=home.badge}"
                                    FontSize="12"
                                    FontWeight="SemiBold"
                                    Foreground="{StaticResource AccentBrush}" />
                     </Border>
 
-                    <TextBlock Text="从一条干净的启动链路开始"
+                    <TextBlock Text="{loc:Localize Key=home.hero.title}"
                                FontSize="32"
                                FontWeight="SemiBold"
                                TextWrapping="Wrap" />
 
                     <TextBlock Classes="muted"
                                MaxWidth="520"
-                               Text="新内核只依赖 Mojang 官方接口与跨平台 .NET 能力。界面采用纵向导航、卡片分区和柔和层级，参考白板类应用的组织方式，不复刻其布局与素材。" />
+                               Text="{loc:Localize Key=home.hero.description}" />
 
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <Button Classes="primary"
-                                Content="安装新版本"
+                                Content="{loc:Localize Key=home.action.install}"
                                 Command="{Binding OpenInstallCommand}" />
                         <Button Classes="ghost"
-                                Content="启动游戏"
+                                Content="{loc:Localize Key=home.action.launch}"
                                 Command="{Binding OpenLaunchCommand}" />
                     </StackPanel>
                 </StackPanel>
@@ -41,25 +42,25 @@
                         Padding="22"
                         Margin="24,0,0,0">
                     <StackPanel Spacing="14" VerticalAlignment="Center">
-                        <TextBlock Text="迁移进度" Classes="section" />
+                        <TextBlock Text="{loc:Localize Key=home.progress.title}" Classes="section" />
                         <StackPanel Spacing="7">
                             <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Text="内核骨架" Classes="muted" />
-                                <TextBlock Grid.Column="1" Text="已就绪" Classes="caption" />
+                                <TextBlock Text="{loc:Localize Key=home.progress.kernel}" Classes="muted" />
+                                <TextBlock Grid.Column="1" Text="{loc:Localize Key=home.progress.ready}" Classes="caption" />
                             </Grid>
                             <ProgressBar Value="100" Maximum="100" />
                         </StackPanel>
                         <StackPanel Spacing="7">
                             <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Text="Avalonia 界面" Classes="muted" />
-                                <TextBlock Grid.Column="1" Text="预览" Classes="caption" />
+                                <TextBlock Text="{loc:Localize Key=home.progress.ui}" Classes="muted" />
+                                <TextBlock Grid.Column="1" Text="{loc:Localize Key=home.progress.preview}" Classes="caption" />
                             </Grid>
                             <ProgressBar Value="35" Maximum="100" />
                         </StackPanel>
                         <StackPanel Spacing="7">
                             <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Text="旧 WPF 代码剥离" Classes="muted" />
-                                <TextBlock Grid.Column="1" Text="待替换" Classes="caption" />
+                                <TextBlock Text="{loc:Localize Key=home.progress.legacy}" Classes="muted" />
+                                <TextBlock Grid.Column="1" Text="{loc:Localize Key=home.progress.pending}" Classes="caption" />
                             </Grid>
                             <ProgressBar Value="8" Maximum="100" />
                         </StackPanel>
@@ -79,10 +80,10 @@
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="已安装版本" Classes="muted" VerticalAlignment="Center" />
+                        <TextBlock Text="{loc:Localize Key=home.stat.installed}" Classes="muted" VerticalAlignment="Center" />
                     </StackPanel>
                     <TextBlock Text="{Binding InstalledCount}" Classes="stat" />
-                    <TextBlock Text="来自本地 versions 目录" Classes="caption" />
+                    <TextBlock Text="{loc:Localize Key=home.stat.installed.hint}" Classes="caption" />
                 </StackPanel>
             </Border>
 
@@ -96,13 +97,13 @@
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="Java 运行时" Classes="muted" VerticalAlignment="Center" />
+                        <TextBlock Text="{loc:Localize Key=home.stat.java}" Classes="muted" VerticalAlignment="Center" />
                     </StackPanel>
                     <TextBlock Text="{Binding JavaStatus}"
                                FontSize="18"
                                FontWeight="SemiBold"
                                TextWrapping="Wrap" />
-                    <TextBlock Text="自动扫描 JAVA_HOME 与常见目录" Classes="caption" />
+                    <TextBlock Text="{loc:Localize Key=home.stat.java.hint}" Classes="caption" />
                 </StackPanel>
             </Border>
 
@@ -116,13 +117,13 @@
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="最新正式版" Classes="muted" VerticalAlignment="Center" />
+                        <TextBlock Text="{loc:Localize Key=home.stat.latest}" Classes="muted" VerticalAlignment="Center" />
                     </StackPanel>
                     <TextBlock Text="{Binding LatestRelease}"
                                FontSize="18"
                                FontWeight="SemiBold"
                                TextWrapping="Wrap" />
-                    <TextBlock Text="来自 Mojang 版本清单" Classes="caption" />
+                    <TextBlock Text="{loc:Localize Key=home.stat.latest.hint}" Classes="caption" />
                 </StackPanel>
             </Border>
         </Grid>
@@ -130,19 +131,18 @@
         <Border Classes="card">
             <Grid ColumnDefinitions="*,Auto">
                 <StackPanel Spacing="6">
-                    <TextBlock Text="下一步" Classes="section" />
-                    <TextBlock Classes="muted"
-                               Text="{Binding GameDirectory, StringFormat='当前游戏目录：{0}'}" />
+                    <TextBlock Text="{loc:Localize Key=home.next.title}" Classes="section" />
+                    <TextBlock Classes="muted" Text="{Binding GameDirectoryLabel}" />
                     <TextBlock Text="{Binding Status}" Classes="caption" />
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10"
                             VerticalAlignment="Center">
-                    <Button Classes="ghost" Content="打开游戏目录"
+                    <Button Classes="ghost" Content="{loc:Localize Key=home.action.openDir}"
                             Command="{Binding OpenGameFolderCommand}" />
-                    <Button Classes="ghost" Content="设置"
+                    <Button Classes="ghost" Content="{loc:Localize Key=home.action.settings}"
                             Command="{Binding OpenSettingsCommand}" />
-                    <Button Classes="primary" Content="刷新状态"
+                    <Button Classes="primary" Content="{loc:Localize Key=home.action.refresh}"
                             Command="{Binding RefreshCommand}" />
                 </StackPanel>
             </Grid>

@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:PCL.Desktop.ViewModels"
+             xmlns:loc="using:PCL.Desktop.Localization"
              x:Class="PCL.Desktop.Views.SettingsView"
              x:DataType="vm:SettingsViewModel">
 
@@ -10,31 +11,31 @@
             <Border Classes="card">
                 <StackPanel Spacing="18">
                     <StackPanel Spacing="5">
-                        <TextBlock Text="游戏与运行时" Classes="h2" />
-                        <TextBlock Text="这些设置保存在新内核自己的配置文件中。"
+                        <TextBlock Text="{loc:Localize Key=settings.title}" Classes="h2" />
+                        <TextBlock Text="{loc:Localize Key=settings.description}"
                                    Classes="muted" />
                     </StackPanel>
 
                     <StackPanel Spacing="7">
-                        <TextBlock Text="游戏目录" Classes="caption" />
+                        <TextBlock Text="{loc:Localize Key=settings.label.gameDir}" Classes="caption" />
                         <Grid ColumnDefinitions="*,10,Auto">
                             <TextBox Text="{Binding GameDirectory}"
-                                     Watermark="选择存放 versions、libraries 与 assets 的目录" />
+                                     Watermark="{loc:Localize Key=settings.gameDir.watermark}" />
                             <Button Grid.Column="2"
                                     Classes="ghost"
-                                    Content="打开数据目录"
+                                    Content="{loc:Localize Key=settings.action.openData}"
                                     Command="{Binding OpenDataFolderCommand}" />
                         </Grid>
                     </StackPanel>
 
                     <StackPanel Spacing="7">
-                        <TextBlock Text="Java 可执行文件" Classes="caption" />
+                        <TextBlock Text="{loc:Localize Key=settings.label.java}" Classes="caption" />
                         <Grid ColumnDefinitions="*,10,Auto">
                             <TextBox Text="{Binding JavaPath}"
-                                     Watermark="留空则在启动时自动检测" />
+                                     Watermark="{loc:Localize Key=settings.java.watermark}" />
                             <Button Grid.Column="2"
                                     Classes="ghost"
-                                    Content="自动检测"
+                                    Content="{loc:Localize Key=settings.action.detect}"
                                     Command="{Binding DetectJavaCommand}" />
                         </Grid>
                     </StackPanel>
@@ -42,7 +43,7 @@
                     <Grid ColumnDefinitions="*,14,*">
                         <StackPanel Grid.Column="0" Spacing="5">
                             <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Text="最大内存" Classes="caption" />
+                                <TextBlock Text="{loc:Localize Key=settings.label.memory}" Classes="caption" />
                                 <TextBlock Grid.Column="1"
                                            Text="{Binding MemoryMb, StringFormat='{}{0:0} MB'}"
                                            Classes="caption" />
@@ -55,22 +56,22 @@
                         </StackPanel>
 
                         <StackPanel Grid.Column="2" Spacing="7">
-                            <TextBlock Text="离线用户名" Classes="caption" />
+                            <TextBlock Text="{loc:Localize Key=settings.label.username}" Classes="caption" />
                             <TextBox Text="{Binding Username}" Watermark="Player" />
                         </StackPanel>
                     </Grid>
 
-                    <CheckBox Content="启用版本隔离：每个版本使用独立的 game 目录"
+                    <CheckBox Content="{loc:Localize Key=settings.isolation}"
                               IsChecked="{Binding IsolateVersions}" />
                     <TextBlock Classes="caption"
-                               Text="隔离目录位于 versions/&lt;版本&gt;/game，删除版本时会一并删除其中的存档与设置。" />
+                               Text="{loc:Localize Key=settings.isolation.hint}" />
 
                     <Grid ColumnDefinitions="*,Auto">
                         <TextBlock Text="{Binding Status}" Classes="muted"
                                    VerticalAlignment="Center" />
                         <Button Grid.Column="1"
                                 Classes="primary"
-                                Content="保存设置"
+                                Content="{loc:Localize Key=settings.action.save}"
                                 Command="{Binding SaveCommand}" />
                     </Grid>
                 </StackPanel>
@@ -79,9 +80,9 @@
             <Border Classes="card">
                 <StackPanel Spacing="14">
                     <StackPanel Spacing="5">
-                        <TextBlock Text="离线账户" Classes="h2" />
+                        <TextBlock Text="{loc:Localize Key=settings.accounts.title}" Classes="h2" />
                         <TextBlock Classes="muted"
-                                   Text="账户仅用于离线启动，UUID 由用户名按离线规则生成，不涉及任何登录凭据。" />
+                                   Text="{loc:Localize Key=settings.accounts.description}" />
                     </StackPanel>
 
                     <ListBox ItemsSource="{Binding Accounts}"
@@ -90,21 +91,21 @@
 
                     <Grid ColumnDefinitions="*,Auto,Auto">
                         <TextBox Text="{Binding NewAccountName}"
-                                 Watermark="新的离线用户名" />
+                                 Watermark="{loc:Localize Key=settings.accounts.watermark}" />
                         <Button Grid.Column="1"
                                 Classes="ghost"
                                 Margin="10,0,0,0"
-                                Content="添加"
+                                Content="{loc:Localize Key=settings.accounts.add}"
                                 Command="{Binding AddAccountCommand}" />
                         <Button Grid.Column="2"
                                 Classes="ghost"
                                 Margin="10,0,0,0"
-                                Content="移除所选"
+                                Content="{loc:Localize Key=settings.accounts.remove}"
                                 Command="{Binding RemoveAccountCommand}" />
                     </Grid>
 
                     <TextBlock Classes="caption"
-                               Text="修改后点击上方“保存设置”写入配置文件。" />
+                               Text="{loc:Localize Key=settings.accounts.hint}" />
                 </StackPanel>
             </Border>
         </StackPanel>
@@ -112,7 +113,7 @@
         <StackPanel Grid.Column="2" Spacing="18">
             <Border Classes="card" Padding="20">
                 <StackPanel Spacing="10">
-                    <TextBlock Text="运行环境" Classes="section" />
+                    <TextBlock Text="{loc:Localize Key=settings.env.title}" Classes="section" />
                     <TextBlock Text="{Binding PlatformSummary}"
                                Classes="caption"
                                TextWrapping="Wrap" />
@@ -121,17 +122,17 @@
 
             <Border Classes="card" Padding="20">
                 <StackPanel Spacing="10">
-                    <TextBlock Text="配置文件" Classes="section" />
+                    <TextBlock Text="{loc:Localize Key=settings.config.title}" Classes="section" />
                     <TextBlock Classes="muted"
-                               Text="设置以 JSON 形式写入数据目录，采用临时文件替换，避免写入中断损坏配置。" />
+                               Text="{loc:Localize Key=settings.config.desc}" />
                 </StackPanel>
             </Border>
 
             <Border Classes="soft">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="许可说明" Classes="section" />
+                    <TextBlock Text="{loc:Localize Key=settings.license.title}" Classes="section" />
                     <TextBlock Classes="caption"
-                               Text="在 PCL 代码与资源完全替换前，本项目继续保留 PCL 许可证要求的名称前缀、关于页署名与正版购买劝导。" />
+                               Text="{loc:Localize Key=settings.license.desc}" />
                 </StackPanel>
             </Border>
         </StackPanel>

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using PCL.Desktop.Localization;
 using PCL.Desktop.Services;
 using PCL.Kernel.Java;
 using PCL.Kernel.Versions;
@@ -10,21 +11,27 @@ namespace PCL.Desktop.ViewModels;
 public partial class HomeViewModel : ObservableObject
 {
     private readonly LauncherServices _services;
+    private readonly LocalizationService _strings;
     private readonly Action<string> _navigate;
 
     public HomeViewModel(LauncherServices services, Action<string> navigate)
     {
         _services = services;
+        _strings = services.Localization;
         _navigate = navigate;
         gameDirectory = services.Paths.GameDirectory;
+        javaStatus = _strings["home.java.detecting"];
+        status = _strings["home.status.ready"];
         _ = RefreshAsync();
     }
+
+    public string GameDirectoryLabel => string.Format(_strings["home.next.path"], GameDirectory);
 
     [ObservableProperty]
     private int installedCount;
 
     [ObservableProperty]
-    private string javaStatus = "正在检测…";
+    private string javaStatus;
 
     [ObservableProperty]
     private string gameDirectory;
@@ -33,7 +40,10 @@ public partial class HomeViewModel : ObservableObject
     private string latestRelease = "—";
 
     [ObservableProperty]
-    private string status = "内核已就绪";
+    private string status;
+
+    partial void OnGameDirectoryChanged(string value) =>
+        OnPropertyChanged(nameof(GameDirectoryLabel));
 
     [RelayCommand]
     private async Task RefreshAsync()
@@ -44,11 +54,11 @@ public partial class HomeViewModel : ObservableObject
         try
         {
             var java = await JavaLocator.FindAsync();
-            JavaStatus = java?.DisplayName ?? "未找到 Java";
+            JavaStatus = java?.DisplayName ?? _strings["home.java.missing"];
         }
         catch (Exception ex)
         {
-            JavaStatus = "检测失败";
+            JavaStatus = _strings["home.java.failed"];
             Status = ex.Message;
         }
 
@@ -59,8 +69,8 @@ public partial class HomeViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            LatestRelease = "读取失败";
-            Status = "版本清单读取失败：" + ex.Message;
+            LatestRelease = _strings["home.latest.failed"];
+            Status = _strings["home.error.manifest"] + ex.Message;
         }
     }
 
@@ -82,7 +92,7 @@ public partial class HomeViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Status = "无法打开游戏目录：" + ex.Message;
+            Status = _strings["home.error.openDir"] + ex.Message;
         }
     }
 }

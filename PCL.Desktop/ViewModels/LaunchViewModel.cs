@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using PCL.Desktop.Localization;
 using PCL.Desktop.Services;
 using PCL.Kernel.Install;
 using PCL.Kernel.Java;
@@ -15,16 +16,19 @@ namespace PCL.Desktop.ViewModels;
 public partial class LaunchViewModel : ObservableObject
 {
     private readonly LauncherServices _services;
+    private readonly LocalizationService _strings;
     private readonly Func<Task<bool>> _licenseGate;
     private GameSession? _session;
 
     public LaunchViewModel(LauncherServices services, Func<Task<bool>> licenseGate)
     {
         _services = services;
+        _strings = services.Localization;
         _licenseGate = licenseGate;
         username = services.Settings.OfflineUsername;
         memoryMb = services.Settings.MaxMemoryMb;
         javaPath = services.Settings.JavaPath ?? "";
+        status = _strings["launch.status.waiting"];
         RefreshList();
     }
 
@@ -43,7 +47,7 @@ public partial class LaunchViewModel : ObservableObject
     private string javaPath;
 
     [ObservableProperty]
-    private string status = "等待启动";
+    private string status;
 
     [ObservableProperty]
     private string log = "";
@@ -67,7 +71,9 @@ public partial class LaunchViewModel : ObservableObject
 
         SelectedVersion = Versions.FirstOrDefault(v => v.Id == previous) ?? Versions.FirstOrDefault();
         IsDeleteConfirmed = false;
-        Status = Versions.Count == 0 ? "尚未安装任何版本" : $"已发现 {Versions.Count} 个版本";
+        Status = Versions.Count == 0
+            ? _strings["launch.status.none"]
+            : string.Format(_strings["launch.status.found"], Versions.Count);
     }
 
     [RelayCommand]
@@ -78,11 +84,11 @@ public partial class LaunchViewModel : ObservableObject
     {
         if (SelectedVersion is null)
         {
-            Status = "请先选择一个版本";
+            Status = _strings["launch.status.select"];
             return;
         }
 
-        Status = "正在校验版本文件…";
+        Status = _strings["launch.status.verifying"];
 
         try
         {
@@ -90,21 +96,21 @@ public partial class LaunchViewModel : ObservableObject
 
             if (report.IsComplete)
             {
-                Status = $"校验完成：{report.CheckedFiles} 个文件齐全";
+                Status = string.Format(_strings["launch.status.verifyOk"], report.CheckedFiles);
                 return;
             }
 
-            Status = $"校验完成：缺失 {report.MissingFiles} 个文件";
+            Status = string.Format(_strings["launch.status.verifyMissing"], report.MissingFiles);
             Log = string.Join(
                 Environment.NewLine,
-                report.Missing.Take(50).Select(item => "缺失：" + item));
+                report.Missing.Take(50).Select(item => _strings["launch.log.missing"] + item));
 
             if (report.MissingFiles > 50)
-                AppendLog($"……另有 {report.MissingFiles - 50} 个缺失项");
+                AppendLog(string.Format(_strings["launch.log.moreMissing"], report.MissingFiles - 50));
         }
         catch (Exception ex)
         {
-            Status = "校验失败：" + ex.Message;
+            Status = _strings["launch.error.verify"] + ex.Message;
         }
     }
 
@@ -113,13 +119,13 @@ public partial class LaunchViewModel : ObservableObject
     {
         if (SelectedVersion is null)
         {
-            Status = "请先选择一个版本";
+            Status = _strings["launch.status.select"];
             return;
         }
 
         if (!IsDeleteConfirmed)
         {
-            Status = "请先勾选“确认删除”";
+            Status = _strings["launch.status.confirmDelete"];
             return;
         }
 
@@ -129,34 +135,34 @@ public partial class LaunchViewModel : ObservableObject
         {
             _services.VersionManager.Delete(SelectedVersion);
             RefreshList();
-            Status = $"已删除版本 {id}";
+            Status = string.Format(_strings["launch.status.deleted"], id);
         }
         catch (Exception ex)
         {
-            Status = "删除失败：" + ex.Message;
+            Status = _strings["launch.error.delete"] + ex.Message;
         }
     }
 
     [RelayCommand]
     private async Task DetectJavaAsync()
     {
-        Status = "正在检测 Java…";
+        Status = _strings["launch.status.detectingJava"];
 
         try
         {
             var java = await JavaLocator.FindAsync();
             if (java is null)
             {
-                Status = "未找到 Java，请手动填写 java 路径";
+                Status = _strings["launch.status.javaMissing"];
                 return;
             }
 
             JavaPath = java.Path;
-            Status = $"已找到 {java.DisplayName}";
+            Status = string.Format(_strings["launch.status.javaFound"], java.DisplayName);
         }
         catch (Exception ex)
         {
-            Status = "Java 检测失败：" + ex.Message;
+            Status = _strings["launch.error.java"] + ex.Message;
         }
     }
 
@@ -165,22 +171,22 @@ public partial class LaunchViewModel : ObservableObject
     {
         if (SelectedVersion is null)
         {
-            Status = "请先选择一个版本";
+            Status = _strings["launch.status.select"];
             return;
         }
 
         try
         {
-            Status = "正在准备 Java 运行时…";
+            Status = _strings["launch.status.preparingJava"];
             JavaPath = await InstallJavaRuntimeAsync();
 
             _services.Settings.JavaPath = JavaPath;
             _services.SaveSettings();
-            Status = "Java 运行时已就绪";
+            Status = _strings["launch.status.javaReady"];
         }
         catch (Exception ex)
         {
-            Status = "Java 运行时安装失败：" + ex.Message;
+            Status = _strings["launch.error.javaInstall"] + ex.Message;
         }
     }
 
@@ -192,7 +198,7 @@ public partial class LaunchViewModel : ObservableObject
 
         if (SelectedVersion is null)
         {
-            Status = "请先安装并选择一个版本";
+            Status = _strings["launch.status.needVersion"];
             return;
         }
 
@@ -201,14 +207,14 @@ public partial class LaunchViewModel : ObservableObject
             await DetectJavaAsync();
             if (string.IsNullOrWhiteSpace(JavaPath) || !File.Exists(JavaPath))
             {
-                Status = "未找到系统 Java，正在安装 Mojang 运行时…";
+                Status = _strings["launch.status.installingJava"];
                 try
                 {
                     JavaPath = await InstallJavaRuntimeAsync();
                 }
                 catch (Exception ex)
                 {
-                    Status = "Java 运行时安装失败：" + ex.Message;
+                    Status = _strings["launch.error.javaInstall"] + ex.Message;
                     return;
                 }
             }
@@ -220,7 +226,7 @@ public partial class LaunchViewModel : ObservableObject
             var accepted = await _licenseGate();
             if (!accepted)
             {
-                Status = "已取消启动";
+                Status = _strings["launch.status.cancelled"];
                 return;
             }
 
@@ -230,7 +236,7 @@ public partial class LaunchViewModel : ObservableObject
 
         IsRunning = true;
         Log = "";
-        Status = "正在启动…";
+        Status = _strings["launch.status.starting"];
 
         try
         {
@@ -263,16 +269,16 @@ public partial class LaunchViewModel : ObservableObject
                 Dispatcher.UIThread.Post(() =>
                 {
                     IsRunning = false;
-                    Status = $"游戏已退出（{code}）";
+                    Status = string.Format(_strings["launch.status.exited"], code);
                 });
 
             session.StartReading();
-            Status = "游戏已启动";
+            Status = _strings["launch.status.started"];
         }
         catch (Exception ex)
         {
             IsRunning = false;
-            Status = "启动失败：" + ex.Message;
+            Status = _strings["launch.error.launch"] + ex.Message;
             AppendLog(ex.ToString());
         }
     }
@@ -286,11 +292,11 @@ public partial class LaunchViewModel : ObservableObject
         try
         {
             _session.Process.Kill(true);
-            Status = "已请求结束游戏进程";
+            Status = _strings["launch.status.stopRequested"];
         }
         catch (Exception ex)
         {
-            Status = "结束进程失败：" + ex.Message;
+            Status = _strings["launch.error.stop"] + ex.Message;
         }
     }
 
@@ -306,7 +312,7 @@ public partial class LaunchViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Status = "无法打开游戏目录：" + ex.Message;
+            Status = _strings["launch.error.openDir"] + ex.Message;
         }
     }
 

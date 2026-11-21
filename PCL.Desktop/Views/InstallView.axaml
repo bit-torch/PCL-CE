@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:PCL.Desktop.ViewModels"
+             xmlns:loc="using:PCL.Desktop.Localization"
              xmlns:mojang="using:PCL.Kernel.Mojang"
              xmlns:versions="using:PCL.Kernel.Versions"
              xmlns:loaders="using:PCL.Kernel.Loaders"
@@ -13,11 +14,11 @@
             <StackPanel Spacing="18">
                 <Grid ColumnDefinitions="*,Auto">
                     <StackPanel Spacing="5">
-                        <TextBlock Text="选择要安装的版本" Classes="h2" />
+                        <TextBlock Text="{loc:Localize Key=install.title}" Classes="h2" />
                         <TextBlock Classes="muted"
-                                   Text="仅使用 Mojang 官方版本清单与资源源。安装过程不会写入 PCL 的签名、统计或更新逻辑。" />
+                                   Text="{loc:Localize Key=install.description}" />
                     </StackPanel>
-                    <Button Grid.Column="1" Classes="ghost" Content="刷新清单"
+                    <Button Grid.Column="1" Classes="ghost" Content="{loc:Localize Key=install.action.refresh}"
                             Command="{Binding LoadVersionsCommand}" />
                 </Grid>
 
@@ -41,7 +42,7 @@
 
                     <Button Grid.Column="2"
                             Classes="primary"
-                            Content="安装所选版本"
+                            Content="{loc:Localize Key=install.action.install}"
                             Command="{Binding InstallCommand}"
                             IsEnabled="{Binding !IsBusy}" />
                 </Grid>
@@ -64,13 +65,13 @@
             <StackPanel Spacing="16">
                 <Grid ColumnDefinitions="*,Auto">
                     <StackPanel Spacing="5">
-                        <TextBlock Text="安装模组加载器" Classes="h2" />
+                        <TextBlock Text="{loc:Localize Key=install.loader.title}" Classes="h2" />
                         <TextBlock Classes="muted"
-                                   Text="基于已安装的原版版本生成加载器版本，依赖库直接来自 Fabric / Quilt Meta。" />
+                                   Text="{loc:Localize Key=install.loader.description}" />
                     </StackPanel>
                     <Button Grid.Column="1"
                             Classes="ghost"
-                            Content="刷新已安装"
+                            Content="{loc:Localize Key=install.loader.refresh}"
                             Command="{Binding RefreshInstalledCommand}" />
                 </Grid>
 
@@ -124,7 +125,7 @@
                                VerticalAlignment="Center" />
                     <Button Grid.Column="1"
                             Classes="primary"
-                            Content="安装加载器"
+                            Content="{loc:Localize Key=install.loader.install}"
                             Command="{Binding InstallLoaderCommand}"
                             IsEnabled="{Binding !IsLoaderBusy}" />
                 </Grid>
@@ -134,20 +135,20 @@
         <Grid ColumnDefinitions="*,18,*">
             <Border Grid.Column="0" Classes="card">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="安装内容" Classes="section" />
-                    <TextBlock Classes="muted" Text="• 版本 JSON 与客户端 JAR" />
-                    <TextBlock Classes="muted" Text="• 按规则筛选后的依赖库与 natives" />
-                    <TextBlock Classes="muted" Text="• 资源索引与资源对象（SHA-1 校验）" />
+                    <TextBlock Text="{loc:Localize Key=install.content.title}" Classes="section" />
+                    <TextBlock Classes="muted" Text="{loc:Localize Key=install.content.json}" />
+                    <TextBlock Classes="muted" Text="{loc:Localize Key=install.content.libs}" />
+                    <TextBlock Classes="muted" Text="{loc:Localize Key=install.content.assets}" />
                 </StackPanel>
             </Border>
 
             <Border Grid.Column="2" Classes="card">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="目录约定" Classes="section" />
+                    <TextBlock Text="{loc:Localize Key=install.directory.title}" Classes="section" />
                     <TextBlock Classes="muted"
-                               Text="版本安装到当前游戏目录的 versions 下；依赖库与资源分别进入 libraries 与 assets。" />
+                               Text="{loc:Localize Key=install.directory.desc}" />
                     <TextBlock Classes="caption"
-                               Text="安装完成后可在“启动”页选择该版本。" />
+                               Text="{loc:Localize Key=install.directory.hint}" />
                 </StackPanel>
             </Border>
         </Grid>

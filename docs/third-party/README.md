@@ -24,8 +24,8 @@
 
 | 工作流 | 变更 | 说明 |
 | --- | --- | --- |
-| `.github/workflows/build-test.yml` | 改为 `workflow_dispatch` | 旧 WPF 客户端仅手动回归 |
-| `.github/workflows/test.yml` | 改为 `workflow_dispatch` | 旧测试套件仅手动运行 |
+| `.github/workflows/build-test.yml` | 已删除 | 旧 WPF 默认构建不再需要 |
+| `.github/workflows/test.yml` | 已删除 | 旧测试套件改由本地或手动回归 |
 | `.github/workflows/cross-platform.yml` | 移除 push / PR 触发 | 旧 `PCL.Avalonia` 仅由发布调用或手动触发 |
 | `.github/workflows/rebuild-ci.yml` | 新增 | 默认构建与测试 `PCL.Rebuild.slnx` |
 | `.github/workflows/release-publish.yml` | 仅加冻结说明 | 旧发布路径暂留，直至新桌面包接入 |
@@ -174,7 +174,7 @@
 
 新栈未引入旧网络标识、请求签名或 PCL2 UA；剩余命中均为必须保留的署名/劝导。
 
-字符串迁移进度：导航、窗口标题、页面标题/副标题、关于页与启动前许可弹窗已接入独立目录；安装、启动、设置页的正文文案仍为内嵌中文，后续逐页迁移。
+字符串迁移进度：新 UI 的导航、窗口标题、页面标题、四个页面正文、关于页与启动前许可弹窗均已接入独立目录；仅内核返回的安装阶段名称保持英文。
 
 ## 7. 待办与验收
 

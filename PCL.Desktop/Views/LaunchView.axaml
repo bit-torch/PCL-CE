@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:PCL.Desktop.ViewModels"
+             xmlns:loc="using:PCL.Desktop.Localization"
              xmlns:versions="using:PCL.Kernel.Versions"
              x:Class="PCL.Desktop.Views.LaunchView"
              x:DataType="vm:LaunchViewModel">
@@ -11,17 +12,17 @@
             <StackPanel Spacing="16">
                 <Grid ColumnDefinitions="*,Auto">
                     <StackPanel Spacing="5">
-                        <TextBlock Text="启动配置" Classes="h2" />
+                        <TextBlock Text="{loc:Localize Key=launch.config.title}" Classes="h2" />
                         <TextBlock Text="{Binding Status}" Classes="muted" />
                     </StackPanel>
                     <Button Grid.Column="1"
                             Classes="ghost"
-                            Content="刷新版本"
+                            Content="{loc:Localize Key=launch.action.refresh}"
                             Command="{Binding RefreshVersionsCommand}" />
                 </Grid>
 
                 <StackPanel Spacing="7">
-                    <TextBlock Text="版本" Classes="caption" />
+                    <TextBlock Text="{loc:Localize Key=launch.label.version}" Classes="caption" />
                     <ComboBox HorizontalAlignment="Stretch"
                               ItemsSource="{Binding Versions}"
                               SelectedItem="{Binding SelectedVersion}">
@@ -41,13 +42,13 @@
 
                 <Grid ColumnDefinitions="*,14,*">
                     <StackPanel Grid.Column="0" Spacing="7">
-                        <TextBlock Text="离线用户名" Classes="caption" />
+                        <TextBlock Text="{loc:Localize Key=launch.label.username}" Classes="caption" />
                         <TextBox Text="{Binding Username}" Watermark="Player" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Spacing="5">
                         <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Text="内存" Classes="caption" />
+                            <TextBlock Text="{loc:Localize Key=launch.label.memory}" Classes="caption" />
                             <TextBlock Grid.Column="1"
                                        Text="{Binding MemoryMb, StringFormat='{}{0:0} MB'}"
                                        Classes="caption" />
@@ -61,49 +62,49 @@
                 </Grid>
 
                 <StackPanel Spacing="7">
-                    <TextBlock Text="Java 路径" Classes="caption" />
-                    <TextBox Text="{Binding JavaPath}" Watermark="选择或自动检测 java 可执行文件" />
+                    <TextBlock Text="{loc:Localize Key=launch.label.java}" Classes="caption" />
+                    <TextBox Text="{Binding JavaPath}" Watermark="{loc:Localize Key=launch.java.watermark}" />
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <Button Classes="ghost"
-                                Content="安装 Java 运行时"
+                                Content="{loc:Localize Key=launch.action.installJava}"
                                 Command="{Binding InstallJavaCommand}" />
                         <Button Classes="ghost"
-                                Content="自动检测"
+                                Content="{loc:Localize Key=launch.action.detectJava}"
                                 Command="{Binding DetectJavaCommand}" />
                     </StackPanel>
                     <TextBlock Classes="caption"
-                               Text="留空时会在启动前自动检测；若系统没有可用 Java，则下载 Mojang 官方运行时并校验。" />
+                               Text="{loc:Localize Key=launch.java.hint}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" Spacing="10">
                     <Button Classes="primary"
-                            Content="启动游戏"
+                            Content="{loc:Localize Key=launch.action.start}"
                             Command="{Binding LaunchCommand}"
                             IsEnabled="{Binding !IsRunning}" />
                     <Button Classes="ghost"
-                            Content="结束进程"
+                            Content="{loc:Localize Key=launch.action.stop}"
                             Command="{Binding StopCommand}"
                             IsEnabled="{Binding IsRunning}" />
                     <Button Classes="link"
-                            Content="打开游戏目录"
+                            Content="{loc:Localize Key=launch.action.openDir}"
                             Command="{Binding OpenGameFolderCommand}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" Spacing="10">
                     <Button Classes="ghost"
-                            Content="校验文件"
+                            Content="{loc:Localize Key=launch.action.verify}"
                             Command="{Binding VerifyVersionCommand}" />
-                    <CheckBox Content="确认删除"
+                    <CheckBox Content="{loc:Localize Key=launch.delete.confirm}"
                               IsChecked="{Binding IsDeleteConfirmed}" />
                     <Button Classes="ghost"
-                            Content="删除版本"
+                            Content="{loc:Localize Key=launch.action.delete}"
                             Command="{Binding DeleteVersionCommand}"
                             IsEnabled="{Binding IsDeleteConfirmed}" />
                 </StackPanel>
 
                 <Border Classes="soft">
                     <TextBlock Classes="caption"
-                               Text="启动前会显示正版购买与 PCL 赞助劝导。这是 PCL 代码与资源完全替换前的必要许可步骤。" />
+                               Text="{loc:Localize Key=launch.license.hint}" />
                 </Border>
             </StackPanel>
         </Border>
@@ -112,8 +113,8 @@
             <Grid RowDefinitions="Auto,*">
                 <Grid ColumnDefinitions="*,Auto">
                     <StackPanel Spacing="5">
-                        <TextBlock Text="运行日志" Classes="h2" />
-                        <TextBlock Text="Java 标准输出与错误输出" Classes="muted" />
+                        <TextBlock Text="{loc:Localize Key=launch.log.title}" Classes="h2" />
+                        <TextBlock Text="{loc:Localize Key=launch.log.subtitle}" Classes="muted" />
                     </StackPanel>
                     <Border Grid.Column="1" Classes="chip" VerticalAlignment="Center">
                         <TextBlock Text="{Binding Status}"

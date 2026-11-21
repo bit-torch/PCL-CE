@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using PCL.Desktop.Localization;
 using PCL.Desktop.Services;
 using PCL.Kernel.Install;
 using PCL.Kernel.Loaders;
@@ -12,12 +13,19 @@ namespace PCL.Desktop.ViewModels;
 public partial class InstallViewModel : ObservableObject
 {
     private readonly LauncherServices _services;
+    private readonly LocalizationService _strings;
     private readonly Action _onInstalled;
 
     public InstallViewModel(LauncherServices services, Action onInstalled)
     {
         _services = services;
+        _strings = services.Localization;
         _onInstalled = onInstalled;
+
+        stage = _strings["install.stage.waiting"];
+        status = _strings["install.status.reading"];
+        loaderStage = _strings["install.stage.waiting"];
+        loaderStatus = _strings["install.loader.scanning"];
 
         SelectedLoader = LoaderOptions[0];
         RefreshInstalled();
@@ -55,10 +63,10 @@ public partial class InstallViewModel : ObservableObject
     private double progress;
 
     [ObservableProperty]
-    private string stage = "等待开始";
+    private string stage;
 
     [ObservableProperty]
-    private string status = "正在读取版本清单…";
+    private string status;
 
     [ObservableProperty]
     private bool isLoaderBusy;
@@ -67,10 +75,10 @@ public partial class InstallViewModel : ObservableObject
     private double loaderProgress;
 
     [ObservableProperty]
-    private string loaderStage = "等待开始";
+    private string loaderStage;
 
     [ObservableProperty]
-    private string loaderStatus = "正在扫描已安装版本…";
+    private string loaderStatus;
 
     partial void OnSelectedBaseVersionChanged(InstalledVersion? value) =>
         LoadLoaderVersionsCommand.Execute(null);
@@ -83,7 +91,7 @@ public partial class InstallViewModel : ObservableObject
     {
         try
         {
-            Status = "正在读取版本清单…";
+            Status = _strings["install.status.reading"];
             var manifest = await _services.Manifest.GetManifestAsync(forceRefresh: true);
 
             Versions.Clear();
@@ -96,11 +104,11 @@ public partial class InstallViewModel : ObservableObject
                                       StringComparison.OrdinalIgnoreCase))
                               ?? Versions.FirstOrDefault();
 
-            Status = $"已获取 {Versions.Count} 个版本";
+            Status = string.Format(_strings["install.status.loaded"], Versions.Count);
         }
         catch (Exception ex)
         {
-            Status = "读取版本清单失败：" + ex.Message;
+            Status = _strings["install.error.manifest"] + ex.Message;
         }
     }
 
@@ -112,13 +120,13 @@ public partial class InstallViewModel : ObservableObject
 
         if (SelectedVersion is null)
         {
-            Status = "请先选择一个版本";
+            Status = _strings["install.status.selectVersion"];
             return;
         }
 
         IsBusy = true;
         Progress = 0;
-        Stage = "准备安装";
+        Stage = _strings["install.stage.prepare"];
 
         try
         {
@@ -131,13 +139,13 @@ public partial class InstallViewModel : ObservableObject
             });
 
             await _services.Installer.InstallAsync(SelectedVersion, reporter);
-            Status = $"已完成安装：{SelectedVersion.Id}";
+            Status = string.Format(_strings["install.status.done"], SelectedVersion.Id);
             RefreshInstalled();
             _onInstalled();
         }
         catch (Exception ex)
         {
-            Status = "安装失败：" + ex.Message;
+            Status = _strings["install.error.install"] + ex.Message;
         }
         finally
         {
@@ -160,7 +168,7 @@ public partial class InstallViewModel : ObservableObject
                               ?? InstalledVersions.FirstOrDefault();
 
         if (InstalledVersions.Count == 0)
-            LoaderStatus = "请先安装一个原版版本";
+            LoaderStatus = _strings["install.loader.noBase"];
     }
 
     [RelayCommand]
@@ -174,7 +182,7 @@ public partial class InstallViewModel : ObservableObject
 
         try
         {
-            LoaderStatus = "正在读取加载器版本…";
+            LoaderStatus = _strings["install.loader.reading"];
             var versions = await _services.LoaderMeta.GetLoaderVersionsAsync(
                 SelectedLoader.Kind, SelectedBaseVersion.Id);
 
@@ -186,12 +194,14 @@ public partial class InstallViewModel : ObservableObject
                                     ?? LoaderVersions.FirstOrDefault();
 
             LoaderStatus = LoaderVersions.Count == 0
-                ? $"{SelectedBaseVersion.Id} 没有可用的 {SelectedLoader.Label} 版本"
-                : $"已获取 {LoaderVersions.Count} 个 {SelectedLoader.Label} 版本";
+                ? string.Format(_strings["install.loader.none"], SelectedBaseVersion.Id,
+                    SelectedLoader.Label)
+                : string.Format(_strings["install.loader.loaded"], LoaderVersions.Count,
+                    SelectedLoader.Label);
         }
         catch (Exception ex)
         {
-            LoaderStatus = "读取加载器版本失败：" + ex.Message;
+            LoaderStatus = _strings["install.loader.error"] + ex.Message;
         }
     }
 
@@ -205,13 +215,13 @@ public partial class InstallViewModel : ObservableObject
             SelectedLoader is null ||
             SelectedLoaderVersion is null)
         {
-            LoaderStatus = "请选择原版版本、加载器与加载器版本";
+            LoaderStatus = _strings["install.loader.select"];
             return;
         }
 
         IsLoaderBusy = true;
         LoaderProgress = 0;
-        LoaderStage = "准备安装加载器";
+        LoaderStage = _strings["install.loader.stage.prepare"];
 
         try
         {
@@ -229,13 +239,14 @@ public partial class InstallViewModel : ObservableObject
                 SelectedLoaderVersion.Version,
                 reporter);
 
-            LoaderStatus = $"已安装 {result.Id}（{result.LibraryCount} 个依赖库）";
+            LoaderStatus = string.Format(_strings["install.loader.done"], result.Id,
+                result.LibraryCount);
             RefreshInstalled();
             _onInstalled();
         }
         catch (Exception ex)
         {
-            LoaderStatus = "加载器安装失败：" + ex.Message;
+            LoaderStatus = _strings["install.loader.failed"] + ex.Message;
         }
         finally
         {

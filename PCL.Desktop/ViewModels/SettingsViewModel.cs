@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using PCL.Desktop.Localization;
 using PCL.Desktop.Services;
 using PCL.Kernel.Java;
 
@@ -10,15 +11,18 @@ namespace PCL.Desktop.ViewModels;
 public partial class SettingsViewModel : ObservableObject
 {
     private readonly LauncherServices _services;
+    private readonly LocalizationService _strings;
 
     public SettingsViewModel(LauncherServices services)
     {
         _services = services;
+        _strings = services.Localization;
         gameDirectory = services.Paths.GameDirectory;
         javaPath = services.Settings.JavaPath ?? "";
         memoryMb = services.Settings.MaxMemoryMb;
         username = services.Settings.OfflineUsername;
         isolateVersions = services.Settings.IsolateVersions;
+        status = _strings["settings.status.autoSave"];
 
         foreach (var account in services.Settings.OfflineAccounts)
             Accounts.Add(account);
@@ -56,7 +60,7 @@ public partial class SettingsViewModel : ObservableObject
     private string username;
 
     [ObservableProperty]
-    private string status = "设置会自动保存";
+    private string status;
 
     public string PlatformSummary =>
         $"{_services.Platform.OsName} · {_services.Platform.Architecture} · {_services.Platform.DataDirectory}";
@@ -66,7 +70,7 @@ public partial class SettingsViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(GameDirectory))
         {
-            Status = "游戏目录不能为空";
+            Status = _strings["settings.error.emptyDir"];
             return;
         }
 
@@ -89,11 +93,11 @@ public partial class SettingsViewModel : ObservableObject
             _services.SaveSettings();
 
             GameDirectory = _services.Paths.GameDirectory;
-            Status = "设置已保存";
+            Status = _strings["settings.status.saved"];
         }
         catch (Exception ex)
         {
-            Status = "保存失败：" + ex.Message;
+            Status = _strings["settings.error.save"] + ex.Message;
         }
     }
 
@@ -103,7 +107,7 @@ public partial class SettingsViewModel : ObservableObject
         var name = NewAccountName.Trim();
         if (string.IsNullOrWhiteSpace(name))
         {
-            Status = "请输入离线用户名";
+            Status = _strings["settings.error.username"];
             return;
         }
 
@@ -113,7 +117,7 @@ public partial class SettingsViewModel : ObservableObject
         SelectedAccount = Accounts.First(account =>
             string.Equals(account, name, StringComparison.OrdinalIgnoreCase));
         NewAccountName = "";
-        Status = $"已添加离线账户 {name}，保存后生效";
+        Status = string.Format(_strings["settings.status.added"], name);
     }
 
     [RelayCommand]
@@ -121,42 +125,42 @@ public partial class SettingsViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(SelectedAccount))
         {
-            Status = "请选择要移除的账户";
+            Status = _strings["settings.error.selectAccount"];
             return;
         }
 
         if (Accounts.Count <= 1)
         {
-            Status = "至少保留一个离线账户";
+            Status = _strings["settings.error.lastAccount"];
             return;
         }
 
         var removed = SelectedAccount;
         Accounts.Remove(removed);
         SelectedAccount = Accounts.FirstOrDefault();
-        Status = $"已移除 {removed}，保存后生效";
+        Status = string.Format(_strings["settings.status.removed"], removed);
     }
 
     [RelayCommand]
     private async Task DetectJavaAsync()
     {
-        Status = "正在检测 Java…";
+        Status = _strings["settings.status.detectingJava"];
 
         try
         {
             var java = await JavaLocator.FindAsync();
             if (java is null)
             {
-                Status = "未找到 Java，请手动填写路径";
+                Status = _strings["settings.status.javaMissing"];
                 return;
             }
 
             JavaPath = java.Path;
-            Status = $"已找到 {java.DisplayName}";
+            Status = string.Format(_strings["settings.status.javaFound"], java.DisplayName);
         }
         catch (Exception ex)
         {
-            Status = "Java 检测失败：" + ex.Message;
+            Status = _strings["settings.error.java"] + ex.Message;
         }
     }
 
@@ -172,7 +176,7 @@ public partial class SettingsViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Status = "无法打开数据目录：" + ex.Message;
+            Status = _strings["settings.error.openData"] + ex.Message;
         }
     }
 }

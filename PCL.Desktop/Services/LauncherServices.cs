@@ -22,6 +22,7 @@ public sealed class LauncherServices : IDisposable
         Paths = LauncherPaths.CreateDefault();
         Paths.EnsureDirectories();
         Localization = new LocalizationService();
+        Loc.Initialize(Localization);
 
         Settings = SettingsStore.Load(Paths.SettingsPath);
         Settings.Normalize();
