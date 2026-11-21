@@ -20,4 +20,7 @@ public static class Icons
 
     public static Geometry About { get; } = StreamGeometry.Parse(
         "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M12 11v6 M12 7.5v.5");
+
+    public static Geometry Resources { get; } = StreamGeometry.Parse(
+        "M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z");
 }

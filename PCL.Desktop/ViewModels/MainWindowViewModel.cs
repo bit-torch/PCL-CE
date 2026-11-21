@@ -11,6 +11,7 @@ public partial class MainWindowViewModel : ObservableObject
     [
         "page.home.title",
         "page.install.title",
+        "page.resources.title",
         "page.launch.title",
         "page.settings.title",
         "page.about.title"
@@ -20,6 +21,7 @@ public partial class MainWindowViewModel : ObservableObject
     [
         "page.home.subtitle",
         "page.install.subtitle",
+        "page.resources.subtitle",
         "page.launch.subtitle",
         "page.settings.subtitle",
         "page.about.subtitle"
@@ -34,6 +36,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         Launch = new LaunchViewModel(services, licenseGate);
         Install = new InstallViewModel(services, Launch.RefreshList);
+        Resources = new ResourcesViewModel(services);
         SettingsPage = new SettingsViewModel(services);
         About = new AboutViewModel(services);
         Home = new HomeViewModel(services, NavigateTo);
@@ -49,6 +52,8 @@ public partial class MainWindowViewModel : ObservableObject
     public HomeViewModel Home { get; }
 
     public InstallViewModel Install { get; }
+
+    public ResourcesViewModel Resources { get; }
 
     public LaunchViewModel Launch { get; }
 
@@ -97,6 +102,7 @@ public partial class MainWindowViewModel : ObservableObject
         CurrentPage = item.Key switch
         {
             "install" => Install,
+            "resources" => Resources,
             "launch" => Launch,
             "settings" => SettingsPage,
             "about" => About,
