@@ -3,6 +3,7 @@ using PCL.Kernel;
 using PCL.Kernel.App;
 using PCL.Kernel.Java;
 using PCL.Kernel.Launch;
+using PCL.Kernel.Loaders;
 using PCL.Kernel.Mojang;
 using PCL.Kernel.Versions;
 using Xunit;
@@ -297,6 +298,126 @@ public sealed class JavaRuntimeServiceTests
             if (Directory.Exists(root))
                 Directory.Delete(root, true);
         }
+    }
+}
+
+public sealed class LoaderMetaTests
+{
+    [Fact]
+    public void ParseLoaderVersions_HandlesFabricShape()
+    {
+        const string json = """
+            [
+              { "loader": { "version": "0.15.11", "stable": true } },
+              { "loader": { "version": "0.16.0-beta.1", "stable": false } }
+            ]
+            """;
+
+        var versions = LoaderMetaService.ParseLoaderVersions(json);
+
+        Assert.Equal(2, versions.Count);
+        Assert.True(versions[0].Stable);
+        Assert.False(versions[1].Stable);
+    }
+
+    [Fact]
+    public void ParseLoaderVersions_InfersStabilityWhenMissing()
+    {
+        const string json = """
+            [
+              { "loader": { "version": "0.20.0" } },
+              { "loader": { "version": "0.20.0-beta.9" } }
+            ]
+            """;
+
+        var versions = LoaderMetaService.ParseLoaderVersions(json);
+
+        Assert.True(versions[0].Stable);
+        Assert.False(versions[1].Stable);
+    }
+
+    [Fact]
+    public void Endpoints_PointToMetaServices()
+    {
+        Assert.Equal(
+            "https://meta.fabricmc.net/v2/versions/loader/1.20.1",
+            LoaderMetaEndpoints.VersionsUrl(LoaderKind.Fabric, "1.20.1"));
+        Assert.Equal(
+            "https://meta.quiltmc.org/v3/versions/loader/1.20.1/0.20.0/profile/json",
+            LoaderMetaEndpoints.ProfileUrl(LoaderKind.Quilt, "1.20.1", "0.20.0"));
+    }
+
+    [Fact]
+    public void Normalize_AddsArtifactForMavenLibraries()
+    {
+        const string profile = """
+            {
+              "id": "fabric-loader-0.15.11-1.20.1",
+              "inheritsFrom": "1.20.1",
+              "libraries": [
+                {
+                  "name": "org.ow2.asm:asm:9.6",
+                  "url": "https://maven.fabricmc.net/",
+                  "sha1": "aa205cf0a06dbd8e04ece91c0b37c3f5d567546a",
+                  "size": 123598
+                },
+                {
+                  "name": "net.fabricmc:intermediary:1.20.1",
+                  "url": "https://maven.fabricmc.net/"
+                },
+                {
+                  "name": "com.example:kept:1.0",
+                  "downloads": {
+                    "artifact": {
+                      "path": "com/example/kept/1.0/kept-1.0.jar",
+                      "url": "https://example.test/kept.jar"
+                    }
+                  }
+                }
+              ]
+            }
+            """;
+
+        var normalized = LoaderProfileNormalizer.Normalize(
+            profile, "https://fallback.test/");
+
+        using var document = JsonDocument.Parse(normalized);
+        var libraries = document.RootElement.GetProperty("libraries");
+
+        var first = libraries[0].GetProperty("downloads").GetProperty("artifact");
+        Assert.Equal("org/ow2/asm/asm/9.6/asm-9.6.jar",
+            first.GetProperty("path").GetString());
+        Assert.Equal("https://maven.fabricmc.net/org/ow2/asm/asm/9.6/asm-9.6.jar",
+            first.GetProperty("url").GetString());
+        Assert.Equal("aa205cf0a06dbd8e04ece91c0b37c3f5d567546a",
+            first.GetProperty("sha1").GetString());
+        Assert.Equal(123598, first.GetProperty("size").GetInt64());
+
+        var second = libraries[1].GetProperty("downloads").GetProperty("artifact");
+        Assert.False(second.TryGetProperty("sha1", out _));
+        Assert.False(second.TryGetProperty("size", out _));
+
+        Assert.Equal("https://example.test/kept.jar",
+            libraries[2].GetProperty("downloads").GetProperty("artifact")
+                .GetProperty("url").GetString());
+    }
+
+    [Fact]
+    public void Normalize_UsesFallbackMavenWhenLibraryHasNoUrl()
+    {
+        const string profile =
+            """{ "libraries": [ { "name": "org.quiltmc:quilt-loader:0.20.0" } ] }""";
+
+        var normalized = LoaderProfileNormalizer.Normalize(
+            profile, "https://maven.quiltmc.org/repository/release");
+
+        using var document = JsonDocument.Parse(normalized);
+        Assert.Equal(
+            "https://maven.quiltmc.org/repository/release/" +
+            "org/quiltmc/quilt-loader/0.20.0/quilt-loader-0.20.0.jar",
+            document.RootElement.GetProperty("libraries")[0]
+                .GetProperty("downloads").GetProperty("artifact")
+                .GetProperty("url").GetString());
     }
 }
 

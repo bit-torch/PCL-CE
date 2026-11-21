@@ -256,19 +256,29 @@ public partial class LaunchViewModel : ObservableObject
 
     private async Task<string> ResolveJavaComponentAsync()
     {
-        if (SelectedVersion is null)
-            return JavaRuntimeService.DefaultComponent;
-
         try
         {
-            var detail = await VersionManifestService.ReadDetailAsync(SelectedVersion.JsonPath);
-            return string.IsNullOrWhiteSpace(detail.JavaVersion?.Component)
-                ? JavaRuntimeService.DefaultComponent
-                : detail.JavaVersion.Component;
+            var jsonPath = SelectedVersion?.JsonPath;
+
+            for (var depth = 0; depth < 8 && !string.IsNullOrWhiteSpace(jsonPath); depth++)
+            {
+                if (!File.Exists(jsonPath))
+                    break;
+
+                var detail = await VersionManifestService.ReadDetailAsync(jsonPath);
+                if (!string.IsNullOrWhiteSpace(detail.JavaVersion?.Component))
+                    return detail.JavaVersion.Component;
+
+                jsonPath = string.IsNullOrWhiteSpace(detail.InheritsFrom)
+                    ? null
+                    : _services.Paths.VersionJsonPath(detail.InheritsFrom);
+            }
         }
         catch (Exception)
         {
-            return JavaRuntimeService.DefaultComponent;
+            // 回退到默认组件。
         }
+
+        return JavaRuntimeService.DefaultComponent;
     }
 }

@@ -2,6 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:PCL.Desktop.ViewModels"
              xmlns:mojang="using:PCL.Kernel.Mojang"
+             xmlns:versions="using:PCL.Kernel.Versions"
+             xmlns:loaders="using:PCL.Kernel.Loaders"
              x:Class="PCL.Desktop.Views.InstallView"
              x:DataType="vm:InstallViewModel">
 
@@ -55,6 +57,77 @@
                 </StackPanel>
 
                 <TextBlock Text="{Binding Status}" Classes="muted" />
+            </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+            <StackPanel Spacing="16">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="安装模组加载器" Classes="h2" />
+                        <TextBlock Classes="muted"
+                                   Text="基于已安装的原版版本生成加载器版本，依赖库直接来自 Fabric / Quilt Meta。" />
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            Classes="ghost"
+                            Content="刷新已安装"
+                            Command="{Binding RefreshInstalledCommand}" />
+                </Grid>
+
+                <Grid ColumnDefinitions="*,12,*,12,*">
+                    <ComboBox Grid.Column="0"
+                              HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding InstalledVersions}"
+                              SelectedItem="{Binding SelectedBaseVersion}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="versions:InstalledVersion">
+                                <Grid ColumnDefinitions="*,90">
+                                    <TextBlock Text="{Binding Id}" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Type}"
+                                               Classes="caption"
+                                               HorizontalAlignment="Right" />
+                                </Grid>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <ComboBox Grid.Column="2"
+                              HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding LoaderOptions}"
+                              SelectedItem="{Binding SelectedLoader}" />
+
+                    <ComboBox Grid.Column="4"
+                              HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding LoaderVersions}"
+                              SelectedItem="{Binding SelectedLoaderVersion}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="loaders:LoaderVersion">
+                                <TextBlock Text="{Binding DisplayName}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </Grid>
+
+                <StackPanel Spacing="8" IsVisible="{Binding IsLoaderBusy}">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding LoaderStage}" Classes="muted" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding LoaderProgress, StringFormat='{}{0:0}%'}"
+                                   Classes="caption" />
+                    </Grid>
+                    <ProgressBar Value="{Binding LoaderProgress}" Maximum="100" />
+                </StackPanel>
+
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="{Binding LoaderStatus}" Classes="muted"
+                               VerticalAlignment="Center" />
+                    <Button Grid.Column="1"
+                            Classes="primary"
+                            Content="安装加载器"
+                            Command="{Binding InstallLoaderCommand}"
+                            IsEnabled="{Binding !IsLoaderBusy}" />
+                </Grid>
             </StackPanel>
         </Border>
 
