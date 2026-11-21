@@ -144,6 +144,54 @@ public static class ServerList
             .ToArray();
     }
 
+    /// <summary>将服务器列表写回 gzip 压缩的 servers.dat。</summary>
+    public static void Save(string gameDirectory, IReadOnlyList<ServerEntry> servers)
+    {
+        Directory.CreateDirectory(gameDirectory);
+        var path = Path.Combine(gameDirectory, "servers.dat");
+
+        using var file = File.Create(path);
+        using var gzip = new GZipStream(file, CompressionLevel.Optimal);
+        using var writer = new BinaryWriter(gzip, Encoding.UTF8, leaveOpen: true);
+
+        writer.Write((byte)10);
+        WriteNbtString(writer, "");
+        writer.Write((byte)9);
+        WriteNbtString(writer, "servers");
+        writer.Write((byte)10);
+        writer.Write(servers.Count);
+
+        foreach (var server in servers)
+        {
+            writer.Write((byte)8);
+            WriteNbtString(writer, "name");
+            WriteNbtString(writer, server.Name ?? "");
+
+            writer.Write((byte)8);
+            WriteNbtString(writer, "ip");
+            WriteNbtString(writer, server.Ip ?? "");
+
+            if (!string.IsNullOrWhiteSpace(server.Icon) &&
+                server.Icon.Length <= ushort.MaxValue)
+            {
+                writer.Write((byte)8);
+                WriteNbtString(writer, "icon");
+                WriteNbtString(writer, server.Icon);
+            }
+
+            writer.Write((byte)0);
+        }
+
+        writer.Write((byte)0);
+    }
+
+    private static void WriteNbtString(BinaryWriter writer, string value)
+    {
+        var bytes = Encoding.UTF8.GetBytes(value);
+        writer.Write((ushort)Math.Min(bytes.Length, ushort.MaxValue));
+        writer.Write(bytes, 0, Math.Min(bytes.Length, ushort.MaxValue));
+    }
+
     private static bool IsGzip(byte[] data) =>
         data.Length >= 2 && data[0] == 0x1f && data[1] == 0x8b;
 }

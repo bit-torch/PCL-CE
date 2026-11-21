@@ -374,6 +374,103 @@ public sealed class ToolsAndModpackTests
         Assert.Equal(expected, UpdateInstaller.IsSupportedArchive(url));
     }
 
+    [Fact]
+    public void ModScanner_TogglesAndDeletesMods()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var mods = Path.Combine(root, "mods");
+            Directory.CreateDirectory(mods);
+            File.WriteAllText(Path.Combine(mods, "alpha.jar"), "a");
+            File.WriteAllText(Path.Combine(mods, "beta.jar.disabled"), "b");
+            File.WriteAllText(Path.Combine(mods, "notes.txt"), "ignore");
+
+            var scan = ModScanner.Scan(root);
+
+            Assert.Equal(2, scan.Count);
+            Assert.Contains(scan, entry => entry.FileName == "alpha.jar" && entry.Enabled);
+            Assert.Contains(scan, entry =>
+                entry.FileName == "beta.jar.disabled" && !entry.Enabled);
+
+            ModScanner.SetEnabled(root, "alpha.jar", false);
+            Assert.True(File.Exists(Path.Combine(mods, "alpha.jar.disabled")));
+            Assert.False(File.Exists(Path.Combine(mods, "alpha.jar")));
+
+            ModScanner.SetEnabled(root, "alpha.jar.disabled", true);
+            Assert.True(File.Exists(Path.Combine(mods, "alpha.jar")));
+
+            ModScanner.Delete(root, "alpha.jar");
+            Assert.False(File.Exists(Path.Combine(mods, "alpha.jar")));
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
+    [Fact]
+    public void SaveManager_ExportsDeletesAndImportsWorld()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var world = Path.Combine(root, "saves", "WorldA");
+            Directory.CreateDirectory(Path.Combine(world, "region"));
+            File.WriteAllText(Path.Combine(world, "level.dat"), "level");
+            File.WriteAllText(Path.Combine(world, "region", "r.0.0.mca"), "region");
+
+            var archive = Path.Combine(root, "out", "WorldA.zip");
+            SaveManager.Export(root, "WorldA", archive);
+
+            using (var zip = ZipFile.OpenRead(archive))
+            {
+                Assert.NotNull(zip.GetEntry("WorldA/level.dat"));
+                Assert.NotNull(zip.GetEntry("WorldA/region/r.0.0.mca"));
+            }
+
+            SaveManager.Delete(root, "WorldA");
+            Assert.False(Directory.Exists(world));
+
+            var imported = SaveManager.Import(root, archive);
+            Assert.True(File.Exists(Path.Combine(imported, "level.dat")));
+
+            var second = SaveManager.Import(root, archive);
+            Assert.NotEqual(imported, second);
+            Assert.True(Directory.Exists(second));
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
+    [Fact]
+    public void ServerList_SaveAndReadRoundTrip()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            ServerList.Save(root,
+            [
+                new ServerEntry("Alpha", "alpha.example:25565", null),
+                new ServerEntry("Beta", "beta.example", "data:image/png;base64,AA==")
+            ]);
+
+            var servers = ServerList.Read(root);
+
+            Assert.Equal(2, servers.Count);
+            Assert.Equal("Alpha", servers[0].Name);
+            Assert.Equal("alpha.example:25565", servers[0].Ip);
+            Assert.Null(servers[0].Icon);
+            Assert.Equal("data:image/png;base64,AA==", servers[1].Icon);
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
     private static string CreateTempDirectory()
     {
         var path = Path.Combine(Path.GetTempPath(), "pcl-tools-" + Guid.NewGuid().ToString("N"));

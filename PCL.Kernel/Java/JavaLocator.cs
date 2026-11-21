@@ -30,6 +30,30 @@ public static partial class JavaLocator
         return null;
     }
 
+    /// <summary>枚举系统中所有可用的 Java 运行时，按版本去重。</summary>
+    public static async Task<IReadOnlyList<JavaRuntime>> FindAllAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var results = new List<JavaRuntime>();
+        var versions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var candidate in EnumerateCandidates().Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (!File.Exists(candidate))
+                continue;
+
+            var version = await ProbeAsync(candidate, cancellationToken).ConfigureAwait(false);
+            if (version is null || !versions.Add(version))
+                continue;
+
+            results.Add(new JavaRuntime(candidate, version));
+        }
+
+        return results;
+    }
+
     public static IEnumerable<string> EnumerateCandidates()
     {
         var executable = OperatingSystem.IsWindows() ? "java.exe" : "java";

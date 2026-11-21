@@ -36,6 +36,8 @@ public partial class ToolsViewModel : ObservableObject
 
     public ObservableCollection<ServerEntry> Servers { get; } = [];
 
+    public ObservableCollection<ModEntry> Mods { get; } = [];
+
     public ObservableCollection<ScreenshotEntry> Screenshots { get; } = [];
 
     public ObservableCollection<LogIssue> LogIssues { get; } = [];
@@ -44,9 +46,17 @@ public partial class ToolsViewModel : ObservableObject
 
     public bool HasServers => Servers.Count > 0;
 
+    public bool HasMods => Mods.Count > 0;
+
     public bool HasScreenshots => Screenshots.Count > 0;
 
     public bool HasLogIssues => LogIssues.Count > 0;
+
+    public bool HasSelectedSave => SelectedSave is not null;
+
+    public bool HasSelectedServer => SelectedServer is not null;
+
+    public bool HasSelectedMod => SelectedMod is not null;
 
     public string GameDirectory => _services.Paths.GameDirectory;
 
@@ -56,6 +66,13 @@ public partial class ToolsViewModel : ObservableObject
 
     public string ExportDefaultName =>
         $"PCL-diagnostics-{DateTime.Now:yyyyMMdd-HHmmss}.zip";
+
+    public string ImportSaveDialogTitle => _strings["tools.saves.dialogImport"];
+
+    public string ExportSaveDialogTitle => _strings["tools.saves.dialogExport"];
+
+    public string ExportSaveDefaultName =>
+        (SelectedSave?.Name ?? "world") + ".zip";
 
     [ObservableProperty]
     private string status;
@@ -87,6 +104,33 @@ public partial class ToolsViewModel : ObservableObject
     [ObservableProperty]
     private string updateStatus;
 
+    [ObservableProperty]
+    private SaveEntry? selectedSave;
+
+    [ObservableProperty]
+    private ServerEntry? selectedServer;
+
+    [ObservableProperty]
+    private ModEntry? selectedMod;
+
+    [ObservableProperty]
+    private string newServerName = "";
+
+    [ObservableProperty]
+    private string newServerIp = "";
+
+    partial void OnSelectedSaveChanged(SaveEntry? value)
+    {
+        OnPropertyChanged(nameof(HasSelectedSave));
+        OnPropertyChanged(nameof(ExportSaveDefaultName));
+    }
+
+    partial void OnSelectedServerChanged(ServerEntry? value) =>
+        OnPropertyChanged(nameof(HasSelectedServer));
+
+    partial void OnSelectedModChanged(ModEntry? value) =>
+        OnPropertyChanged(nameof(HasSelectedMod));
+
     private string? _updateUrl;
 
     public bool CanDownloadUpdate =>
@@ -103,6 +147,10 @@ public partial class ToolsViewModel : ObservableObject
         {
             var gameDirectory = _services.Paths.GameDirectory;
 
+            SelectedSave = null;
+            SelectedServer = null;
+            SelectedMod = null;
+
             Saves.Clear();
             foreach (var save in SaveScanner.Scan(gameDirectory))
                 Saves.Add(save);
@@ -110,6 +158,10 @@ public partial class ToolsViewModel : ObservableObject
             Servers.Clear();
             foreach (var server in ServerList.Read(gameDirectory))
                 Servers.Add(server);
+
+            Mods.Clear();
+            foreach (var mod in ModScanner.Scan(gameDirectory))
+                Mods.Add(mod);
 
             Screenshots.Clear();
             foreach (var screenshot in ScreenshotScanner.Scan(gameDirectory))
@@ -122,6 +174,7 @@ public partial class ToolsViewModel : ObservableObject
 
             OnPropertyChanged(nameof(HasSaves));
             OnPropertyChanged(nameof(HasServers));
+            OnPropertyChanged(nameof(HasMods));
             OnPropertyChanged(nameof(HasScreenshots));
             OnPropertyChanged(nameof(HasLogIssues));
             OnPropertyChanged(nameof(GameDirectory));
@@ -129,6 +182,149 @@ public partial class ToolsViewModel : ObservableObject
             Status = string.Format(
                 _strings["tools.status.scanned"],
                 Saves.Count, Servers.Count, Screenshots.Count, LogIssues.Count);
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["tools.status.error"] + ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private void ToggleMod()
+    {
+        if (SelectedMod is null)
+            return;
+
+        var mod = SelectedMod;
+        try
+        {
+            var name = ModScanner.SetEnabled(
+                _services.Paths.GameDirectory, mod.FileName, !mod.Enabled);
+            Refresh();
+            Status = string.Format(_strings["tools.status.toggled"], name);
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["tools.status.error"] + ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private void DeleteMod()
+    {
+        if (SelectedMod is null)
+            return;
+
+        var name = SelectedMod.DisplayName;
+        try
+        {
+            ModScanner.Delete(_services.Paths.GameDirectory, SelectedMod.FileName);
+            Refresh();
+            Status = string.Format(_strings["tools.status.deleted"], name);
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["tools.status.error"] + ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private void DeleteSave()
+    {
+        if (SelectedSave is null)
+            return;
+
+        var name = SelectedSave.Name;
+        try
+        {
+            SaveManager.Delete(_services.Paths.GameDirectory, name);
+            Refresh();
+            Status = string.Format(_strings["tools.status.deleted"], name);
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["tools.status.error"] + ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private void DeleteServer()
+    {
+        if (SelectedServer is null)
+            return;
+
+        var name = SelectedServer.DisplayName;
+        try
+        {
+            var list = Servers.ToList();
+            list.Remove(SelectedServer);
+            ServerList.Save(_services.Paths.GameDirectory, list);
+            Refresh();
+            Status = string.Format(_strings["tools.status.deleted"], name);
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["tools.status.error"] + ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private void AddServer()
+    {
+        var name = NewServerName.Trim();
+        var ip = NewServerIp.Trim();
+
+        if (ip.Length == 0)
+        {
+            Status = _strings["tools.servers.invalid"];
+            return;
+        }
+
+        try
+        {
+            var list = Servers.ToList();
+            list.Add(new ServerEntry(name, ip, null));
+            ServerList.Save(_services.Paths.GameDirectory, list);
+            NewServerName = "";
+            NewServerIp = "";
+            Refresh();
+            Status = string.Format(
+                _strings["tools.status.serverAdded"],
+                string.IsNullOrWhiteSpace(name) ? ip : name);
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["tools.status.error"] + ex.Message;
+        }
+    }
+
+    public async Task ExportSelectedSaveAsync(string destinationPath)
+    {
+        if (SelectedSave is null)
+            return;
+
+        var save = SelectedSave;
+        try
+        {
+            var gameDirectory = _services.Paths.GameDirectory;
+            var path = await Task.Run(() => SaveManager.Export(gameDirectory, save.Name, destinationPath));
+            Status = string.Format(_strings["tools.status.saveExported"], path);
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["tools.status.error"] + ex.Message;
+        }
+    }
+
+    public async Task ImportSaveAsync(string archivePath)
+    {
+        try
+        {
+            var gameDirectory = _services.Paths.GameDirectory;
+            var directory = await Task.Run(() => SaveManager.Import(gameDirectory, archivePath));
+            Refresh();
+            Status = string.Format(
+                _strings["tools.status.saveImported"], Path.GetFileName(directory));
         }
         catch (Exception ex)
         {
