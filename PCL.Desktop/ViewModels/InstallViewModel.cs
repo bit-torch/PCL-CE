@@ -44,8 +44,10 @@ public partial class InstallViewModel : ObservableObject
         new(LoaderKind.LegacyFabric, "Legacy Fabric"),
         new(LoaderKind.Forge, "Forge"),
         new(LoaderKind.NeoForge, "NeoForge"),
+        new(LoaderKind.Cleanroom, "Cleanroom"),
         new(LoaderKind.OptiFine, "OptiFine"),
-        new(LoaderKind.LiteLoader, "LiteLoader")
+        new(LoaderKind.LiteLoader, "LiteLoader"),
+        new(LoaderKind.LabyMod, "LabyMod")
     ];
 
     public ObservableCollection<LoaderVersion> LoaderVersions { get; } = [];
@@ -195,6 +197,10 @@ public partial class InstallViewModel : ObservableObject
                     SelectedBaseVersion.Id),
                 LoaderKind.LiteLoader => await _services.LegacyLoaders.GetLiteLoaderVersionsAsync(
                     SelectedBaseVersion.Id),
+                LoaderKind.LabyMod => await _services.LegacyLoaders.GetLabyModVersionsAsync(
+                    SelectedBaseVersion.Id),
+                LoaderKind.Cleanroom => await _services.LegacyLoaders.GetCleanroomVersionsAsync(
+                    SelectedBaseVersion.Id),
                 LoaderKind.Forge or LoaderKind.NeoForge =>
                     await _services.ForgeLoaders.GetVersionsAsync(
                         SelectedLoader.Kind, SelectedBaseVersion.Id),
@@ -287,6 +293,28 @@ public partial class InstallViewModel : ObservableObject
                 result = await _services.LegacyLoaders.InstallLiteLoaderAsync(
                     SelectedBaseVersion.Id,
                     SelectedLoaderVersion.Version,
+                    reporter);
+            }
+            else if (SelectedLoader.Kind == LoaderKind.LabyMod)
+            {
+                result = await _services.LegacyLoaders.InstallLabyModAsync(
+                    SelectedBaseVersion.Id,
+                    SelectedLoaderVersion.Version,
+                    reporter);
+            }
+            else if (SelectedLoader.Kind == LoaderKind.Cleanroom)
+            {
+                var javaPath = await ResolveJavaAsync();
+                if (javaPath is null)
+                {
+                    LoaderStatus = _strings["install.loader.javaRequired"];
+                    return;
+                }
+
+                result = await _services.LegacyLoaders.InstallCleanroomAsync(
+                    SelectedBaseVersion.Id,
+                    SelectedLoaderVersion.Version,
+                    javaPath,
                     reporter);
             }
             else

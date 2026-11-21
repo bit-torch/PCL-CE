@@ -7,8 +7,10 @@ public enum LoaderKind
     LegacyFabric,
     Forge,
     NeoForge,
+    Cleanroom,
     OptiFine,
-    LiteLoader
+    LiteLoader,
+    LabyMod
 }
 
 public sealed record LoaderVersion(string Version, bool Stable, string? Display = null)

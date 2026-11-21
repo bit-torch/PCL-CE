@@ -15,6 +15,10 @@ public sealed class LegacyLoaderService
     private const string OptiFineBase = "https://bmclapi2.bangbang93.com/optifine";
     private const string LiteLoaderManifestUrl = "https://dl.liteloader.com/versions/versions.json";
     private const string LiteLoaderMaven = "https://dl.liteloader.com/versions/";
+    private const string LabyModManifestUrl =
+        "https://releases.r2.labymod.net/api/v1/manifest/production/latest.json";
+    private const string CleanroomReleasesUrl =
+        "https://api.github.com/repos/CleanroomMC/Cleanroom/releases";
 
     private readonly LauncherPaths _paths;
     private readonly DownloadClient _downloads;
@@ -88,31 +92,95 @@ public sealed class LegacyLoaderService
             .ConfigureAwait(false);
 
         Directory.CreateDirectory(_paths.GameDirectory);
-        var started = DateTime.UtcNow;
+        var javac = Path.Combine(
+            Path.GetDirectoryName(javaPath)!,
+            OperatingSystem.IsWindows() ? "javac.exe" : "javac");
+        if (!File.Exists(javac))
+            throw new InvalidOperationException(
+                "OptiFine 安装需要 JDK（javac），请安装或指定 JDK 而不是仅 JRE。");
 
-        progress?.Report(new InstallProgress("运行 OptiFine 安装器", 0, 1, 0.5));
-        var startInfo = new ProcessStartInfo
+        var work = Path.Combine(Path.GetTempPath(), "PCLCE",
+            "optifine-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(work);
+        var previous = Directory.Exists(_paths.VersionsDirectory)
+            ? Directory.GetDirectories(_paths.VersionsDirectory).ToHashSet()
+            : [];
+
+        try
         {
-            FileName = javaPath,
-            WorkingDirectory = _paths.GameDirectory,
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            CreateNoWindow = true
-        };
-        startInfo.ArgumentList.Add($"-Duser.home={_paths.GameDirectory}");
-        startInfo.ArgumentList.Add("-cp");
-        startInfo.ArgumentList.Add(installer);
-        startInfo.ArgumentList.Add("optifine.Installer");
-        startInfo.Environment["APPDATA"] = _paths.GameDirectory;
+            var source = Path.Combine(work, "PclOptiFineBridge.java");
+            await File.WriteAllTextAsync(source,
+                    "public class PclOptiFineBridge { public static void main(String[] args) " +
+                    "throws Exception { java.lang.reflect.Method m = " +
+                    "Class.forName(\"optifine.Installer\").getDeclaredMethod(\"doInstall\", " +
+                    "java.io.File.class); m.setAccessible(true); m.invoke(null, " +
+                    "new java.io.File(args[0])); } }",
+                    cancellationToken)
+                .ConfigureAwait(false);
 
-        var output = await RunAsync(startInfo, cancellationToken).ConfigureAwait(false);
-        var id = FindInstalledVersion("OptiFine", started)
-                 ?? throw new InvalidDataException(
-                     $"OptiFine 安装器未生成版本 JSON。输出：{Tail(output)}");
+            progress?.Report(new InstallProgress("编译 OptiFine 安装桥", 0, 1, 0.5));
+            var compile = new ProcessStartInfo
+            {
+                FileName = javac,
+                WorkingDirectory = work,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+            compile.ArgumentList.Add("-source");
+            compile.ArgumentList.Add("8");
+            compile.ArgumentList.Add("-target");
+            compile.ArgumentList.Add("8");
+            compile.ArgumentList.Add("-d");
+            compile.ArgumentList.Add(work);
+            compile.ArgumentList.Add(source);
+            await RunAsync(compile, cancellationToken).ConfigureAwait(false);
 
-        progress?.Report(new InstallProgress("OptiFine 安装完成", 1, 1, 1));
-        return new LoaderInstallResult(id, gameVersion, CountLibraries(id));
+            progress?.Report(new InstallProgress("运行 OptiFine 安装器", 0, 1, 0.7));
+            var run = new ProcessStartInfo
+            {
+                FileName = javaPath,
+                WorkingDirectory = _paths.GameDirectory,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+            run.ArgumentList.Add($"-Duser.home={_paths.GameDirectory}");
+            run.ArgumentList.Add("-cp");
+            run.ArgumentList.Add(string.Join(Path.PathSeparator, work, installer));
+            run.ArgumentList.Add("PclOptiFineBridge");
+            run.ArgumentList.Add(_paths.GameDirectory);
+            run.Environment["APPDATA"] = _paths.GameDirectory;
+
+            var output = await RunAsync(run, cancellationToken).ConfigureAwait(false);
+
+            var added = Directory.Exists(_paths.VersionsDirectory)
+                ? Directory.GetDirectories(_paths.VersionsDirectory)
+                    .FirstOrDefault(path => !previous.Contains(path))
+                : null;
+            var id = added is not null
+                ? Path.GetFileName(added)
+                : FindInstalledVersion("OptiFine", DateTime.UtcNow.AddMinutes(-2));
+
+            if (id is null)
+                throw new InvalidDataException(
+                    $"OptiFine 安装器未生成版本 JSON。输出：{Tail(output)}");
+
+            progress?.Report(new InstallProgress("OptiFine 安装完成", 1, 1, 1));
+            return new LoaderInstallResult(id, gameVersion, CountLibraries(id));
+        }
+        finally
+        {
+            try
+            {
+                Directory.Delete(work, true);
+            }
+            catch (IOException)
+            {
+            }
+        }
     }
 
     public async Task<IReadOnlyList<LoaderVersion>> GetLiteLoaderVersionsAsync(
@@ -210,6 +278,206 @@ public sealed class LegacyLoaderService
         return new LoaderInstallResult(id, gameVersion, count);
     }
 
+    public async Task<IReadOnlyList<LoaderVersion>> GetLabyModVersionsAsync(
+        string gameVersion,
+        bool forceRefresh = false,
+        CancellationToken cancellationToken = default)
+    {
+        var manifest = await GetCachedJsonAsync(
+                LabyModManifestUrl, "labymod-latest.json", forceRefresh, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (manifest?["minecraftVersions"] is not JsonArray versions ||
+            versions.FirstOrDefault(item =>
+                string.Equals(item?["version"]?.ToString(), gameVersion,
+                    StringComparison.Ordinal)) is null)
+            return [];
+
+        var commit = manifest["commitReference"]?.ToString()
+                     ?? manifest["commit_reference"]?.ToString() ?? "";
+        var version = manifest["labyModVersion"]?.ToString() ?? commit;
+        if (version.Length == 0)
+            return [];
+
+        return [new LoaderVersion(version, true, $"LabyMod {version}")];
+    }
+
+    public async Task<LoaderInstallResult> InstallLabyModAsync(
+        string gameVersion,
+        string loaderVersion,
+        IProgress<InstallProgress>? progress = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (!File.Exists(_paths.VersionJsonPath(gameVersion)))
+            throw new InvalidOperationException($"请先安装原版 {gameVersion}。");
+
+        progress?.Report(new InstallProgress("读取 LabyMod 清单", 0, 1, 0));
+        var manifest = await GetCachedJsonAsync(
+                LabyModManifestUrl, "labymod-latest.json", true, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (manifest?["minecraftVersions"] is not JsonArray versions)
+            throw new InvalidDataException("LabyMod 清单缺少版本信息。");
+
+        var supported = versions.OfType<JsonObject>().FirstOrDefault(item =>
+            string.Equals(item["version"]?.ToString(), gameVersion, StringComparison.Ordinal))
+            ?? throw new InvalidDataException($"LabyMod 不支持 Minecraft {gameVersion}。");
+
+        var commit = manifest["commitReference"]?.ToString()
+                     ?? manifest["commit_reference"]?.ToString() ?? "";
+        var profileUrl = supported["customManifestUrl"]?.ToString()
+                         ?? $"https://releases.r2.labymod.net/api/v1/download/manifest/" +
+                            $"labymod4/production/{Uri.EscapeDataString(gameVersion)}/{commit}.json";
+
+        var profile = await GetCachedJsonAsync(
+                profileUrl,
+                $"labymod-{Sanitize(gameVersion)}-{Sanitize(loaderVersion)}.json",
+                true, cancellationToken)
+            .ConfigureAwait(false) as JsonObject
+            ?? throw new InvalidDataException("无法解析 LabyMod 版本描述。");
+
+        var id = profile["id"]?.ToString();
+        if (string.IsNullOrWhiteSpace(id))
+            throw new InvalidDataException("LabyMod 版本描述缺少 id。");
+
+        if (File.Exists(_paths.VersionJsonPath(id)))
+            return new LoaderInstallResult(id, gameVersion, CountLibraries(id));
+
+        profile["inheritsFrom"] ??= gameVersion;
+        var libraries = profile["libraries"] as JsonArray ?? new JsonArray();
+        profile["libraries"] = libraries;
+        NormalizeLibraries(libraries);
+
+        Directory.CreateDirectory(_paths.VersionDirectory(id));
+        await File.WriteAllTextAsync(_paths.VersionJsonPath(id), profile.ToJsonString(),
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        var count = await DownloadLibrariesAsync(libraries, progress, cancellationToken)
+            .ConfigureAwait(false);
+
+        progress?.Report(new InstallProgress("LabyMod 安装完成", 1, 1, 1));
+        return new LoaderInstallResult(id, gameVersion, count);
+    }
+
+    public async Task<IReadOnlyList<LoaderVersion>> GetCleanroomVersionsAsync(
+        string gameVersion,
+        bool forceRefresh = false,
+        CancellationToken cancellationToken = default)
+    {
+        if (!string.Equals(gameVersion, "1.12.2", StringComparison.Ordinal))
+            return [];
+
+        var releases = await GetCachedJsonAsync(
+                CleanroomReleasesUrl, "cleanroom-releases.json", forceRefresh,
+                cancellationToken)
+            .ConfigureAwait(false) as JsonArray
+            ?? [];
+
+        var result = new List<LoaderVersion>();
+        foreach (var release in releases.OfType<JsonObject>())
+        {
+            var tag = release["tag_name"]?.ToString();
+            if (string.IsNullOrWhiteSpace(tag) || FindInstallerAsset(release) is null)
+                continue;
+
+            result.Add(new LoaderVersion(tag, true, $"Cleanroom {tag}"));
+        }
+
+        return result;
+    }
+
+    public async Task<LoaderInstallResult> InstallCleanroomAsync(
+        string gameVersion,
+        string loaderVersion,
+        string javaPath,
+        IProgress<InstallProgress>? progress = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (!string.Equals(gameVersion, "1.12.2", StringComparison.Ordinal))
+            throw new InvalidOperationException("Cleanroom 仅支持 Minecraft 1.12.2。");
+        if (!File.Exists(_paths.VersionJsonPath(gameVersion)))
+            throw new InvalidOperationException($"请先安装原版 {gameVersion}。");
+        if (!File.Exists(javaPath))
+            throw new FileNotFoundException($"找不到 Java 可执行文件：{javaPath}");
+
+        var releases = await GetCachedJsonAsync(
+                CleanroomReleasesUrl, "cleanroom-releases.json", true, cancellationToken)
+            .ConfigureAwait(false) as JsonArray
+            ?? throw new InvalidDataException("无法读取 Cleanroom 版本清单。");
+
+        var release = releases.OfType<JsonObject>().FirstOrDefault(item =>
+            string.Equals(item["tag_name"]?.ToString(), loaderVersion,
+                StringComparison.Ordinal))
+            ?? throw new InvalidDataException($"未找到 Cleanroom {loaderVersion}。");
+
+        var downloadUrl = FindInstallerAsset(release)?["browser_download_url"]?.ToString()
+                          ?? throw new InvalidDataException("Cleanroom 发布缺少安装器。");
+
+        var installer = Path.Combine(_paths.CacheDirectory, "loaders",
+            $"cleanroom-{Sanitize(loaderVersion)}-installer.jar");
+
+        progress?.Report(new InstallProgress("下载 Cleanroom 安装器", 0, 1, 0));
+        await _downloads.DownloadAsync(downloadUrl, installer,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+
+        Directory.CreateDirectory(_paths.GameDirectory);
+        EnsureLauncherProfiles();
+        var previous = Directory.Exists(_paths.VersionsDirectory)
+            ? Directory.GetDirectories(_paths.VersionsDirectory).ToHashSet()
+            : [];
+
+        progress?.Report(new InstallProgress("运行 Cleanroom 安装器", 0, 1, 0.5));
+        var run = new ProcessStartInfo
+        {
+            FileName = javaPath,
+            WorkingDirectory = _paths.GameDirectory,
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true
+        };
+        run.ArgumentList.Add("-jar");
+        run.ArgumentList.Add(installer);
+        run.ArgumentList.Add("--installClient");
+
+        var output = await RunAsync(run, cancellationToken).ConfigureAwait(false);
+        var added = Directory.Exists(_paths.VersionsDirectory)
+            ? Directory.GetDirectories(_paths.VersionsDirectory)
+                .FirstOrDefault(path => !previous.Contains(path))
+            : null;
+        var id = added is not null
+            ? Path.GetFileName(added)
+            : FindInstalledVersion("cleanroom", DateTime.UtcNow.AddMinutes(-2));
+
+        if (id is null)
+            throw new InvalidDataException(
+                $"Cleanroom 安装器未生成版本 JSON。输出：{Tail(output)}");
+
+        progress?.Report(new InstallProgress("Cleanroom 安装完成", 1, 1, 1));
+        return new LoaderInstallResult(id, gameVersion, CountLibraries(id));
+    }
+
+    private static JsonObject? FindInstallerAsset(JsonObject release) =>
+        (release["assets"] as JsonArray)?.OfType<JsonObject>().FirstOrDefault(asset =>
+            asset["name"]?.ToString()?.EndsWith("-installer.jar",
+                StringComparison.OrdinalIgnoreCase) == true);
+
+    private async Task<JsonNode?> GetCachedJsonAsync(
+        string url,
+        string cacheName,
+        bool forceRefresh,
+        CancellationToken cancellationToken)
+    {
+        var cache = Path.Combine(_paths.CacheDirectory, cacheName);
+        await EnsureFreshAsync(url, cache, forceRefresh, cancellationToken)
+            .ConfigureAwait(false);
+
+        return JsonNode.Parse(await File.ReadAllTextAsync(cache, cancellationToken)
+            .ConfigureAwait(false));
+    }
+
     private async Task<JsonObject> GetLiteLoaderManifestAsync(
         bool forceRefresh,
         CancellationToken cancellationToken)
@@ -240,6 +508,19 @@ public sealed class LegacyLoaderService
             return null;
 
         return entry;
+    }
+
+    private void EnsureLauncherProfiles()
+    {
+        var path = Path.Combine(_paths.GameDirectory, "launcher_profiles.json");
+        if (File.Exists(path))
+            return;
+
+        const string json =
+            "{\"profiles\":{},\"selectedProfile\":\"\",\"clientToken\":\"\"," +
+            "\"authenticationDatabase\":{},\"launcherVersion\":{\"name\":\"1.0\",\"format\":21}," +
+            "\"settings\":{},\"version\":3}";
+        File.WriteAllText(path, json);
     }
 
     private async Task<int> DownloadLibrariesAsync(
