@@ -1,7 +1,7 @@
 **简体中文** | [English](README-EN.md) | [繁體中文](README-ZH_TW.md)
 
 > [!IMPORTANT]
-> 本仓库（`bit-torch/PCL-CE`）由[比特火炬](https://github.com/bit-torch)维护，派生自上游仓库 [PCL-Community/PCL-CE](https://github.com/PCL-Community/PCL-CE)，并会不定期 rebase 上游更改。
+> 本仓库（`bit-torch/PCL-CE`）由[比特火炬](https://github.com/bit-torch)维护，派生自上游仓库 [PCL-Community/PCL-CE](https://github.com/PCL-Community/PCL-CE)。本仓库不再 rebase 上游更改，转为独立演进。
 > 本仓库仅提供非官方发布与支持。
 > 由于对上游改动较大并添加跨平台，欢迎测试并反馈问题。
 > 上游项目 PCL CE 基于 [Meloong-Git/PCL](https://github.com/Meloong-Git/PCL) 二次开发。
