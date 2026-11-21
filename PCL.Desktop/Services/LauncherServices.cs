@@ -51,6 +51,8 @@ public sealed class LauncherServices : IDisposable
         Modrinth = new ModrinthClient();
         ResourceInstaller = new ResourceInstaller(Paths, Downloads, Modrinth);
         UpdateChecker = new UpdateChecker();
+        UpdateInstaller = new UpdateInstaller(
+            Downloads, Path.Combine(Paths.CacheDirectory, "updates"));
         VersionManager = new VersionManager(Paths);
         Launcher = new GameLauncher(Paths);
         UrlOpener = new SystemUrlOpener();
@@ -90,6 +92,8 @@ public sealed class LauncherServices : IDisposable
     public ResourceInstaller ResourceInstaller { get; }
 
     public UpdateChecker UpdateChecker { get; }
+
+    public UpdateInstaller UpdateInstaller { get; }
 
     public VersionManager VersionManager { get; }
 

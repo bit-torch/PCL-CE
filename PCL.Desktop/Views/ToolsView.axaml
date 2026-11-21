@@ -102,7 +102,13 @@
 
                 <Border Grid.Column="2" Classes="card">
                     <StackPanel Spacing="10">
-                        <TextBlock Text="{loc:Localize Key=tools.logs.title}" Classes="section" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="{loc:Localize Key=tools.logs.title}" Classes="section" />
+                            <Button Grid.Column="1"
+                                    Classes="ghost"
+                                    Content="{loc:Localize Key=tools.logs.export}"
+                                    Click="OnExportDiagnosticsClick" />
+                        </Grid>
                         <ListBox ItemsSource="{Binding LogIssues}"
                                  MaxHeight="220"
                                  IsVisible="{Binding HasLogIssues}">
@@ -165,7 +171,11 @@
                                    Text="{loc:Localize Key=tools.update.description}" />
                     </StackPanel>
 
-                    <Grid ColumnDefinitions="*,Auto,Auto">
+                    <ProgressBar Value="{Binding UpdateProgress}"
+                                 Maximum="100"
+                                 IsVisible="{Binding IsDownloadingUpdate}" />
+
+                    <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
                         <TextBlock Text="{Binding UpdateStatus}"
                                    Classes="muted"
                                    TextWrapping="Wrap"
@@ -177,6 +187,19 @@
                                 IsEnabled="{Binding !IsCheckingUpdate}"
                                 Command="{Binding CheckUpdatesCommand}" />
                         <Button Grid.Column="2"
+                                Classes="ghost"
+                                Margin="10,0,0,0"
+                                IsVisible="{Binding CanDownloadUpdate}"
+                                IsEnabled="{Binding !IsDownloadingUpdate}"
+                                Content="{loc:Localize Key=tools.update.download}"
+                                Command="{Binding DownloadUpdateCommand}" />
+                        <Button Grid.Column="3"
+                                Classes="primary"
+                                Margin="10,0,0,0"
+                                IsVisible="{Binding HasPreparedUpdate}"
+                                Content="{loc:Localize Key=tools.update.apply}"
+                                Click="OnApplyUpdateClick" />
+                        <Button Grid.Column="4"
                                 Classes="ghost"
                                 Margin="10,0,0,0"
                                 IsVisible="{Binding HasUpdate}"

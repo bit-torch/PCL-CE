@@ -291,6 +291,89 @@ public sealed class ToolsAndModpackTests
         Assert.Equal(expected, UpdateChecker.IsNewer(candidate, current));
     }
 
+    [Fact]
+    public void DiagnosticExporter_BundlesLogsAndIssues()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(root, "logs"));
+            Directory.CreateDirectory(Path.Combine(root, "crash-reports"));
+            Directory.CreateDirectory(Path.Combine(root, "mods"));
+            Directory.CreateDirectory(Path.Combine(root, "versions", "1.20.1"));
+            File.WriteAllText(Path.Combine(root, "logs", "latest.log"),
+                "[main/ERROR]: java.lang.OutOfMemoryError: Java heap space\n");
+            File.WriteAllText(Path.Combine(root, "crash-reports", "crash-a.txt"), "boom");
+            File.WriteAllText(Path.Combine(root, "mods", "sodium.jar"), "mod");
+            File.WriteAllText(Path.Combine(root, "mods", "fabric-api.jar"), "mod");
+
+            var destination = Path.Combine(root, "reports", "diag.zip");
+            var result = DiagnosticExporter.Export(root, destination, "1.0.0");
+
+            Assert.True(File.Exists(destination));
+            Assert.True(result.IssueCount >= 1);
+
+            using var archive = ZipFile.OpenRead(destination);
+            Assert.NotNull(archive.GetEntry("diagnostics.txt"));
+            Assert.NotNull(archive.GetEntry("logs/latest.log"));
+            Assert.NotNull(archive.GetEntry("crash-reports/crash-a.txt"));
+            Assert.NotNull(archive.GetEntry("mods.txt"));
+            Assert.NotNull(archive.GetEntry("versions.txt"));
+
+            using var summary = new StreamReader(archive.GetEntry("diagnostics.txt")!.Open());
+            Assert.Contains("内存不足", summary.ReadToEnd());
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
+    [Fact]
+    public void UpdateInstaller_PreparesZipAndWritesApplyScript()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archive = Path.Combine(root, "update.zip");
+            using (var zip = ZipFile.Open(archive, ZipArchiveMode.Create))
+            {
+                WriteEntry(zip, "app/PCL-CE", "binary");
+                WriteEntry(zip, "app/readme.txt", "notes");
+            }
+
+            var appDirectory = Path.Combine(root, "app-current");
+            using var downloads = new DownloadClient();
+            var installer = new UpdateInstaller(downloads, Path.Combine(root, "work"));
+
+            var prepared = installer.Prepare(archive, appDirectory, "2.0.0");
+
+            Assert.Equal("2.0.0", prepared.Version);
+            Assert.True(File.Exists(Path.Combine(prepared.ContentDirectory, "PCL-CE")));
+            Assert.True(File.Exists(Path.Combine(prepared.ContentDirectory, "readme.txt")));
+
+            var script = UpdateInstaller.CreateApplyScript(
+                prepared, 4321, Path.Combine(appDirectory, "PCL-CE"));
+
+            Assert.True(File.Exists(script));
+            Assert.Contains("4321", File.ReadAllText(script));
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
+    [Theory]
+    [InlineData("https://example.test/app.zip", true)]
+    [InlineData("https://example.test/app.tar.gz", true)]
+    [InlineData("https://example.test/app.tgz", true)]
+    [InlineData("https://example.test/releases/tag/v1", false)]
+    public void UpdateInstaller_DetectsArchiveUrls(string url, bool expected)
+    {
+        Assert.Equal(expected, UpdateInstaller.IsSupportedArchive(url));
+    }
+
     private static string CreateTempDirectory()
     {
         var path = Path.Combine(Path.GetTempPath(), "pcl-tools-" + Guid.NewGuid().ToString("N"));

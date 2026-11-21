@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Desktop.Localization;
@@ -15,6 +16,9 @@ public partial class ToolsViewModel : ObservableObject
 {
     private readonly LauncherServices _services;
     private readonly LocalizationService _strings;
+
+    private UpdateInfo? _latestUpdate;
+    private PreparedUpdate? _preparedUpdate;
 
     public ToolsViewModel(LauncherServices services)
     {
@@ -48,6 +52,11 @@ public partial class ToolsViewModel : ObservableObject
 
     public string ImportDialogTitle => _strings["tools.modpack.dialog"];
 
+    public string ExportDialogTitle => _strings["tools.logs.dialog"];
+
+    public string ExportDefaultName =>
+        $"PCL-diagnostics-{DateTime.Now:yyyyMMdd-HHmmss}.zip";
+
     [ObservableProperty]
     private string status;
 
@@ -67,9 +76,25 @@ public partial class ToolsViewModel : ObservableObject
     private bool isCheckingUpdate;
 
     [ObservableProperty]
+    private bool isDownloadingUpdate;
+
+    [ObservableProperty]
+    private double updateProgress;
+
+    [ObservableProperty]
+    private bool hasPreparedUpdate;
+
+    [ObservableProperty]
     private string updateStatus;
 
     private string? _updateUrl;
+
+    public bool CanDownloadUpdate =>
+        HasUpdate && _latestUpdate is not null &&
+        UpdateInstaller.IsSupportedArchive(_latestUpdate.DownloadUrl ?? "");
+
+    partial void OnHasUpdateChanged(bool value) =>
+        OnPropertyChanged(nameof(CanDownloadUpdate));
 
     [RelayCommand]
     private void Refresh()
@@ -147,6 +172,23 @@ public partial class ToolsViewModel : ObservableObject
         }
     }
 
+    public async Task ExportDiagnosticsAsync(string destinationPath)
+    {
+        try
+        {
+            var gameDirectory = _services.Paths.GameDirectory;
+            var version = UpdateChecker.CurrentVersion;
+            var result = await Task.Run(() =>
+                DiagnosticExporter.Export(gameDirectory, destinationPath, version));
+
+            Status = string.Format(_strings["tools.status.exported"], result.Path);
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["tools.status.exportError"] + ex.Message;
+        }
+    }
+
     [RelayCommand]
     private async Task CheckUpdatesAsync()
     {
@@ -155,10 +197,14 @@ public partial class ToolsViewModel : ObservableObject
 
         IsCheckingUpdate = true;
         UpdateStatus = _strings["tools.update.checking"];
+        _preparedUpdate = null;
+        HasPreparedUpdate = false;
+        UpdateProgress = 0;
 
         try
         {
             var info = await _services.UpdateChecker.CheckAsync(UpdateChecker.CurrentVersion);
+            _latestUpdate = info;
             HasUpdate = info.IsAvailable;
             _updateUrl = info.HtmlUrl ?? info.DownloadUrl;
 
@@ -169,12 +215,69 @@ public partial class ToolsViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            _latestUpdate = null;
             HasUpdate = false;
             UpdateStatus = _strings["tools.update.error"] + ex.Message;
         }
         finally
         {
             IsCheckingUpdate = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task DownloadUpdateAsync()
+    {
+        if (IsDownloadingUpdate || _latestUpdate is null)
+            return;
+
+        IsDownloadingUpdate = true;
+        UpdateProgress = 0;
+        UpdateStatus = _strings["tools.update.downloading"];
+
+        try
+        {
+            var reporter = new Progress<double>(value =>
+                UpdateProgress = Math.Clamp(value * 100, 0, 100));
+
+            var archivePath = await _services.UpdateInstaller.DownloadAsync(_latestUpdate, reporter);
+            _preparedUpdate = _services.UpdateInstaller.Prepare(
+                archivePath, AppContext.BaseDirectory, _latestUpdate.LatestVersion);
+            HasPreparedUpdate = true;
+            UpdateProgress = 100;
+            UpdateStatus = _strings["tools.update.prepared"];
+        }
+        catch (Exception ex)
+        {
+            UpdateStatus = _strings["tools.update.downloadError"] + ex.Message;
+        }
+        finally
+        {
+            IsDownloadingUpdate = false;
+        }
+    }
+
+    /// <summary>启动替换脚本。调用方随后应关闭启动器，让脚本完成文件替换与重启。</summary>
+    public bool TryStartUpdate()
+    {
+        if (_preparedUpdate is null)
+        {
+            UpdateStatus = _strings["tools.update.download"];
+            return false;
+        }
+
+        try
+        {
+            var script = UpdateInstaller.CreateApplyScript(
+                _preparedUpdate, Environment.ProcessId, Environment.ProcessPath);
+
+            Process.Start(new ProcessStartInfo(script) { UseShellExecute = true });
+            return true;
+        }
+        catch (Exception ex)
+        {
+            UpdateStatus = _strings["tools.update.applyError"] + ex.Message;
+            return false;
         }
     }
 
