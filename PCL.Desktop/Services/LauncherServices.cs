@@ -1,6 +1,7 @@
 using PCL.Desktop.Localization;
 using PCL.Kernel;
 using PCL.Kernel.Abstractions;
+using PCL.Kernel.Accounts;
 using PCL.Kernel.App;
 using PCL.Kernel.Install;
 using PCL.Kernel.Java;
@@ -41,6 +42,10 @@ public sealed class LauncherServices : IDisposable
         LoaderMeta = new LoaderMetaService(Paths, Downloads);
         LoaderInstaller = new LoaderInstaller(Paths, Downloads, LoaderMeta);
         ForgeLoaders = new ForgeLoaderInstaller(Paths, Downloads);
+        LegacyLoaders = new LegacyLoaderService(Paths, Downloads);
+        MicrosoftAuth = new MicrosoftAuthenticator();
+        YggdrasilAuth = new YggdrasilAuthenticator();
+        AuthlibInjector = new AuthlibInjectorService(Paths, Downloads);
         VersionManager = new VersionManager(Paths);
         Launcher = new GameLauncher(Paths);
         UrlOpener = new SystemUrlOpener();
@@ -66,6 +71,14 @@ public sealed class LauncherServices : IDisposable
     public LoaderInstaller LoaderInstaller { get; }
 
     public ForgeLoaderInstaller ForgeLoaders { get; }
+
+    public LegacyLoaderService LegacyLoaders { get; }
+
+    public MicrosoftAuthenticator MicrosoftAuth { get; }
+
+    public YggdrasilAuthenticator YggdrasilAuth { get; }
+
+    public AuthlibInjectorService AuthlibInjector { get; }
 
     public VersionManager VersionManager { get; }
 

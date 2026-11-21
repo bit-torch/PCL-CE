@@ -4,13 +4,16 @@ public enum LoaderKind
 {
     Fabric,
     Quilt,
+    LegacyFabric,
     Forge,
-    NeoForge
+    NeoForge,
+    OptiFine,
+    LiteLoader
 }
 
-public sealed record LoaderVersion(string Version, bool Stable)
+public sealed record LoaderVersion(string Version, bool Stable, string? Display = null)
 {
-    public string DisplayName => Stable ? $"{Version} · 稳定" : $"{Version} · 测试";
+    public string DisplayName => Display ?? Version;
 }
 
 public sealed record LoaderInstallResult(string Id, string BaseVersionId, int LibraryCount);
@@ -30,6 +33,7 @@ public static class LoaderMetaEndpoints
     {
         LoaderKind.Fabric => "https://maven.fabricmc.net/",
         LoaderKind.Quilt => "https://maven.quiltmc.org/repository/release/",
+        LoaderKind.LegacyFabric => "https://maven.legacyfabric.net/",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
     };
 
@@ -57,6 +61,7 @@ public static class LoaderMetaEndpoints
     {
         LoaderKind.Fabric => "https://meta.fabricmc.net/v2/versions/loader",
         LoaderKind.Quilt => "https://meta.quiltmc.org/v3/versions/loader",
+        LoaderKind.LegacyFabric => "https://meta.legacyfabric.net/v2/versions/loader",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
     };
 }

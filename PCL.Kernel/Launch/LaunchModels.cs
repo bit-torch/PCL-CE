@@ -10,6 +10,23 @@ public sealed record LaunchOptions
 
     public string Username { get; init; } = "Player";
 
+    /// <summary>在线账户的 UUID；离线账户留空时自动根据用户名生成。</summary>
+    public string? Uuid { get; init; }
+
+    public string? AccessToken { get; init; }
+
+    /// <summary>msa / legacy / mojang。</summary>
+    public string UserType { get; init; } = "legacy";
+
+    public string? Xuid { get; init; }
+
+    public string? UserProperties { get; init; }
+
+    /// <summary>Yggdrasil API Root，存在时向 JVM 注入 authlib-injector。</summary>
+    public string? YggdrasilApiRoot { get; init; }
+
+    public string? AuthlibInjectorPath { get; init; }
+
     public int MaxMemoryMb { get; init; } = 2048;
 
     public string? GameDirectory { get; init; }

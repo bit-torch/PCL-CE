@@ -106,6 +106,73 @@
 
                     <TextBlock Classes="caption"
                                Text="{loc:Localize Key=settings.accounts.hint}" />
+
+                    <Separator />
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{loc:Localize Key=settings.auth.ms.title}" Classes="section" />
+                        <TextBlock Classes="caption"
+                                   Text="{loc:Localize Key=settings.auth.ms.description}"
+                                   TextWrapping="Wrap" />
+                        <TextBox Text="{Binding MicrosoftClientId}"
+                                 Watermark="Microsoft Client ID / MS_CLIENT_ID" />
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Button Classes="ghost"
+                                    Content="{loc:Localize Key=settings.auth.ms.start}"
+                                    IsEnabled="{Binding !IsMicrosoftBusy}"
+                                    Command="{Binding BeginMicrosoftLoginCommand}" />
+                            <TextBlock Grid.Column="1"
+                                       Margin="12,0,0,0"
+                                       VerticalAlignment="Center"
+                                       Classes="muted"
+                                       TextWrapping="Wrap"
+                                       Text="{Binding MicrosoftStatus}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Text="{Binding DeviceCode}"
+                                       Classes="h2"
+                                       IsVisible="{Binding HasDeviceCode}" />
+                            <Button Grid.Column="1"
+                                    Classes="ghost"
+                                    Margin="12,0,0,0"
+                                    HorizontalAlignment="Left"
+                                    Content="{loc:Localize Key=settings.auth.ms.open}"
+                                    IsVisible="{Binding HasVerificationUri}"
+                                    Command="{Binding OpenVerificationUriCommand}" />
+                        </Grid>
+                    </StackPanel>
+
+                    <Separator />
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{loc:Localize Key=settings.auth.ygg.title}" Classes="section" />
+                        <TextBlock Classes="caption"
+                                   Text="{loc:Localize Key=settings.auth.ygg.description}"
+                                   TextWrapping="Wrap" />
+                        <TextBox Text="{Binding YggdrasilApiRoot}"
+                                 Watermark="https://example.com/api/yggdrasil" />
+                        <Grid ColumnDefinitions="*,10,*">
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding YggdrasilUsername}"
+                                     Watermark="{loc:Localize Key=settings.auth.ygg.username}" />
+                            <TextBox Grid.Column="2"
+                                     Text="{Binding YggdrasilPassword}"
+                                     PasswordChar="●"
+                                     Watermark="{loc:Localize Key=settings.auth.ygg.password}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Button Classes="ghost"
+                                    Content="{loc:Localize Key=settings.auth.ygg.start}"
+                                    IsEnabled="{Binding !IsYggdrasilBusy}"
+                                    Command="{Binding LoginYggdrasilCommand}" />
+                            <TextBlock Grid.Column="1"
+                                       Margin="12,0,0,0"
+                                       VerticalAlignment="Center"
+                                       Classes="muted"
+                                       TextWrapping="Wrap"
+                                       Text="{Binding YggdrasilStatus}" />
+                        </Grid>
+                    </StackPanel>
                 </StackPanel>
             </Border>
         </StackPanel>

@@ -113,6 +113,14 @@ public sealed class GameLauncher
         arguments.Add("-Dfile.encoding=UTF-8");
         arguments.Add("-Dminecraft.launcher.brand=PCL-CE");
         arguments.Add("-Dminecraft.launcher.version=1.0");
+
+        if (!string.IsNullOrWhiteSpace(options.AuthlibInjectorPath) &&
+            !string.IsNullOrWhiteSpace(options.YggdrasilApiRoot))
+        {
+            arguments.Add($"-javaagent:{options.AuthlibInjectorPath}={options.YggdrasilApiRoot}");
+            arguments.Add("-Dauthlibinjector.side=client");
+        }
+
         arguments.AddRange(options.ExtraJvmArgs);
 
         return arguments;
@@ -131,13 +139,21 @@ public sealed class GameLauncher
             ["game_directory"] = gameDirectory,
             ["assets_root"] = _paths.AssetsDirectory,
             ["assets_index_name"] = detail.Assets ?? detail.AssetIndex?.Id ?? detail.Id,
-            ["auth_uuid"] = OfflineAccount.CreateUuid(options.Username),
-            ["auth_access_token"] = "0",
-            ["auth_session"] = "0",
-            ["user_type"] = "legacy",
-            ["user_properties"] = "{}",
+            ["auth_uuid"] = string.IsNullOrWhiteSpace(options.Uuid)
+                ? OfflineAccount.CreateUuid(options.Username)
+                : options.Uuid,
+            ["auth_access_token"] = string.IsNullOrWhiteSpace(options.AccessToken)
+                ? "0"
+                : options.AccessToken,
+            ["auth_session"] = string.IsNullOrWhiteSpace(options.AccessToken)
+                ? "0"
+                : options.AccessToken,
+            ["user_type"] = string.IsNullOrWhiteSpace(options.UserType)
+                ? "legacy"
+                : options.UserType,
+            ["user_properties"] = options.UserProperties ?? "{}",
             ["clientid"] = "pcl-ce",
-            ["xuid"] = "",
+            ["xuid"] = options.Xuid ?? "",
             ["version_type"] = detail.Type,
             ["natives_directory"] = nativesDirectory,
             ["launcher_name"] = "PCL-CE",

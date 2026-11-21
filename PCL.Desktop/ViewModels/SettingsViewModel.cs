@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Desktop.Localization;
 using PCL.Desktop.Services;
+using PCL.Kernel.Accounts;
 using PCL.Kernel.Java;
 
 namespace PCL.Desktop.ViewModels;
@@ -23,17 +24,22 @@ public partial class SettingsViewModel : ObservableObject
         username = services.Settings.OfflineUsername;
         isolateVersions = services.Settings.IsolateVersions;
         status = _strings["settings.status.autoSave"];
+        microsoftClientId = services.Settings.MicrosoftClientId;
+        microsoftStatus = _strings["settings.auth.idle"];
+        yggdrasilStatus = _strings["settings.auth.idle"];
 
-        foreach (var account in services.Settings.OfflineAccounts)
+        foreach (var account in services.Settings.Accounts)
             Accounts.Add(account);
 
-        selectedAccount = Username;
+        selectedAccount = Accounts.FirstOrDefault(account =>
+                              account.Id == services.Settings.SelectedAccountId)
+                          ?? Accounts.FirstOrDefault();
     }
 
-    public ObservableCollection<string> Accounts { get; } = [];
+    public ObservableCollection<LauncherAccount> Accounts { get; } = [];
 
     [ObservableProperty]
-    private string? selectedAccount;
+    private LauncherAccount? selectedAccount;
 
     [ObservableProperty]
     private string newAccountName = "";
@@ -41,10 +47,10 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool isolateVersions;
 
-    partial void OnSelectedAccountChanged(string? value)
+    partial void OnSelectedAccountChanged(LauncherAccount? value)
     {
-        if (!string.IsNullOrWhiteSpace(value))
-            Username = value;
+        if (value is not null)
+            Username = value.Name;
     }
 
     [ObservableProperty]
@@ -61,6 +67,45 @@ public partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     private string status;
+
+    [ObservableProperty]
+    private string microsoftClientId;
+
+    [ObservableProperty]
+    private string microsoftStatus;
+
+    [ObservableProperty]
+    private string deviceCode = "";
+
+    [ObservableProperty]
+    private string verificationUri = "";
+
+    public bool HasDeviceCode => !string.IsNullOrEmpty(DeviceCode);
+
+    public bool HasVerificationUri => !string.IsNullOrEmpty(VerificationUri);
+
+    partial void OnDeviceCodeChanged(string value) => OnPropertyChanged(nameof(HasDeviceCode));
+
+    partial void OnVerificationUriChanged(string value) =>
+        OnPropertyChanged(nameof(HasVerificationUri));
+
+    [ObservableProperty]
+    private bool isMicrosoftBusy;
+
+    [ObservableProperty]
+    private string yggdrasilApiRoot = "";
+
+    [ObservableProperty]
+    private string yggdrasilUsername = "";
+
+    [ObservableProperty]
+    private string yggdrasilPassword = "";
+
+    [ObservableProperty]
+    private string yggdrasilStatus;
+
+    [ObservableProperty]
+    private bool isYggdrasilBusy;
 
     public string PlatformSummary =>
         $"{_services.Platform.OsName} · {_services.Platform.Architecture} · {_services.Platform.DataDirectory}";
@@ -80,16 +125,18 @@ public partial class SettingsViewModel : ObservableObject
             _services.Paths.EnsureDirectories();
             _services.Settings.JavaPath = string.IsNullOrWhiteSpace(JavaPath) ? null : JavaPath;
             _services.Settings.MaxMemoryMb = Math.Clamp((int)MemoryMb, 512, 65536);
-
-            var username = string.IsNullOrWhiteSpace(Username) ? "Player" : Username.Trim();
-            if (!Accounts.Contains(username, StringComparer.OrdinalIgnoreCase))
-                Accounts.Add(username);
-
-            Username = username;
-            SelectedAccount = username;
-            _services.Settings.OfflineUsername = username;
-            _services.Settings.OfflineAccounts = Accounts.ToList();
             _services.Settings.IsolateVersions = IsolateVersions;
+            _services.Settings.MicrosoftClientId = MicrosoftClientId.Trim();
+
+            if (SelectedAccount is { Kind: AccountKind.Offline } offline)
+            {
+                var name = string.IsNullOrWhiteSpace(Username) ? offline.Name : Username.Trim();
+                offline.Name = name;
+                offline.Id = LauncherAccount.Offline(name).Id;
+                _services.Settings.OfflineUsername = name;
+            }
+
+            SyncAccountSettings();
             _services.SaveSettings();
 
             GameDirectory = _services.Paths.GameDirectory;
@@ -111,11 +158,17 @@ public partial class SettingsViewModel : ObservableObject
             return;
         }
 
-        if (!Accounts.Contains(name, StringComparer.OrdinalIgnoreCase))
-            Accounts.Add(name);
+        var existing = Accounts.FirstOrDefault(account =>
+            account.Kind == AccountKind.Offline &&
+            string.Equals(account.Name, name, StringComparison.OrdinalIgnoreCase));
 
-        SelectedAccount = Accounts.First(account =>
-            string.Equals(account, name, StringComparison.OrdinalIgnoreCase));
+        if (existing is null)
+        {
+            existing = LauncherAccount.Offline(name);
+            Accounts.Add(existing);
+        }
+
+        SelectedAccount = existing;
         NewAccountName = "";
         Status = string.Format(_strings["settings.status.added"], name);
     }
@@ -123,7 +176,7 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private void RemoveAccount()
     {
-        if (string.IsNullOrWhiteSpace(SelectedAccount))
+        if (SelectedAccount is null)
         {
             Status = _strings["settings.error.selectAccount"];
             return;
@@ -136,9 +189,127 @@ public partial class SettingsViewModel : ObservableObject
         }
 
         var removed = SelectedAccount;
+        var index = Accounts.IndexOf(removed);
         Accounts.Remove(removed);
-        SelectedAccount = Accounts.FirstOrDefault();
-        Status = string.Format(_strings["settings.status.removed"], removed);
+        SelectedAccount = Accounts[Math.Clamp(index, 0, Accounts.Count - 1)];
+        Status = string.Format(_strings["settings.status.removed"], removed.Name);
+    }
+
+    [RelayCommand]
+    private async Task BeginMicrosoftLoginAsync()
+    {
+        if (IsMicrosoftBusy)
+            return;
+
+        var clientId = string.IsNullOrWhiteSpace(MicrosoftClientId)
+            ? _services.Settings.MicrosoftClientId
+            : MicrosoftClientId.Trim();
+
+        if (string.IsNullOrWhiteSpace(clientId))
+        {
+            MicrosoftStatus = _strings["settings.auth.ms.noClientId"];
+            return;
+        }
+
+        IsMicrosoftBusy = true;
+        DeviceCode = "";
+        VerificationUri = "";
+
+        try
+        {
+            var info = await _services.MicrosoftAuth.RequestDeviceCodeAsync(clientId);
+            DeviceCode = info.UserCode;
+            VerificationUri = info.VerificationUriComplete ?? info.VerificationUri;
+            MicrosoftStatus = string.Format(
+                _strings["settings.auth.ms.waiting"], info.UserCode, info.VerificationUri);
+
+            var progress = new Progress<string>(message => MicrosoftStatus = message);
+            var token = await _services.MicrosoftAuth.WaitForTokenAsync(
+                clientId, info, progress);
+            var profile = await _services.MicrosoftAuth.AuthenticateMinecraftAsync(token.AccessToken);
+
+            var account = new LauncherAccount
+            {
+                Id = profile.Id,
+                Name = profile.Name,
+                Kind = AccountKind.Microsoft,
+                AccessToken = profile.AccessToken,
+                RefreshToken = token.RefreshToken,
+                ExpiresAt = profile.ExpiresAt
+            };
+
+            UpsertAccount(account);
+            _services.Settings.MicrosoftClientId = clientId;
+            SyncAccountSettings();
+            _services.SaveSettings();
+
+            SelectedAccount = account;
+            DeviceCode = "";
+            MicrosoftStatus = string.Format(_strings["settings.auth.ms.success"], account.Name);
+        }
+        catch (Exception ex)
+        {
+            MicrosoftStatus = _strings["settings.auth.error"] + ex.Message;
+        }
+        finally
+        {
+            IsMicrosoftBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task OpenVerificationUriAsync()
+    {
+        if (string.IsNullOrWhiteSpace(VerificationUri))
+            return;
+
+        try
+        {
+            await _services.UrlOpener.OpenAsync(new Uri(VerificationUri));
+        }
+        catch (Exception ex)
+        {
+            MicrosoftStatus = _strings["settings.auth.error"] + ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private async Task LoginYggdrasilAsync()
+    {
+        if (IsYggdrasilBusy)
+            return;
+
+        if (string.IsNullOrWhiteSpace(YggdrasilApiRoot) ||
+            string.IsNullOrWhiteSpace(YggdrasilUsername) ||
+            string.IsNullOrWhiteSpace(YggdrasilPassword))
+        {
+            YggdrasilStatus = _strings["settings.auth.ygg.required"];
+            return;
+        }
+
+        IsYggdrasilBusy = true;
+        try
+        {
+            YggdrasilStatus = _strings["settings.auth.ygg.working"];
+            var account = await _services.YggdrasilAuth.AuthenticateAsync(
+                YggdrasilApiRoot, YggdrasilUsername, YggdrasilPassword);
+
+            UpsertAccount(account);
+            SyncAccountSettings();
+            _services.SaveSettings();
+
+            SelectedAccount = account;
+            YggdrasilPassword = "";
+            YggdrasilStatus = string.Format(_strings["settings.auth.ygg.success"], account.Name);
+        }
+        catch (Exception ex)
+        {
+            YggdrasilStatus = _strings["settings.auth.error"] + ex.Message;
+        }
+        finally
+        {
+            IsYggdrasilBusy = false;
+        }
     }
 
     [RelayCommand]
@@ -178,5 +349,32 @@ public partial class SettingsViewModel : ObservableObject
         {
             Status = _strings["settings.error.openData"] + ex.Message;
         }
+    }
+
+    private void UpsertAccount(LauncherAccount account)
+    {
+        var existing = Accounts.FirstOrDefault(item =>
+            item.Kind == account.Kind &&
+            string.Equals(item.Id, account.Id, StringComparison.Ordinal));
+
+        if (existing is null)
+        {
+            Accounts.Add(account);
+            return;
+        }
+
+        var index = Accounts.IndexOf(existing);
+        Accounts[index] = account;
+    }
+
+    private void SyncAccountSettings()
+    {
+        _services.Settings.Accounts = Accounts.ToList();
+        _services.Settings.OfflineAccounts = Accounts
+            .Where(account => account.Kind == AccountKind.Offline)
+            .Select(account => account.Name)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        _services.Settings.SelectedAccountId = SelectedAccount?.Id;
     }
 }

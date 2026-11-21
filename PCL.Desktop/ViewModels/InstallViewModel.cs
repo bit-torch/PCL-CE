@@ -41,8 +41,11 @@ public partial class InstallViewModel : ObservableObject
     [
         new(LoaderKind.Fabric, "Fabric"),
         new(LoaderKind.Quilt, "Quilt"),
+        new(LoaderKind.LegacyFabric, "Legacy Fabric"),
         new(LoaderKind.Forge, "Forge"),
-        new(LoaderKind.NeoForge, "NeoForge")
+        new(LoaderKind.NeoForge, "NeoForge"),
+        new(LoaderKind.OptiFine, "OptiFine"),
+        new(LoaderKind.LiteLoader, "LiteLoader")
     ];
 
     public ObservableCollection<LoaderVersion> LoaderVersions { get; } = [];
@@ -186,11 +189,18 @@ public partial class InstallViewModel : ObservableObject
         try
         {
             LoaderStatus = _strings["install.loader.reading"];
-            var versions = IsForge(SelectedLoader.Kind)
-                ? await _services.ForgeLoaders.GetVersionsAsync(
+            var versions = SelectedLoader.Kind switch
+            {
+                LoaderKind.OptiFine => await _services.LegacyLoaders.GetOptiFineVersionsAsync(
+                    SelectedBaseVersion.Id),
+                LoaderKind.LiteLoader => await _services.LegacyLoaders.GetLiteLoaderVersionsAsync(
+                    SelectedBaseVersion.Id),
+                LoaderKind.Forge or LoaderKind.NeoForge =>
+                    await _services.ForgeLoaders.GetVersionsAsync(
+                        SelectedLoader.Kind, SelectedBaseVersion.Id),
+                _ => await _services.LoaderMeta.GetLoaderVersionsAsync(
                     SelectedLoader.Kind, SelectedBaseVersion.Id)
-                : await _services.LoaderMeta.GetLoaderVersionsAsync(
-                    SelectedLoader.Kind, SelectedBaseVersion.Id);
+            };
 
             LoaderVersions.Clear();
             foreach (var version in versions)
@@ -255,6 +265,28 @@ public partial class InstallViewModel : ObservableObject
                     SelectedBaseVersion.Id,
                     SelectedLoaderVersion.Version,
                     javaPath,
+                    reporter);
+            }
+            else if (SelectedLoader.Kind == LoaderKind.OptiFine)
+            {
+                var javaPath = await ResolveJavaAsync();
+                if (javaPath is null)
+                {
+                    LoaderStatus = _strings["install.loader.javaRequired"];
+                    return;
+                }
+
+                result = await _services.LegacyLoaders.InstallOptiFineAsync(
+                    SelectedBaseVersion.Id,
+                    SelectedLoaderVersion.Version,
+                    javaPath,
+                    reporter);
+            }
+            else if (SelectedLoader.Kind == LoaderKind.LiteLoader)
+            {
+                result = await _services.LegacyLoaders.InstallLiteLoaderAsync(
+                    SelectedBaseVersion.Id,
+                    SelectedLoaderVersion.Version,
                     reporter);
             }
             else

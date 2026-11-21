@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Desktop.Localization;
 using PCL.Desktop.Services;
+using PCL.Kernel.Accounts;
 using PCL.Kernel.Install;
 using PCL.Kernel.Java;
 using PCL.Kernel.Launch;
@@ -25,7 +26,8 @@ public partial class LaunchViewModel : ObservableObject
         _services = services;
         _strings = services.Localization;
         _licenseGate = licenseGate;
-        username = services.Settings.OfflineUsername;
+        username = services.Settings.FindAccount(services.Settings.SelectedAccountId)?.Name
+                   ?? services.Settings.OfflineUsername;
         memoryMb = services.Settings.MaxMemoryMb;
         javaPath = services.Settings.JavaPath ?? "";
         status = _strings["launch.status.waiting"];
@@ -241,8 +243,15 @@ public partial class LaunchViewModel : ObservableObject
         try
         {
             var memory = Math.Clamp((int)MemoryMb, 512, 65536);
+            var account = await ResolveAccountAsync();
 
-            _services.Settings.OfflineUsername = Username;
+            if (account is null || account.Kind == AccountKind.Offline)
+                _services.Settings.OfflineUsername = Username;
+
+            string? authlibPath = null;
+            if (account?.Kind == AccountKind.Yggdrasil)
+                authlibPath = await _services.AuthlibInjector.EnsureAsync();
+
             _services.Settings.MaxMemoryMb = memory;
             _services.Settings.JavaPath = JavaPath;
             _services.Settings.LaunchCount++;
@@ -257,7 +266,14 @@ public partial class LaunchViewModel : ObservableObject
             {
                 VersionId = SelectedVersion.Id,
                 JavaPath = JavaPath,
-                Username = Username,
+                Username = account?.Name ?? Username,
+                Uuid = account?.Id,
+                AccessToken = account?.AccessToken,
+                UserType = account?.Kind == AccountKind.Microsoft ? "msa" : "legacy",
+                YggdrasilApiRoot = account?.Kind == AccountKind.Yggdrasil
+                    ? account.ApiRoot
+                    : null,
+                AuthlibInjectorPath = authlibPath,
                 MaxMemoryMb = memory,
                 GameDirectory = gameDirectory
             });
@@ -361,5 +377,54 @@ public partial class LaunchViewModel : ObservableObject
         }
 
         return JavaRuntimeService.DefaultComponent;
+    }
+
+    private async Task<LauncherAccount?> ResolveAccountAsync()
+    {
+        var account = _services.Settings.FindAccount(_services.Settings.SelectedAccountId);
+        if (account is null)
+            return null;
+
+        try
+        {
+            if (account.Kind == AccountKind.Yggdrasil)
+            {
+                var refreshed = await _services.YggdrasilAuth.RefreshAsync(account);
+                ReplaceAccount(refreshed);
+                return refreshed;
+            }
+
+            if (account.Kind == AccountKind.Microsoft &&
+                account.ExpiresAt <= DateTimeOffset.UtcNow.AddMinutes(5) &&
+                !string.IsNullOrWhiteSpace(account.RefreshToken) &&
+                !string.IsNullOrWhiteSpace(_services.Settings.MicrosoftClientId))
+            {
+                var token = await _services.MicrosoftAuth.RefreshAsync(
+                    _services.Settings.MicrosoftClientId, account.RefreshToken);
+                var profile = await _services.MicrosoftAuth.AuthenticateMinecraftAsync(
+                    token.AccessToken);
+                account.AccessToken = profile.AccessToken;
+                account.RefreshToken = token.RefreshToken;
+                account.ExpiresAt = profile.ExpiresAt;
+                ReplaceAccount(account);
+            }
+        }
+        catch (Exception)
+        {
+            // 令牌刷新失败时沿用已有令牌，由游戏端决定是否需要重新登录。
+        }
+
+        return account;
+    }
+
+    private void ReplaceAccount(LauncherAccount account)
+    {
+        var accounts = _services.Settings.Accounts;
+        var index = accounts.FindIndex(item =>
+            item.Kind == account.Kind && item.Id == account.Id);
+        if (index >= 0)
+            accounts[index] = account;
+
+        _services.SaveSettings();
     }
 }
