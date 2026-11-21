@@ -30,7 +30,8 @@ public sealed class DownloadClient : IDisposable
         string? sha1 = null,
         long? size = null,
         IProgress<double>? progress = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? sha512 = null)
     {
         if (string.IsNullOrWhiteSpace(url))
             throw new ArgumentException("下载地址不能为空。", nameof(url));
@@ -38,9 +39,11 @@ public sealed class DownloadClient : IDisposable
         Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
 
         sha1 = string.IsNullOrWhiteSpace(sha1) ? null : sha1.Trim().ToLowerInvariant();
+        sha512 = string.IsNullOrWhiteSpace(sha512) ? null : sha512.Trim().ToLowerInvariant();
 
         if (File.Exists(destinationPath) &&
-            await VerifyAsync(destinationPath, sha1, size, cancellationToken).ConfigureAwait(false))
+            await VerifyAsync(destinationPath, sha1, size, cancellationToken, sha512)
+                .ConfigureAwait(false))
         {
             progress?.Report(1d);
             return;
@@ -79,7 +82,8 @@ public sealed class DownloadClient : IDisposable
                 await target.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            if (!await VerifyAsync(tempPath, sha1, size, cancellationToken).ConfigureAwait(false))
+            if (!await VerifyAsync(tempPath, sha1, size, cancellationToken, sha512)
+                    .ConfigureAwait(false))
                 throw new InvalidDataException($"文件校验失败：{Path.GetFileName(destinationPath)}");
 
             File.Move(tempPath, destinationPath, true);
@@ -96,7 +100,8 @@ public sealed class DownloadClient : IDisposable
         string path,
         string? sha1,
         long? size,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? sha512 = null)
     {
         if (!File.Exists(path))
             return false;
@@ -104,16 +109,27 @@ public sealed class DownloadClient : IDisposable
         if (size is { } expectedSize && new FileInfo(path).Length != expectedSize)
             return false;
 
-        if (string.IsNullOrWhiteSpace(sha1))
+        if (string.IsNullOrWhiteSpace(sha1) && string.IsNullOrWhiteSpace(sha512))
             return true;
 
         await using var stream = new FileStream(
             path, FileMode.Open, FileAccess.Read, FileShare.Read,
             81920, FileOptions.Asynchronous | FileOptions.SequentialScan);
 
-        var hash = await SHA1.HashDataAsync(stream, cancellationToken).ConfigureAwait(false);
-        var actual = Convert.ToHexString(hash).ToLowerInvariant();
-        return string.Equals(actual, sha1.Trim(), StringComparison.OrdinalIgnoreCase);
+        if (!string.IsNullOrWhiteSpace(sha1))
+        {
+            var hash = await SHA1.HashDataAsync(stream, cancellationToken).ConfigureAwait(false);
+            if (!string.Equals(Convert.ToHexString(hash), sha1.Trim(), StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            if (string.IsNullOrWhiteSpace(sha512))
+                return true;
+        }
+
+        stream.Position = 0;
+        var hash512 = await SHA512.HashDataAsync(stream, cancellationToken).ConfigureAwait(false);
+        return string.Equals(
+            Convert.ToHexString(hash512), sha512!.Trim(), StringComparison.OrdinalIgnoreCase);
     }
 
     public void Dispose() => _httpClient.Dispose();

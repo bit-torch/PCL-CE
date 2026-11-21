@@ -1,0 +1,192 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PCL.Desktop.ViewModels"
+             xmlns:loc="using:PCL.Desktop.Localization"
+             xmlns:data="using:PCL.Kernel.GameData"
+             x:Class="PCL.Desktop.Views.ToolsView"
+             x:DataType="vm:ToolsViewModel">
+
+    <ScrollViewer>
+        <StackPanel Spacing="18">
+
+            <Border Classes="card">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="{loc:Localize Key=tools.title}" Classes="h2" />
+                        <TextBlock Classes="muted"
+                                   TextWrapping="Wrap"
+                                   Text="{loc:Localize Key=tools.description}" />
+                        <TextBlock Classes="caption"
+                                   TextWrapping="Wrap"
+                                   Text="{Binding GameDirectory}" />
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            Classes="ghost"
+                            VerticalAlignment="Center"
+                            Content="{loc:Localize Key=tools.action.refresh}"
+                            Command="{Binding RefreshCommand}" />
+                </Grid>
+            </Border>
+
+            <Grid ColumnDefinitions="*,18,*">
+
+                <Border Grid.Column="0" Classes="card">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="{loc:Localize Key=tools.saves.title}" Classes="section" />
+                        <ListBox ItemsSource="{Binding Saves}"
+                                 MaxHeight="220"
+                                 IsVisible="{Binding HasSaves}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="data:SaveEntry">
+                                    <Grid ColumnDefinitions="*,Auto" Margin="0,3">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                        <TextBlock Grid.Column="1"
+                                                   Classes="caption"
+                                                   Text="{Binding LastModifiedLabel}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <TextBlock Classes="caption"
+                                   IsVisible="{Binding !HasSaves}"
+                                   Text="{loc:Localize Key=tools.saves.empty}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Classes="card">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="{loc:Localize Key=tools.servers.title}" Classes="section" />
+                        <ListBox ItemsSource="{Binding Servers}"
+                                 MaxHeight="220"
+                                 IsVisible="{Binding HasServers}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="data:ServerEntry">
+                                    <StackPanel Spacing="2" Margin="0,3">
+                                        <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                                        <TextBlock Classes="caption" Text="{Binding Ip}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <TextBlock Classes="caption"
+                                   IsVisible="{Binding !HasServers}"
+                                   Text="{loc:Localize Key=tools.servers.empty}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Grid ColumnDefinitions="*,18,*">
+
+                <Border Grid.Column="0" Classes="card">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="{loc:Localize Key=tools.screenshots.title}" Classes="section" />
+                        <ListBox ItemsSource="{Binding Screenshots}"
+                                 MaxHeight="220"
+                                 IsVisible="{Binding HasScreenshots}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="data:ScreenshotEntry">
+                                    <Grid ColumnDefinitions="*,Auto" Margin="0,3">
+                                        <TextBlock Text="{Binding FileName}" />
+                                        <TextBlock Grid.Column="1"
+                                                   Classes="caption"
+                                                   Text="{Binding CreatedLabel}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <TextBlock Classes="caption"
+                                   IsVisible="{Binding !HasScreenshots}"
+                                   Text="{loc:Localize Key=tools.screenshots.empty}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Classes="card">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="{loc:Localize Key=tools.logs.title}" Classes="section" />
+                        <ListBox ItemsSource="{Binding LogIssues}"
+                                 MaxHeight="220"
+                                 IsVisible="{Binding HasLogIssues}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="data:LogIssue">
+                                    <StackPanel Spacing="2" Margin="0,4">
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                                        <TextBlock Classes="caption"
+                                                   TextWrapping="Wrap"
+                                                   Text="{Binding Hint}" />
+                                        <TextBlock Classes="caption"
+                                                   TextWrapping="Wrap"
+                                                   Opacity="0.7"
+                                                   Text="{Binding Detail}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <TextBlock Classes="caption"
+                                   IsVisible="{Binding !HasLogIssues}"
+                                   Text="{loc:Localize Key=tools.logs.empty}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Border Classes="card">
+                <StackPanel Spacing="12">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="{loc:Localize Key=tools.modpack.title}" Classes="section" />
+                        <TextBlock Classes="muted"
+                                   TextWrapping="Wrap"
+                                   Text="{loc:Localize Key=tools.modpack.description}" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="8" IsVisible="{Binding IsImporting}">
+                        <ProgressBar Value="{Binding Progress}" Maximum="100" />
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding ImportStatus}"
+                                   Classes="muted"
+                                   TextWrapping="Wrap"
+                                   VerticalAlignment="Center" />
+                        <Button Grid.Column="1"
+                                Classes="primary"
+                                Margin="14,0,0,0"
+                                Content="{loc:Localize Key=tools.modpack.import}"
+                                IsEnabled="{Binding !IsImporting}"
+                                Click="OnImportModpackClick" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+                <StackPanel Spacing="10">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="{loc:Localize Key=tools.update.title}" Classes="section" />
+                        <TextBlock Classes="muted"
+                                   TextWrapping="Wrap"
+                                   Text="{loc:Localize Key=tools.update.description}" />
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,Auto,Auto">
+                        <TextBlock Text="{Binding UpdateStatus}"
+                                   Classes="muted"
+                                   TextWrapping="Wrap"
+                                   VerticalAlignment="Center" />
+                        <Button Grid.Column="1"
+                                Classes="ghost"
+                                Margin="14,0,0,0"
+                                Content="{loc:Localize Key=tools.update.check}"
+                                IsEnabled="{Binding !IsCheckingUpdate}"
+                                Command="{Binding CheckUpdatesCommand}" />
+                        <Button Grid.Column="2"
+                                Classes="ghost"
+                                Margin="10,0,0,0"
+                                IsVisible="{Binding HasUpdate}"
+                                Content="{loc:Localize Key=tools.update.open}"
+                                Command="{Binding OpenUpdateCommand}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="{Binding Status}" Classes="muted" TextWrapping="Wrap" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -10,6 +10,7 @@ using PCL.Kernel.Loaders;
 using PCL.Kernel.Mojang;
 using PCL.Kernel.Net;
 using PCL.Kernel.Resources;
+using PCL.Kernel.Updates;
 using PCL.Kernel.Versions;
 
 namespace PCL.Desktop.Services;
@@ -49,6 +50,7 @@ public sealed class LauncherServices : IDisposable
         AuthlibInjector = new AuthlibInjectorService(Paths, Downloads);
         Modrinth = new ModrinthClient();
         ResourceInstaller = new ResourceInstaller(Paths, Downloads, Modrinth);
+        UpdateChecker = new UpdateChecker();
         VersionManager = new VersionManager(Paths);
         Launcher = new GameLauncher(Paths);
         UrlOpener = new SystemUrlOpener();
@@ -87,6 +89,8 @@ public sealed class LauncherServices : IDisposable
 
     public ResourceInstaller ResourceInstaller { get; }
 
+    public UpdateChecker UpdateChecker { get; }
+
     public VersionManager VersionManager { get; }
 
     public GameLauncher Launcher { get; }
@@ -107,5 +111,6 @@ public sealed class LauncherServices : IDisposable
     {
         Downloads.Dispose();
         Modrinth.Dispose();
+        UpdateChecker.Dispose();
     }
 }

@@ -12,6 +12,7 @@ public partial class MainWindowViewModel : ObservableObject
         "page.home.title",
         "page.install.title",
         "page.resources.title",
+        "page.tools.title",
         "page.launch.title",
         "page.settings.title",
         "page.about.title"
@@ -22,6 +23,7 @@ public partial class MainWindowViewModel : ObservableObject
         "page.home.subtitle",
         "page.install.subtitle",
         "page.resources.subtitle",
+        "page.tools.subtitle",
         "page.launch.subtitle",
         "page.settings.subtitle",
         "page.about.subtitle"
@@ -37,6 +39,7 @@ public partial class MainWindowViewModel : ObservableObject
         Launch = new LaunchViewModel(services, licenseGate);
         Install = new InstallViewModel(services, Launch.RefreshList);
         Resources = new ResourcesViewModel(services);
+        Tools = new ToolsViewModel(services);
         SettingsPage = new SettingsViewModel(services);
         About = new AboutViewModel(services);
         Home = new HomeViewModel(services, NavigateTo);
@@ -54,6 +57,8 @@ public partial class MainWindowViewModel : ObservableObject
     public InstallViewModel Install { get; }
 
     public ResourcesViewModel Resources { get; }
+
+    public ToolsViewModel Tools { get; }
 
     public LaunchViewModel Launch { get; }
 
@@ -103,11 +108,15 @@ public partial class MainWindowViewModel : ObservableObject
         {
             "install" => Install,
             "resources" => Resources,
+            "tools" => Tools,
             "launch" => Launch,
             "settings" => SettingsPage,
             "about" => About,
             _ => Home
         };
+
+        if (item.Key == "tools")
+            Tools.RefreshCommand.Execute(null);
 
         if (item.Key == "launch")
             Launch.RefreshList();
