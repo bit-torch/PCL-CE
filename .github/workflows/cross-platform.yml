@@ -7,19 +7,7 @@ on:
         type: string
         default: Release
         required: false
-  push:
-    branches: [main, dev]
-    paths: &paths
-      - 'PCL.Core/**'
-      - 'PCL.Core.SourceGenerators/**'
-      - 'PCL.Launcher.Core/**'
-      - 'PCL.Avalonia/**'
-      - 'PCL.CrossPlatform.Test/**'
-      - 'PCL.CrossPlatform.slnx'
-      - 'Plain Craft Launcher 2/metadata.json'
-      - '.github/workflows/cross-platform.yml'
-  pull_request:
-    paths: *paths
+  # 冻结：旧跨平台客户端不再随 push / PR 自动构建。
   workflow_dispatch:
 
 permissions:

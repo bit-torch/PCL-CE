@@ -1,0 +1,10 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+  </Configurations>
+  <Project Path="PCL.Kernel.Abstractions/PCL.Kernel.Abstractions.csproj" />
+  <Project Path="PCL.Kernel/PCL.Kernel.csproj" />
+  <Project Path="PCL.Desktop/PCL.Desktop.csproj" />
+  <Project Path="PCL.Tests/PCL.Tests.csproj" />
+</Solution>

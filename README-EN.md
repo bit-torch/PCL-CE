@@ -1,5 +1,12 @@
 [简体中文](README.md) | **English** | [繁體中文](README-ZH_TW.md)
 
+> [!IMPORTANT]
+> This repository (`bit-torch/PCL-CE`) is maintained by [bit-torch](https://github.com/bit-torch) and derived from the upstream repository [PCL-Community/PCL-CE](https://github.com/PCL-Community/PCL-CE). It no longer rebases upstream changes and now evolves independently.
+> This repository provides unofficial distributions and support only.
+> Because it diverges significantly from upstream and adds cross-platform support, testing and feedback are welcome.
+> The upstream PCL CE project is a secondary development based on [Meloong-Git/PCL](https://github.com/Meloong-Git/PCL).
+> This project has left the original fork network.
+
 <div align="center">
 
 <img src="Plain Craft Launcher 2/Images/icon.ico" alt="Logo" width="80" height="80">
@@ -28,7 +35,7 @@ Everyone is welcome to try it out!
 
 ## Cross-platform desktop preview
 
-`PCL.Avalonia` is a native Windows/Linux/macOS preview with game/loader installation, resource and modpack management, worlds, servers, accounts, multiplayer tools, updates and media settings. It is not yet a full replacement for the WPF feature set. See [build instructions and the feature matrix](docs/cross-platform.md). Build with .NET 11 SDK using `PCL.CrossPlatform.slnx`, or run `dotnet run --project PCL.Avalonia/PCL.Avalonia.csproj`.
+`PCL.Desktop` is built on Avalonia and the clean `PCL.Kernel`, currently covering vanilla installation, Fabric / Quilt, Java runtimes and offline launch. The legacy `PCL.Avalonia` and WPF clients are frozen for migration reference. Build with .NET 10 SDK using `PCL.Rebuild.slnx`, or run `dotnet run --project PCL.Desktop/PCL.Desktop.csproj`.
 
 ## 💻 Supported Platforms
 
@@ -37,7 +44,7 @@ Everyone is welcome to try it out!
 | Windows 10 1809 (17763) or later | ✅ Fully supported | [.NET 10 Desktop Runtime](http://get.dot.net/10) |
 | Windows 8 to Windows 10 1809 (17763) | ⚠️ Expected to run; community support offered at discretion | [.NET 10 Desktop Runtime](http://get.dot.net/10) |
 | Windows 7 or earlier | ❌ Not supported | N/A |
-| macOS / Linux | 🧪 Avalonia desktop preview | .NET 10 Runtime, or self-contained package |
+| macOS / Linux | 🧪 Avalonia preview (rebuilding) | [.NET 10 Runtime](https://get.dot.net/10); self-contained package needs no install |
 | Other OS | ❌ No desktop target | N/A |
 
 **✅ Fully supported**: We will provide as much support as possible, but you must ensure you are using the latest version of the launcher.

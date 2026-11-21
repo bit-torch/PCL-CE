@@ -1,5 +1,8 @@
 name: Release publish
 
+# 冻结说明：旧 WPF 客户端已停止默认构建。
+# 本工作流暂时保留既有发布路径，直到 PCL.Desktop 接入打包与签名，
+# 请勿在此基础上新增功能。
 permissions:
   contents: write
   actions: write

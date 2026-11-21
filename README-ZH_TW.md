@@ -1,5 +1,12 @@
 [简体中文](README.md) | [English](README-EN.md) | **繁體中文**
 
+> [!IMPORTANT]
+> 本儲存庫（`bit-torch/PCL-CE`）由[比特火炬](https://github.com/bit-torch)維護，派生自上游儲存庫 [PCL-Community/PCL-CE](https://github.com/PCL-Community/PCL-CE)。本儲存庫不再 rebase 上游變更，轉為獨立演進。
+> 本儲存庫僅提供非官方發佈與支援。
+> 由於對上游改動較大並新增跨平台支援，歡迎測試並回饋問題。
+> 上游專案 PCL CE 基於 [Meloong-Git/PCL](https://github.com/Meloong-Git/PCL) 二次開發。
+> 本專案已脫離原 fork 網路。
+
 <div align="center">
 
 <img src="Plain Craft Launcher 2/Images/icon.ico" alt="Logo" width="80" height="80">
@@ -8,7 +15,7 @@
 
 [![Stars](https://img.shields.io/github/stars/PCL-Community/PCL-CE?style=for-the-badge&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiI+PHBhdGggZD0iTTggLjI1YS43NS43NSAwIDAgMSAuNjczLjQxOGwxLjg4MiAzLjgxNSA0LjIxLjYxMmEuNzUuNzUgMCAwIDEgLjQxNiAxLjI3OWwtMy4wNDYgMi45Ny43MTkgNC4xOTJhLjc1MS43NTEgMCAwIDEtMS4wODguNzkxTDggMTIuMzQ3bC0zLjc2NiAxLjk4YS43NS43NSAwIDAgMS0xLjA4OC0uNzlsLjcyLTQuMTk0TC44MTggNi4zNzRhLjc1Ljc1IDAgMCAxIC40MTYtMS4yOGw0LjIxLS42MTFMNy4zMjcuNjY4QS43NS43NSAwIDAgMSA4IC4yNVoiIGZpbGw9IiNlYWM1NGYiLz48L3N2Zz4=&logoSize=auto&label=stars&labelColor=444444&color=eac54f)](https://github.com/PCL-Community/PCL-CE/)
 ![GitHub Release](https://img.shields.io/github/v/release/PCL-Community/PCL-CE?label=release&logo=github&style=for-the-badge)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/PCL-Community/PCL-CE/build-test.yml?style=for-the-badge)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/PCL-Community/PCL-CE/rebuild-ci.yml?style=for-the-badge)
 
 [![Issues](https://img.shields.io/github/issues/PCL-Community/PCL-CE?style=for-the-badge&label=issues&labelColor=444444&color=1F883D&logo=github)](https://github.com/PCL-Community/PCL-CE/issues)
 [![Pull requests](https://img.shields.io/github/issues-pr/PCL-Community/PCL-CE?style=for-the-badge&label=pull%20requests&labelColor=444444&color=1F883D&logo=github)](https://github.com/PCL-Community/PCL-CE/pulls)
@@ -36,7 +43,7 @@ PCL CE 是基於 PCL 開放原始碼二次開發的社群版本，包括了主�
 
 ## 跨平台桌面預覽
 
-`PCL.Avalonia` 提供 Windows/Linux/macOS 原生桌面預覽，包含原版安裝、Java 偵測、帳戶登入及遊戲啟動。尚未完整取代原 WPF 功能，請參閱[建置說明與功能範圍](docs/cross-platform.md)。使用 .NET 11 SDK 建置 `PCL.CrossPlatform.slnx`，或執行 `dotnet run --project PCL.Avalonia/PCL.Avalonia.csproj`。
+`PCL.Desktop` 基於 Avalonia 與乾淨核心 `PCL.Kernel`，目前涵蓋原版安裝、Fabric / Quilt、Java 執行階段與離線啟動。舊 `PCL.Avalonia` 與 WPF 用戶端已凍結，僅作遷移對照。使用 .NET 10 SDK 建置 `PCL.Rebuild.slnx`，或執行 `dotnet run --project PCL.Desktop/PCL.Desktop.csproj`。
 
 ## 💻 支援平台
 
@@ -45,7 +52,7 @@ PCL CE 是基於 PCL 開放原始碼二次開發的社群版本，包括了主�
 | Windows 10 1809 (17763) 或更高 | ✅ 完整支援 | [.NET 10 Desktop Runtime](https://get.dot.net/10) |
 | Windows 8 - Windows 10 1809 (17763) | ⚠️ 理論能跑，酌情提供社群支援 | [.NET 10 Desktop Runtime](https://get.dot.net/10) |
 | Windows 7 或更低版本 | ❌ 不支援 | / |
-| macOS / Linux | 🧪 Avalonia 桌面預覽 | .NET 10 Runtime，或自包含套件 |
+| macOS / Linux | 🧪 Avalonia 新介面（重建中） | [.NET 10 Runtime](https://get.dot.net/10)；自包含套件無需安裝 |
 | 其他作業系統 | ❌ 尚無桌面目標 | / |
 
 **✅ 完整支援**：盡可能提供一切相關支援，但必須確保啟動器為最新版本。

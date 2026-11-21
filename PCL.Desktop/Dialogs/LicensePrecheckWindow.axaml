@@ -1,0 +1,46 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PCL.Desktop.Dialogs.LicensePrecheckWindow"
+        Title="启动前提示"
+        Width="520"
+        SizeToContent="Height"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+
+    <StackPanel Margin="26" Spacing="18">
+        <StackPanel Spacing="8">
+            <TextBlock x:Name="HeadingText" Classes="h2" />
+            <TextBlock x:Name="IntroText" Classes="muted" />
+        </StackPanel>
+
+        <Border Classes="soft">
+            <StackPanel Spacing="8">
+                <TextBlock x:Name="PurchaseHintText" Classes="muted" />
+                <TextBlock x:Name="IgnoreHintText" Classes="caption" />
+            </StackPanel>
+        </Border>
+
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <Button x:Name="PurchaseButton"
+                    Classes="primary"
+                    Click="OnPurchaseClick" />
+            <Button x:Name="SponsorButton"
+                    Classes="ghost"
+                    Click="OnSponsorClick" />
+        </StackPanel>
+
+        <Grid ColumnDefinitions="*,Auto,Auto">
+            <TextBlock Text="" />
+            <Button x:Name="LaterButton"
+                    Grid.Column="1"
+                    Classes="link"
+                    Margin="0,0,18,0"
+                    Click="OnDeclineClick" />
+            <Button x:Name="AcceptButton"
+                    Grid.Column="2"
+                    Classes="ghost"
+                    Click="OnAcceptClick" />
+        </Grid>
+    </StackPanel>
+</Window>

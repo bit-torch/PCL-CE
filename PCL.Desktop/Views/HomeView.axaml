@@ -1,0 +1,151 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PCL.Desktop.ViewModels"
+             xmlns:loc="using:PCL.Desktop.Localization"
+             x:Class="PCL.Desktop.Views.HomeView"
+             x:DataType="vm:HomeViewModel">
+
+    <StackPanel Spacing="18">
+
+        <Border Classes="card" Padding="30">
+            <Grid ColumnDefinitions="*,280">
+                <StackPanel Spacing="14" VerticalAlignment="Center">
+                    <Border Classes="accent-chip" HorizontalAlignment="Left">
+                        <TextBlock Text="{loc:Localize Key=home.badge}"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource AccentBrush}" />
+                    </Border>
+
+                    <TextBlock Text="{loc:Localize Key=home.hero.title}"
+                               FontSize="32"
+                               FontWeight="SemiBold"
+                               TextWrapping="Wrap" />
+
+                    <TextBlock Classes="muted"
+                               MaxWidth="520"
+                               Text="{loc:Localize Key=home.hero.description}" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Classes="primary"
+                                Content="{loc:Localize Key=home.action.install}"
+                                Command="{Binding OpenInstallCommand}" />
+                        <Button Classes="ghost"
+                                Content="{loc:Localize Key=home.action.launch}"
+                                Command="{Binding OpenLaunchCommand}" />
+                    </StackPanel>
+                </StackPanel>
+
+                <Border Grid.Column="1"
+                        CornerRadius="18"
+                        Background="{StaticResource AccentSoftBrush}"
+                        Padding="22"
+                        Margin="24,0,0,0">
+                    <StackPanel Spacing="14" VerticalAlignment="Center">
+                        <TextBlock Text="{loc:Localize Key=home.progress.title}" Classes="section" />
+                        <StackPanel Spacing="7">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="{loc:Localize Key=home.progress.kernel}" Classes="muted" />
+                                <TextBlock Grid.Column="1" Text="{loc:Localize Key=home.progress.ready}" Classes="caption" />
+                            </Grid>
+                            <ProgressBar Value="100" Maximum="100" />
+                        </StackPanel>
+                        <StackPanel Spacing="7">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="{loc:Localize Key=home.progress.ui}" Classes="muted" />
+                                <TextBlock Grid.Column="1" Text="{loc:Localize Key=home.progress.preview}" Classes="caption" />
+                            </Grid>
+                            <ProgressBar Value="35" Maximum="100" />
+                        </StackPanel>
+                        <StackPanel Spacing="7">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="{loc:Localize Key=home.progress.legacy}" Classes="muted" />
+                                <TextBlock Grid.Column="1" Text="{loc:Localize Key=home.progress.pending}" Classes="caption" />
+                            </Grid>
+                            <ProgressBar Value="8" Maximum="100" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <Grid ColumnDefinitions="*,18,*,18,*">
+            <Border Grid.Column="0" Classes="card" Padding="20">
+                <StackPanel Spacing="9">
+                    <StackPanel Orientation="Horizontal" Spacing="9">
+                        <Border Width="28" Height="28" CornerRadius="9"
+                                Background="{StaticResource AccentSoftBrush}">
+                            <TextBlock Text="1" FontSize="12"
+                                       Foreground="{StaticResource AccentBrush}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="{loc:Localize Key=home.stat.installed}" Classes="muted" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding InstalledCount}" Classes="stat" />
+                    <TextBlock Text="{loc:Localize Key=home.stat.installed.hint}" Classes="caption" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2" Classes="card" Padding="20">
+                <StackPanel Spacing="9">
+                    <StackPanel Orientation="Horizontal" Spacing="9">
+                        <Border Width="28" Height="28" CornerRadius="9"
+                                Background="{StaticResource AccentSoftBrush}">
+                            <TextBlock Text="2" FontSize="12"
+                                       Foreground="{StaticResource AccentBrush}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="{loc:Localize Key=home.stat.java}" Classes="muted" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding JavaStatus}"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               TextWrapping="Wrap" />
+                    <TextBlock Text="{loc:Localize Key=home.stat.java.hint}" Classes="caption" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="4" Classes="card" Padding="20">
+                <StackPanel Spacing="9">
+                    <StackPanel Orientation="Horizontal" Spacing="9">
+                        <Border Width="28" Height="28" CornerRadius="9"
+                                Background="{StaticResource AccentSoftBrush}">
+                            <TextBlock Text="3" FontSize="12"
+                                       Foreground="{StaticResource AccentBrush}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="{loc:Localize Key=home.stat.latest}" Classes="muted" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding LatestRelease}"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               TextWrapping="Wrap" />
+                    <TextBlock Text="{loc:Localize Key=home.stat.latest.hint}" Classes="caption" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Border Classes="card">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="{loc:Localize Key=home.next.title}" Classes="section" />
+                    <TextBlock Classes="muted" Text="{Binding GameDirectoryLabel}" />
+                    <TextBlock Text="{Binding Status}" Classes="caption" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10"
+                            VerticalAlignment="Center">
+                    <Button Classes="ghost" Content="{loc:Localize Key=home.action.openDir}"
+                            Command="{Binding OpenGameFolderCommand}" />
+                    <Button Classes="ghost" Content="{loc:Localize Key=home.action.settings}"
+                            Command="{Binding OpenSettingsCommand}" />
+                    <Button Classes="primary" Content="{loc:Localize Key=home.action.refresh}"
+                            Command="{Binding RefreshCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </StackPanel>
+</UserControl>
