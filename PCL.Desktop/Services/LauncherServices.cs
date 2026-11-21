@@ -40,6 +40,7 @@ public sealed class LauncherServices : IDisposable
         JavaInstaller = new JavaRuntimeInstaller(Paths, Downloads, JavaRuntimes);
         LoaderMeta = new LoaderMetaService(Paths, Downloads);
         LoaderInstaller = new LoaderInstaller(Paths, Downloads, LoaderMeta);
+        ForgeLoaders = new ForgeLoaderInstaller(Paths, Downloads);
         VersionManager = new VersionManager(Paths);
         Launcher = new GameLauncher(Paths);
         UrlOpener = new SystemUrlOpener();
@@ -63,6 +64,8 @@ public sealed class LauncherServices : IDisposable
     public LoaderMetaService LoaderMeta { get; }
 
     public LoaderInstaller LoaderInstaller { get; }
+
+    public ForgeLoaderInstaller ForgeLoaders { get; }
 
     public VersionManager VersionManager { get; }
 

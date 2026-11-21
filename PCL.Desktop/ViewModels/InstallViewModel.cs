@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using PCL.Desktop.Localization;
 using PCL.Desktop.Services;
 using PCL.Kernel.Install;
+using PCL.Kernel.Java;
 using PCL.Kernel.Loaders;
 using PCL.Kernel.Mojang;
 using PCL.Kernel.Versions;
@@ -39,7 +40,9 @@ public partial class InstallViewModel : ObservableObject
     public IReadOnlyList<LoaderOption> LoaderOptions { get; } =
     [
         new(LoaderKind.Fabric, "Fabric"),
-        new(LoaderKind.Quilt, "Quilt")
+        new(LoaderKind.Quilt, "Quilt"),
+        new(LoaderKind.Forge, "Forge"),
+        new(LoaderKind.NeoForge, "NeoForge")
     ];
 
     public ObservableCollection<LoaderVersion> LoaderVersions { get; } = [];
@@ -183,8 +186,11 @@ public partial class InstallViewModel : ObservableObject
         try
         {
             LoaderStatus = _strings["install.loader.reading"];
-            var versions = await _services.LoaderMeta.GetLoaderVersionsAsync(
-                SelectedLoader.Kind, SelectedBaseVersion.Id);
+            var versions = IsForge(SelectedLoader.Kind)
+                ? await _services.ForgeLoaders.GetVersionsAsync(
+                    SelectedLoader.Kind, SelectedBaseVersion.Id)
+                : await _services.LoaderMeta.GetLoaderVersionsAsync(
+                    SelectedLoader.Kind, SelectedBaseVersion.Id);
 
             LoaderVersions.Clear();
             foreach (var version in versions)
@@ -233,11 +239,32 @@ public partial class InstallViewModel : ObservableObject
                     : value.Stage;
             });
 
-            var result = await _services.LoaderInstaller.InstallAsync(
-                SelectedLoader.Kind,
-                SelectedBaseVersion.Id,
-                SelectedLoaderVersion.Version,
-                reporter);
+            LoaderInstallResult result;
+
+            if (IsForge(SelectedLoader.Kind))
+            {
+                var javaPath = await ResolveJavaAsync();
+                if (javaPath is null)
+                {
+                    LoaderStatus = _strings["install.loader.javaRequired"];
+                    return;
+                }
+
+                result = await _services.ForgeLoaders.InstallAsync(
+                    SelectedLoader.Kind,
+                    SelectedBaseVersion.Id,
+                    SelectedLoaderVersion.Version,
+                    javaPath,
+                    reporter);
+            }
+            else
+            {
+                result = await _services.LoaderInstaller.InstallAsync(
+                    SelectedLoader.Kind,
+                    SelectedBaseVersion.Id,
+                    SelectedLoaderVersion.Version,
+                    reporter);
+            }
 
             LoaderStatus = string.Format(_strings["install.loader.done"], result.Id,
                 result.LibraryCount);
@@ -252,6 +279,24 @@ public partial class InstallViewModel : ObservableObject
         {
             IsLoaderBusy = false;
         }
+    }
+
+    private static bool IsForge(LoaderKind kind) =>
+        kind is LoaderKind.Forge or LoaderKind.NeoForge;
+
+    private async Task<string?> ResolveJavaAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(_services.Settings.JavaPath) &&
+            File.Exists(_services.Settings.JavaPath))
+            return _services.Settings.JavaPath;
+
+        var java = await JavaLocator.FindAsync();
+        if (java is null)
+            return null;
+
+        _services.Settings.JavaPath = java.Path;
+        _services.SaveSettings();
+        return java.Path;
     }
 }
 
