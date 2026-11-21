@@ -60,6 +60,11 @@
                         </StackPanel>
                     </Grid>
 
+                    <CheckBox Content="启用版本隔离：每个版本使用独立的 game 目录"
+                              IsChecked="{Binding IsolateVersions}" />
+                    <TextBlock Classes="caption"
+                               Text="隔离目录位于 versions/&lt;版本&gt;/game，删除版本时会一并删除其中的存档与设置。" />
+
                     <Grid ColumnDefinitions="*,Auto">
                         <TextBlock Text="{Binding Status}" Classes="muted"
                                    VerticalAlignment="Center" />
@@ -68,6 +73,38 @@
                                 Content="保存设置"
                                 Command="{Binding SaveCommand}" />
                     </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+                <StackPanel Spacing="14">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="离线账户" Classes="h2" />
+                        <TextBlock Classes="muted"
+                                   Text="账户仅用于离线启动，UUID 由用户名按离线规则生成，不涉及任何登录凭据。" />
+                    </StackPanel>
+
+                    <ListBox ItemsSource="{Binding Accounts}"
+                             SelectedItem="{Binding SelectedAccount}"
+                             MaxHeight="140" />
+
+                    <Grid ColumnDefinitions="*,Auto,Auto">
+                        <TextBox Text="{Binding NewAccountName}"
+                                 Watermark="新的离线用户名" />
+                        <Button Grid.Column="1"
+                                Classes="ghost"
+                                Margin="10,0,0,0"
+                                Content="添加"
+                                Command="{Binding AddAccountCommand}" />
+                        <Button Grid.Column="2"
+                                Classes="ghost"
+                                Margin="10,0,0,0"
+                                Content="移除所选"
+                                Command="{Binding RemoveAccountCommand}" />
+                    </Grid>
+
+                    <TextBlock Classes="caption"
+                               Text="修改后点击上方“保存设置”写入配置文件。" />
                 </StackPanel>
             </Border>
         </StackPanel>

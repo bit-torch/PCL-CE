@@ -421,6 +421,163 @@ public sealed class LoaderMetaTests
     }
 }
 
+public sealed class VersionManagerTests : IDisposable
+{
+    private readonly string _root;
+    private readonly LauncherPaths _paths;
+
+    public VersionManagerTests()
+    {
+        _root = Path.Combine(
+            Path.GetTempPath(), "pcl-version-tests-" + Guid.NewGuid().ToString("N"));
+        _paths = new LauncherPaths(
+            Path.Combine(_root, "data"), Path.Combine(_root, "game"));
+        _paths.EnsureDirectories();
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            if (Directory.Exists(_root))
+                Directory.Delete(_root, true);
+        }
+        catch (IOException)
+        {
+        }
+    }
+
+    [Fact]
+    public async Task Verify_ReportsMissingLibraryAndAssetObject()
+    {
+        const string id = "1.20.1";
+        var directory = _paths.VersionDirectory(id);
+        Directory.CreateDirectory(directory);
+
+        var versionJson = """
+            {
+              "id": "1.20.1",
+              "type": "release",
+              "downloads": {
+                "client": {
+                  "path": "1.20.1.jar",
+                  "url": "https://example.test/client.jar",
+                  "sha1": "",
+                  "size": 1
+                }
+              },
+              "libraries": [
+                {
+                  "name": "g:a:1",
+                  "downloads": {
+                    "artifact": {
+                      "path": "g/a/1/a-1.jar",
+                      "url": "https://example.test/a.jar",
+                      "sha1": "",
+                      "size": 1
+                    }
+                  }
+                }
+              ],
+              "assetIndex": {
+                "id": "5",
+                "sha1": "",
+                "size": 1,
+                "totalSize": 2,
+                "url": "https://example.test/index.json"
+              }
+            }
+            """;
+
+        File.WriteAllText(Path.Combine(directory, id + ".json"), versionJson);
+        File.WriteAllText(_paths.VersionJarPath(id), "jar");
+
+        File.WriteAllText(
+            _paths.AssetIndexPath("5"),
+            """{ "objects": { "aa11": { "hash": "aa11", "size": 1 }, "bb22": { "hash": "bb22", "size": 1 } } }""");
+
+        var objectDirectory = Path.Combine(_paths.AssetsDirectory, "objects", "aa");
+        Directory.CreateDirectory(objectDirectory);
+        File.WriteAllText(Path.Combine(objectDirectory, "aa11"), "asset");
+
+        var version = new InstalledVersion(
+            id, directory, Path.Combine(directory, id + ".json"),
+            _paths.VersionJarPath(id), "release", null);
+
+        var report = await new VersionManager(_paths)
+            .VerifyAsync(version, TestContext.Current.CancellationToken);
+
+        Assert.Equal(5, report.CheckedFiles);
+        Assert.Equal(2, report.MissingFiles);
+        Assert.Contains("g/a/1/a-1.jar", report.Missing);
+        Assert.Contains("assets/bb22", report.Missing);
+    }
+
+    [Fact]
+    public async Task Verify_ReportsMissingParentVersion()
+    {
+        const string id = "fabric-loader-test";
+        var directory = _paths.VersionDirectory(id);
+        Directory.CreateDirectory(directory);
+        File.WriteAllText(
+            Path.Combine(directory, id + ".json"),
+            """{ "id": "fabric-loader-test", "inheritsFrom": "1.20.1" }""");
+
+        var version = new InstalledVersion(
+            id, directory, Path.Combine(directory, id + ".json"),
+            null, "release", "1.20.1");
+
+        var report = await new VersionManager(_paths)
+            .VerifyAsync(version, TestContext.Current.CancellationToken);
+
+        Assert.Contains("版本 JSON：1.20.1", report.Missing);
+    }
+
+    [Fact]
+    public void Delete_RemovesOnlyVersionDirectory()
+    {
+        var directory = _paths.VersionDirectory("temp-version");
+        Directory.CreateDirectory(directory);
+        File.WriteAllText(Path.Combine(directory, "temp-version.json"), "{}");
+
+        var version = new InstalledVersion(
+            "temp-version", directory,
+            Path.Combine(directory, "temp-version.json"),
+            null, "release", null);
+
+        new VersionManager(_paths).Delete(version);
+
+        Assert.False(Directory.Exists(directory));
+        Assert.True(Directory.Exists(_paths.VersionsDirectory));
+    }
+
+    [Fact]
+    public void Delete_RejectsDirectoryOutsideVersions()
+    {
+        var outside = Path.Combine(_root, "outside");
+        Directory.CreateDirectory(outside);
+
+        var version = new InstalledVersion(
+            "outside", outside, Path.Combine(outside, "outside.json"),
+            null, "release", null);
+
+        Assert.Throws<InvalidOperationException>(
+            () => new VersionManager(_paths).Delete(version));
+        Assert.True(Directory.Exists(outside));
+    }
+
+    [Fact]
+    public void ResolveGameDirectory_HonoursIsolation()
+    {
+        var manager = new VersionManager(_paths);
+
+        Assert.Equal(
+            Path.Combine(_paths.VersionDirectory("1.20.1"), "game"),
+            manager.ResolveGameDirectory("1.20.1", true));
+        Assert.Equal(_paths.GameDirectory, manager.ResolveGameDirectory("1.20.1", false));
+    }
+}
+
 public sealed class SettingsStoreTests
 {
     [Fact]
@@ -436,6 +593,8 @@ public sealed class SettingsStoreTests
                 GameDirectory = "/games",
                 MaxMemoryMb = 6144,
                 OfflineUsername = "Alex",
+                OfflineAccounts = ["Alex", "Steve"],
+                IsolateVersions = true,
                 LicensePrecheckAccepted = true
             });
 
@@ -444,6 +603,8 @@ public sealed class SettingsStoreTests
             Assert.Equal("/games", loaded.GameDirectory);
             Assert.Equal(6144, loaded.MaxMemoryMb);
             Assert.Equal("Alex", loaded.OfflineUsername);
+            Assert.Equal(["Alex", "Steve"], loaded.OfflineAccounts);
+            Assert.True(loaded.IsolateVersions);
             Assert.True(loaded.LicensePrecheckAccepted);
         }
         finally
@@ -451,6 +612,30 @@ public sealed class SettingsStoreTests
             if (Directory.Exists(root))
                 Directory.Delete(root, true);
         }
+    }
+
+    [Fact]
+    public void Normalize_SeedsAccountsFromLegacyUsername()
+    {
+        var settings = new LauncherSettings { OfflineUsername = "Steve" };
+
+        settings.Normalize();
+
+        Assert.Contains("Steve", settings.OfflineAccounts);
+    }
+
+    [Fact]
+    public void Normalize_KeepsExistingAccountList()
+    {
+        var settings = new LauncherSettings
+        {
+            OfflineUsername = "Alex",
+            OfflineAccounts = ["Alex", "Steve"]
+        };
+
+        settings.Normalize();
+
+        Assert.Equal(2, settings.OfflineAccounts.Count);
     }
 
     [Fact]

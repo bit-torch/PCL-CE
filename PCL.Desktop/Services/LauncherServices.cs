@@ -7,6 +7,7 @@ using PCL.Kernel.Launch;
 using PCL.Kernel.Loaders;
 using PCL.Kernel.Mojang;
 using PCL.Kernel.Net;
+using PCL.Kernel.Versions;
 
 namespace PCL.Desktop.Services;
 
@@ -21,6 +22,7 @@ public sealed class LauncherServices : IDisposable
         Paths.EnsureDirectories();
 
         Settings = SettingsStore.Load(Paths.SettingsPath);
+        Settings.Normalize();
 
         if (!string.IsNullOrWhiteSpace(Settings.GameDirectory))
         {
@@ -35,6 +37,7 @@ public sealed class LauncherServices : IDisposable
         JavaInstaller = new JavaRuntimeInstaller(Paths, Downloads, JavaRuntimes);
         LoaderMeta = new LoaderMetaService(Paths, Downloads);
         LoaderInstaller = new LoaderInstaller(Paths, Downloads, LoaderMeta);
+        VersionManager = new VersionManager(Paths);
         Launcher = new GameLauncher(Paths);
         UrlOpener = new SystemUrlOpener();
         Platform = new DesktopPlatformInfo(Paths);
@@ -55,6 +58,8 @@ public sealed class LauncherServices : IDisposable
     public LoaderMetaService LoaderMeta { get; }
 
     public LoaderInstaller LoaderInstaller { get; }
+
+    public VersionManager VersionManager { get; }
 
     public GameLauncher Launcher { get; }
 

@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -17,6 +18,29 @@ public partial class SettingsViewModel : ObservableObject
         javaPath = services.Settings.JavaPath ?? "";
         memoryMb = services.Settings.MaxMemoryMb;
         username = services.Settings.OfflineUsername;
+        isolateVersions = services.Settings.IsolateVersions;
+
+        foreach (var account in services.Settings.OfflineAccounts)
+            Accounts.Add(account);
+
+        selectedAccount = Username;
+    }
+
+    public ObservableCollection<string> Accounts { get; } = [];
+
+    [ObservableProperty]
+    private string? selectedAccount;
+
+    [ObservableProperty]
+    private string newAccountName = "";
+
+    [ObservableProperty]
+    private bool isolateVersions;
+
+    partial void OnSelectedAccountChanged(string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+            Username = value;
     }
 
     [ObservableProperty]
@@ -52,8 +76,16 @@ public partial class SettingsViewModel : ObservableObject
             _services.Paths.EnsureDirectories();
             _services.Settings.JavaPath = string.IsNullOrWhiteSpace(JavaPath) ? null : JavaPath;
             _services.Settings.MaxMemoryMb = Math.Clamp((int)MemoryMb, 512, 65536);
-            _services.Settings.OfflineUsername =
-                string.IsNullOrWhiteSpace(Username) ? "Player" : Username;
+
+            var username = string.IsNullOrWhiteSpace(Username) ? "Player" : Username.Trim();
+            if (!Accounts.Contains(username, StringComparer.OrdinalIgnoreCase))
+                Accounts.Add(username);
+
+            Username = username;
+            SelectedAccount = username;
+            _services.Settings.OfflineUsername = username;
+            _services.Settings.OfflineAccounts = Accounts.ToList();
+            _services.Settings.IsolateVersions = IsolateVersions;
             _services.SaveSettings();
 
             GameDirectory = _services.Paths.GameDirectory;
@@ -63,6 +95,46 @@ public partial class SettingsViewModel : ObservableObject
         {
             Status = "保存失败：" + ex.Message;
         }
+    }
+
+    [RelayCommand]
+    private void AddAccount()
+    {
+        var name = NewAccountName.Trim();
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            Status = "请输入离线用户名";
+            return;
+        }
+
+        if (!Accounts.Contains(name, StringComparer.OrdinalIgnoreCase))
+            Accounts.Add(name);
+
+        SelectedAccount = Accounts.First(account =>
+            string.Equals(account, name, StringComparison.OrdinalIgnoreCase));
+        NewAccountName = "";
+        Status = $"已添加离线账户 {name}，保存后生效";
+    }
+
+    [RelayCommand]
+    private void RemoveAccount()
+    {
+        if (string.IsNullOrWhiteSpace(SelectedAccount))
+        {
+            Status = "请选择要移除的账户";
+            return;
+        }
+
+        if (Accounts.Count <= 1)
+        {
+            Status = "至少保留一个离线账户";
+            return;
+        }
+
+        var removed = SelectedAccount;
+        Accounts.Remove(removed);
+        SelectedAccount = Accounts.FirstOrDefault();
+        Status = $"已移除 {removed}，保存后生效";
     }
 
     [RelayCommand]

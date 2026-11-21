@@ -51,6 +51,12 @@ public partial class LaunchViewModel : ObservableObject
     [ObservableProperty]
     private bool isRunning;
 
+    [ObservableProperty]
+    private bool isDeleteConfirmed;
+
+    partial void OnSelectedVersionChanged(InstalledVersion? value) =>
+        IsDeleteConfirmed = false;
+
     public void RefreshList()
     {
         var previous = SelectedVersion?.Id;
@@ -60,11 +66,76 @@ public partial class LaunchViewModel : ObservableObject
             Versions.Add(version);
 
         SelectedVersion = Versions.FirstOrDefault(v => v.Id == previous) ?? Versions.FirstOrDefault();
+        IsDeleteConfirmed = false;
         Status = Versions.Count == 0 ? "尚未安装任何版本" : $"已发现 {Versions.Count} 个版本";
     }
 
     [RelayCommand]
     private void RefreshVersions() => RefreshList();
+
+    [RelayCommand]
+    private async Task VerifyVersionAsync()
+    {
+        if (SelectedVersion is null)
+        {
+            Status = "请先选择一个版本";
+            return;
+        }
+
+        Status = "正在校验版本文件…";
+
+        try
+        {
+            var report = await _services.VersionManager.VerifyAsync(SelectedVersion);
+
+            if (report.IsComplete)
+            {
+                Status = $"校验完成：{report.CheckedFiles} 个文件齐全";
+                return;
+            }
+
+            Status = $"校验完成：缺失 {report.MissingFiles} 个文件";
+            Log = string.Join(
+                Environment.NewLine,
+                report.Missing.Take(50).Select(item => "缺失：" + item));
+
+            if (report.MissingFiles > 50)
+                AppendLog($"……另有 {report.MissingFiles - 50} 个缺失项");
+        }
+        catch (Exception ex)
+        {
+            Status = "校验失败：" + ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private void DeleteVersion()
+    {
+        if (SelectedVersion is null)
+        {
+            Status = "请先选择一个版本";
+            return;
+        }
+
+        if (!IsDeleteConfirmed)
+        {
+            Status = "请先勾选“确认删除”";
+            return;
+        }
+
+        var id = SelectedVersion.Id;
+
+        try
+        {
+            _services.VersionManager.Delete(SelectedVersion);
+            RefreshList();
+            Status = $"已删除版本 {id}";
+        }
+        catch (Exception ex)
+        {
+            Status = "删除失败：" + ex.Message;
+        }
+    }
 
     [RelayCommand]
     private async Task DetectJavaAsync()
@@ -171,6 +242,10 @@ public partial class LaunchViewModel : ObservableObject
             _services.Settings.LaunchCount++;
             _services.SaveSettings();
 
+            var gameDirectory = _services.VersionManager.ResolveGameDirectory(
+                SelectedVersion.Id, _services.Settings.IsolateVersions);
+            Directory.CreateDirectory(gameDirectory);
+
             _session?.Dispose();
             var session = await _services.Launcher.LaunchAsync(new LaunchOptions
             {
@@ -178,7 +253,7 @@ public partial class LaunchViewModel : ObservableObject
                 JavaPath = JavaPath,
                 Username = Username,
                 MaxMemoryMb = memory,
-                GameDirectory = _services.Paths.GameDirectory
+                GameDirectory = gameDirectory
             });
 
             _session = session;

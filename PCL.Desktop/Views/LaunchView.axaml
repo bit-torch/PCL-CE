@@ -89,6 +89,18 @@
                             Command="{Binding OpenGameFolderCommand}" />
                 </StackPanel>
 
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Button Classes="ghost"
+                            Content="校验文件"
+                            Command="{Binding VerifyVersionCommand}" />
+                    <CheckBox Content="确认删除"
+                              IsChecked="{Binding IsDeleteConfirmed}" />
+                    <Button Classes="ghost"
+                            Content="删除版本"
+                            Command="{Binding DeleteVersionCommand}"
+                            IsEnabled="{Binding IsDeleteConfirmed}" />
+                </StackPanel>
+
                 <Border Classes="soft">
                     <TextBlock Classes="caption"
                                Text="启动前会显示正版购买与 PCL 赞助劝导。这是 PCL 代码与资源完全替换前的必要许可步骤。" />
