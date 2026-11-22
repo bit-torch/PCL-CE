@@ -233,6 +233,7 @@
   "launch.error.javaInstall": "Java runtime install failed: ",
   "launch.status.needVersion": "Install and select a version first",
   "launch.status.installingJava": "No system Java found. Installing the Mojang runtime…",
+  "launch.status.javaUpgrade": "Current Java {0} is older than the required Java {1}. Installing a suitable runtime…",
   "launch.status.cancelled": "Launch cancelled",
   "launch.status.starting": "Starting…",
   "launch.status.exited": "Game exited ({0})",

@@ -8,6 +8,30 @@ public sealed record JavaRuntime(string Path, string? Version)
     public string DisplayName => string.IsNullOrWhiteSpace(Version)
         ? System.IO.Path.GetFileName(System.IO.Path.GetDirectoryName(Path) ?? Path)
         : $"Java {Version}";
+
+    /// <summary>主版本号；无法解析时返回 null。</summary>
+    public int? MajorVersion => ParseMajorVersion(Version);
+
+    public static int? ParseMajorVersion(string? version)
+    {
+        if (string.IsNullOrWhiteSpace(version))
+            return null;
+
+        var text = version.Trim();
+
+        // 旧版写法：1.8.0_392 / 1.7.0_80。
+        if (text.StartsWith("1.", StringComparison.Ordinal))
+        {
+            var rest = text[2..];
+            var separator = rest.IndexOfAny(['.', '_', '-']);
+            var legacy = separator >= 0 ? rest[..separator] : rest;
+            return int.TryParse(legacy, out var value) ? value : null;
+        }
+
+        // 新版写法：17.0.9 / 21 / 21-ea。
+        var head = text.Split('.', '_', '-')[0];
+        return int.TryParse(head, out var major) ? major : null;
+    }
 }
 
 public static partial class JavaLocator

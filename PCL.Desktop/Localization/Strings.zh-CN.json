@@ -233,6 +233,7 @@
   "launch.error.javaInstall": "Java 运行时安装失败：",
   "launch.status.needVersion": "请先安装并选择一个版本",
   "launch.status.installingJava": "未找到系统 Java，正在安装 Mojang 运行时…",
+  "launch.status.javaUpgrade": "当前 Java {0} 低于该版本要求的 Java {1}，正在安装合适的运行时…",
   "launch.status.cancelled": "已取消启动",
   "launch.status.starting": "正在启动…",
   "launch.status.exited": "游戏已退出（{0}）",

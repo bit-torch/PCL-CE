@@ -2,6 +2,7 @@ using System.IO.Compression;
 using PCL.Kernel;
 using PCL.Kernel.App;
 using PCL.Kernel.GameData;
+using PCL.Kernel.Java;
 using PCL.Kernel.Net;
 using PCL.Kernel.Versions;
 using Xunit;
@@ -214,6 +215,18 @@ public sealed class NecessaryFeaturesTests
         {
             Directory.Delete(root, true);
         }
+    }
+
+    [Theory]
+    [InlineData("1.8.0_392", 8)]
+    [InlineData("1.7", 7)]
+    [InlineData("17.0.9", 17)]
+    [InlineData("21", 21)]
+    [InlineData("21-ea", 21)]
+    [InlineData("garbage", null)]
+    public void JavaRuntime_ParsesMajorVersion(string version, int? expected)
+    {
+        Assert.Equal(expected, JavaRuntime.ParseMajorVersion(version));
     }
 
     private static string CreateTempDirectory()

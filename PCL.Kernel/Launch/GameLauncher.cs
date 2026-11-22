@@ -176,6 +176,8 @@ public sealed class GameLauncher
             ["xuid"] = options.Xuid ?? "",
             ["version_type"] = detail.Type,
             ["natives_directory"] = nativesDirectory,
+            ["library_directory"] = _paths.LibrariesDirectory,
+            ["classpath_separator"] = Path.PathSeparator.ToString(),
             ["launcher_name"] = "PCL-CE",
             ["launcher_version"] = "1.0",
             ["classpath"] = classpath,

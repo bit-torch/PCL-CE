@@ -313,27 +313,43 @@ public partial class LaunchViewModel : ObservableObject
             : instanceSettings.JavaPath;
 
         if (string.IsNullOrWhiteSpace(effectiveJava) || !File.Exists(effectiveJava))
-            effectiveJava = JavaPath;
-
-        if (string.IsNullOrWhiteSpace(effectiveJava) || !File.Exists(effectiveJava))
         {
             await DetectJavaAsync();
             effectiveJava = JavaPath;
+        }
 
-            if (string.IsNullOrWhiteSpace(effectiveJava) || !File.Exists(effectiveJava))
-            {
+        var requiredJava = await GetRequiredJavaMajorAsync();
+        var runtime = string.IsNullOrWhiteSpace(effectiveJava)
+            ? null
+            : await JavaLocator.ProbeAsync(effectiveJava);
+
+        if (runtime is null ||
+            (requiredJava is { } required &&
+             runtime.MajorVersion is { } actual && actual < required))
+        {
+            if (runtime is not null && requiredJava is { } requiredVersion)
+                Status = string.Format(
+                    _strings["launch.status.javaUpgrade"],
+                    runtime.Version, requiredVersion);
+            else
                 Status = _strings["launch.status.installingJava"];
-                try
-                {
-                    JavaPath = await InstallJavaRuntimeAsync();
-                    effectiveJava = JavaPath;
-                }
-                catch (Exception ex)
-                {
-                    Status = _strings["launch.error.javaInstall"] + ex.Message;
-                    return;
-                }
+
+            try
+            {
+                JavaPath = await InstallJavaRuntimeAsync();
+                effectiveJava = JavaPath;
             }
+            catch (Exception ex)
+            {
+                Status = _strings["launch.error.javaInstall"] + ex.Message;
+                return;
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(effectiveJava) || !File.Exists(effectiveJava))
+        {
+            Status = _strings["launch.status.javaMissing"];
+            return;
         }
 
         // 在 PCL 代码与资源完全替换前，保留 PCL 许可要求的正版购买劝导。
@@ -570,6 +586,34 @@ public partial class LaunchViewModel : ObservableObject
         }
 
         return JavaRuntimeService.DefaultComponent;
+    }
+
+    private async Task<int?> GetRequiredJavaMajorAsync()
+    {
+        try
+        {
+            var jsonPath = SelectedVersion?.JsonPath;
+
+            for (var depth = 0; depth < 8 && !string.IsNullOrWhiteSpace(jsonPath); depth++)
+            {
+                if (!File.Exists(jsonPath))
+                    break;
+
+                var detail = await VersionManifestService.ReadDetailAsync(jsonPath);
+                if (detail.JavaVersion is { MajorVersion: > 0 } javaVersion)
+                    return javaVersion.MajorVersion;
+
+                jsonPath = string.IsNullOrWhiteSpace(detail.InheritsFrom)
+                    ? null
+                    : _services.Paths.VersionJsonPath(detail.InheritsFrom);
+            }
+        }
+        catch (Exception)
+        {
+            // 读取失败时不做版本约束，交给游戏进程自行报错。
+        }
+
+        return null;
     }
 
     private async Task<LauncherAccount?> ResolveAccountAsync()
