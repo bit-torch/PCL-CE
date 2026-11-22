@@ -1,0 +1,128 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PCL.Desktop.ViewModels"
+             xmlns:loc="using:PCL.Desktop.Localization"
+             xmlns:resources="using:PCL.Kernel.Resources"
+             xmlns:services="using:PCL.Desktop.Services"
+             x:Class="PCL.Desktop.Views.ResourcesView"
+             x:DataType="vm:ResourcesViewModel">
+
+    <StackPanel Spacing="18">
+
+        <Border Classes="card">
+            <StackPanel Spacing="16">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="{loc:Localize Key=resources.title}" Classes="h2" />
+                    <TextBlock Classes="muted"
+                               TextWrapping="Wrap"
+                               Text="{loc:Localize Key=resources.description}" />
+                </StackPanel>
+
+                <Grid ColumnDefinitions="*,12,150,12,150,12,Auto">
+                    <TextBox Grid.Column="0"
+                             Text="{Binding SearchQuery}"
+                             Watermark="{loc:Localize Key=resources.search.watermark}" />
+
+                    <ComboBox Grid.Column="2"
+                              HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding TypeOptions}"
+                              SelectedItem="{Binding SelectedType}" />
+
+                    <ComboBox Grid.Column="4"
+                              HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding GameVersions}"
+                              SelectedItem="{Binding SelectedGameVersion}" />
+
+                    <Button Grid.Column="6"
+                            Classes="primary"
+                            Content="{loc:Localize Key=resources.search.action}"
+                            Command="{Binding SearchCommand}"
+                            IsEnabled="{Binding !IsBusy}" />
+                </Grid>
+
+                <ComboBox HorizontalAlignment="Left"
+                          MinWidth="150"
+                          IsVisible="{Binding ShowLoader}"
+                          ItemsSource="{Binding LoaderOptions}"
+                          SelectedItem="{Binding SelectedLoader}" />
+
+                <StackPanel Spacing="5">
+                    <TextBlock Text="{loc:Localize Key=resources.target.label}" Classes="caption" />
+                    <ComboBox HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding Targets}"
+                              SelectedItem="{Binding SelectedTarget}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="services:InstanceTarget">
+                                <TextBlock Text="{Binding Label}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Grid ColumnDefinitions="*,18,*">
+            <Border Grid.Column="0" Classes="card">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="{loc:Localize Key=resources.results.title}" Classes="section" />
+
+                    <ListBox ItemsSource="{Binding Projects}"
+                             SelectedItem="{Binding SelectedProject}"
+                             MaxHeight="360">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="resources:ResourceProject">
+                                <StackPanel Spacing="3" Margin="0,4">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding DownloadsLabel}"
+                                                   Classes="caption" />
+                                    </Grid>
+                                    <TextBlock Text="{Binding Description}"
+                                               Classes="caption"
+                                               TextWrapping="Wrap"
+                                               MaxLines="2" />
+                                    <TextBlock Text="{Binding AuthorLabel}" Classes="caption" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2" Classes="card">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="{loc:Localize Key=resources.versions.title}" Classes="section" />
+
+                    <ComboBox HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding Versions}"
+                              SelectedItem="{Binding SelectedVersion}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="resources:ResourceVersion">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{Binding DisplayName}" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding VersionType}"
+                                               Classes="caption"
+                                               Margin="10,0,0,0" />
+                                </Grid>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <StackPanel Spacing="8" IsVisible="{Binding IsInstalling}">
+                        <ProgressBar Value="{Binding Progress}" Maximum="100" />
+                    </StackPanel>
+
+                    <Button Classes="primary"
+                            HorizontalAlignment="Right"
+                            Content="{loc:Localize Key=resources.install.action}"
+                            Command="{Binding InstallCommand}"
+                            IsEnabled="{Binding !IsInstalling}" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <TextBlock Text="{Binding Status}" Classes="muted" TextWrapping="Wrap" />
+    </StackPanel>
+</UserControl>

@@ -1,4 +1,7 @@
-# 跨平台桌面端（Avalonia 预览）
+# 跨平台桌面端（Avalonia 旧预览，已冻结）
+
+> 当前默认跨平台入口为 `PCL.Desktop`，基于干净内核 `PCL.Kernel`，使用 `PCL.Rebuild.slnx` 构建。
+> 本文档描述已冻结的旧 `PCL.Avalonia` 预览，仅作迁移对照，不再默认构建。
 
 仓库现在提供两个桌面入口：`PCL.Avalonia` 面向 Windows、Linux 和 macOS；
 `Plain Craft Launcher 2` 保留原有 WPF 桌面端。共享的 `PCL.Core` 与

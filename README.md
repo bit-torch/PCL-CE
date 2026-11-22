@@ -35,7 +35,7 @@ PCL CE 是基于 PCL 开源代码二次开发的社区版本，包括了主线�
 | Windows 10 1809 (17763) 或更高 | ✅ 完整支持 | [.NET 10 Desktop Runtime](https://get.dot.net/10) |
 | Windows 8 - Windows 10 1809 (17763) | ⚠️ 理论能跑，酌情提供社区支持 | [.NET 10 Desktop Runtime](https://get.dot.net/10) |
 | Windows 7 或更低版本 | ❌ 不支持 | / |
-| macOS / Linux | 🧪 Avalonia 跨平台预览入口 | .NET 10 Runtime；自包含包无需安装 |
+| macOS / Linux | 🧪 Avalonia 新界面（重建中） | [.NET 10 Runtime](https://get.dot.net/10)；自包含包无需安装 |
 | 其他操作系统 | ❌ 暂无桌面运行支持 | / |
 
 **✅ 完整支持**：尽可能提供一切相关支持，但必须确保启动器为最新版本。
@@ -44,13 +44,13 @@ PCL CE 是基于 PCL 开源代码二次开发的社区版本，包括了主线�
 
 **❌ 不支持**：PCL CE 在这些平台的可用性较低，甚至压根打不开。请升级操作系统以使用 PCL CE。
 
-**🧪 跨平台预览**：通过 `PCL.Avalonia` 提供安装、资源与整合包、实例管理、多账户、联机和工具页面。兼容范围与外部运行依赖详见 [跨平台构建、使用与功能范围](docs/cross-platform.md)。
+**🧪 新界面预览**：`PCL.Desktop` 基于 Avalonia 与干净内核 `PCL.Kernel`，目前覆盖原版安装、Fabric / Quilt、Java 运行时与离线启动。旧 `PCL.Avalonia` 与 WPF 客户端已冻结，仅作迁移对照。
 
 ```bash
-dotnet run --project PCL.Avalonia/PCL.Avalonia.csproj
+dotnet run --project PCL.Desktop/PCL.Desktop.csproj
 ```
 
-开发使用 .NET 11 SDK。跨平台项目可通过 `PCL.CrossPlatform.slnx` 单独构建；Windows WPF 入口继续保留。
+开发使用 .NET 10 SDK。默认构建与测试新方案 `PCL.Rebuild.slnx`；旧 WPF 与跨平台项目保留在仓库中，可手动构建。
 
 **注**：    
 社区仅对最新版本的启动器提供支持。    
