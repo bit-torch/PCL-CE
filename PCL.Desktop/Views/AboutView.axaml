@@ -1,0 +1,77 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PCL.Desktop.ViewModels"
+             x:Class="PCL.Desktop.Views.AboutView"
+             x:DataType="vm:AboutViewModel">
+
+    <StackPanel Spacing="18">
+
+        <Border Classes="card" Padding="30">
+            <Grid ColumnDefinitions="Auto,*">
+                <Border Width="64" Height="64" CornerRadius="20"
+                        Background="{StaticResource BrandBrush}"
+                        VerticalAlignment="Top">
+                    <TextBlock Text="P"
+                               FontSize="32"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Border>
+
+                <StackPanel Grid.Column="1" Margin="22,0,0,0" Spacing="8">
+                    <TextBlock Text="{Binding Title}" Classes="h2" />
+                    <TextBlock Text="{Binding Version}" Classes="muted" />
+                    <TextBlock Text="{Binding Attribution}" Classes="muted" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid ColumnDefinitions="*,18,*">
+            <Border Grid.Column="0" Classes="card">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="{Binding LicenseSectionTitle}" Classes="section" />
+                    <TextBlock Text="{Binding LicenseNotice}" Classes="muted" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2" Classes="card">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="{Binding CleanRoomSectionTitle}" Classes="section" />
+                    <TextBlock Text="{Binding CleanRoomNotice}" Classes="muted" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Border Classes="card">
+            <StackPanel Spacing="16">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="{Binding SupportSectionTitle}" Classes="section" />
+                    <TextBlock Classes="muted"
+                               Text="{Binding SupportDescription}" />
+                </StackPanel>
+
+                <WrapPanel ItemWidth="210" ItemHeight="46">
+                    <Button Classes="primary"
+                            Content="{Binding PurchaseLabel}"
+                            Command="{Binding OpenPurchaseCommand}"
+                            Margin="0,0,12,10" />
+                    <Button Classes="ghost"
+                            Content="{Binding SponsorLabel}"
+                            Command="{Binding OpenSponsorCommand}"
+                            Margin="0,0,12,10" />
+                    <Button Classes="ghost"
+                            Content="{Binding UpstreamLabel}"
+                            Command="{Binding OpenUpstreamCommand}"
+                            Margin="0,0,12,10" />
+                    <Button Classes="ghost"
+                            Content="{Binding CommunityLabel}"
+                            Command="{Binding OpenCommunityCommand}"
+                            Margin="0,0,12,10" />
+                </WrapPanel>
+
+                <TextBlock Text="{Binding Status}" Classes="caption" />
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

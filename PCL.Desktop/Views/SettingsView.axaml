@@ -1,0 +1,401 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PCL.Desktop.ViewModels"
+             xmlns:loc="using:PCL.Desktop.Localization"
+             xmlns:java="using:PCL.Kernel.Java"
+             x:Class="PCL.Desktop.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+    <Grid ColumnDefinitions="*,18,320">
+
+        <StackPanel Grid.Column="0" Spacing="18">
+            <Border Classes="card">
+                <StackPanel Spacing="18">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="{loc:Localize Key=settings.title}" Classes="h2" />
+                        <TextBlock Text="{loc:Localize Key=settings.description}"
+                                   Classes="muted" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="7">
+                        <TextBlock Text="{loc:Localize Key=settings.label.gameDir}" Classes="caption" />
+                        <Grid ColumnDefinitions="*,10,Auto">
+                            <TextBox Text="{Binding GameDirectory}"
+                                     Watermark="{loc:Localize Key=settings.gameDir.watermark}" />
+                            <Button Grid.Column="2"
+                                    Classes="ghost"
+                                    Content="{loc:Localize Key=settings.action.openData}"
+                                    Command="{Binding OpenDataFolderCommand}" />
+                        </Grid>
+                    </StackPanel>
+
+                    <StackPanel Spacing="7">
+                        <TextBlock Text="{loc:Localize Key=settings.label.java}" Classes="caption" />
+                        <Grid ColumnDefinitions="*,10,Auto">
+                            <TextBox Text="{Binding JavaPath}"
+                                     Watermark="{loc:Localize Key=settings.java.watermark}" />
+                            <Button Grid.Column="2"
+                                    Classes="ghost"
+                                    Content="{loc:Localize Key=settings.action.detect}"
+                                    Command="{Binding DetectJavaCommand}" />
+                        </Grid>
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,14,*">
+                        <StackPanel Grid.Column="0" Spacing="5">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="{loc:Localize Key=settings.label.memory}" Classes="caption" />
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding MemoryMb, StringFormat='{}{0:0} MB'}"
+                                           Classes="caption" />
+                            </Grid>
+                            <Slider Minimum="512"
+                                    Maximum="32768"
+                                    TickFrequency="512"
+                                    IsSnapToTickEnabled="True"
+                                    Value="{Binding MemoryMb}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Spacing="7">
+                            <TextBlock Text="{loc:Localize Key=settings.label.username}" Classes="caption" />
+                            <TextBox Text="{Binding Username}" Watermark="Player" />
+                        </StackPanel>
+                    </Grid>
+
+                    <CheckBox Content="{loc:Localize Key=settings.isolation}"
+                              IsChecked="{Binding IsolateVersions}" />
+                    <TextBlock Classes="caption"
+                               Text="{loc:Localize Key=settings.isolation.hint}" />
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding Status}" Classes="muted"
+                                   VerticalAlignment="Center" />
+                        <Button Grid.Column="1"
+                                Classes="primary"
+                                Content="{loc:Localize Key=settings.action.save}"
+                                Command="{Binding SaveCommand}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+                <StackPanel Spacing="14">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="{loc:Localize Key=settings.accounts.title}" Classes="h2" />
+                        <TextBlock Classes="muted"
+                                   Text="{loc:Localize Key=settings.accounts.description}" />
+                    </StackPanel>
+
+                    <ListBox ItemsSource="{Binding Accounts}"
+                             SelectedItem="{Binding SelectedAccount}"
+                             MaxHeight="140" />
+
+                    <Grid ColumnDefinitions="*,Auto,Auto">
+                        <TextBox Text="{Binding NewAccountName}"
+                                 Watermark="{loc:Localize Key=settings.accounts.watermark}" />
+                        <Button Grid.Column="1"
+                                Classes="ghost"
+                                Margin="10,0,0,0"
+                                Content="{loc:Localize Key=settings.accounts.add}"
+                                Command="{Binding AddAccountCommand}" />
+                        <Button Grid.Column="2"
+                                Classes="ghost"
+                                Margin="10,0,0,0"
+                                Content="{loc:Localize Key=settings.accounts.remove}"
+                                Command="{Binding RemoveAccountCommand}" />
+                    </Grid>
+
+                    <TextBlock Classes="caption"
+                               Text="{loc:Localize Key=settings.accounts.hint}" />
+
+                    <Separator />
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{loc:Localize Key=settings.auth.ms.title}" Classes="section" />
+                        <TextBlock Classes="caption"
+                                   Text="{loc:Localize Key=settings.auth.ms.description}"
+                                   TextWrapping="Wrap" />
+                        <TextBox Text="{Binding MicrosoftClientId}"
+                                 Watermark="Microsoft Client ID / MS_CLIENT_ID" />
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Button Classes="ghost"
+                                    Content="{loc:Localize Key=settings.auth.ms.start}"
+                                    IsEnabled="{Binding !IsMicrosoftBusy}"
+                                    Command="{Binding BeginMicrosoftLoginCommand}" />
+                            <TextBlock Grid.Column="1"
+                                       Margin="12,0,0,0"
+                                       VerticalAlignment="Center"
+                                       Classes="muted"
+                                       TextWrapping="Wrap"
+                                       Text="{Binding MicrosoftStatus}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Text="{Binding DeviceCode}"
+                                       Classes="h2"
+                                       IsVisible="{Binding HasDeviceCode}" />
+                            <Button Grid.Column="1"
+                                    Classes="ghost"
+                                    Margin="12,0,0,0"
+                                    HorizontalAlignment="Left"
+                                    Content="{loc:Localize Key=settings.auth.ms.open}"
+                                    IsVisible="{Binding HasVerificationUri}"
+                                    Command="{Binding OpenVerificationUriCommand}" />
+                        </Grid>
+                    </StackPanel>
+
+                    <Separator />
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{loc:Localize Key=settings.auth.ygg.title}" Classes="section" />
+                        <TextBlock Classes="caption"
+                                   Text="{loc:Localize Key=settings.auth.ygg.description}"
+                                   TextWrapping="Wrap" />
+                        <TextBox Text="{Binding YggdrasilApiRoot}"
+                                 Watermark="https://example.com/api/yggdrasil" />
+                        <Grid ColumnDefinitions="*,10,*">
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding YggdrasilUsername}"
+                                     Watermark="{loc:Localize Key=settings.auth.ygg.username}" />
+                            <TextBox Grid.Column="2"
+                                     Text="{Binding YggdrasilPassword}"
+                                     PasswordChar="●"
+                                     Watermark="{loc:Localize Key=settings.auth.ygg.password}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Button Classes="ghost"
+                                    Content="{loc:Localize Key=settings.auth.ygg.start}"
+                                    IsEnabled="{Binding !IsYggdrasilBusy}"
+                                    Command="{Binding LoginYggdrasilCommand}" />
+                            <TextBlock Grid.Column="1"
+                                       Margin="12,0,0,0"
+                                       VerticalAlignment="Center"
+                                       Classes="muted"
+                                       TextWrapping="Wrap"
+                                       Text="{Binding YggdrasilStatus}" />
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <StackPanel Grid.Column="2" Spacing="18">
+            <Border Classes="card" Padding="20">
+                <StackPanel Spacing="10">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Key=settings.java.title}" Classes="section" />
+                        <TextBlock Classes="caption"
+                                   TextWrapping="Wrap"
+                                   Text="{loc:Localize Key=settings.java.description}" />
+                    </StackPanel>
+
+                    <ListBox ItemsSource="{Binding JavaRuntimes}"
+                             SelectedItem="{Binding SelectedJavaRuntime}"
+                             MaxHeight="150">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="java:JavaRuntime">
+                                <StackPanel Spacing="2" Margin="0,3">
+                                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                                    <TextBlock Classes="caption"
+                                               TextWrapping="Wrap"
+                                               Text="{Binding Path}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <TextBlock Classes="caption"
+                               IsVisible="{Binding !HasSelectedJavaRuntime}"
+                               Text="{loc:Localize Key=settings.java.empty}" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Classes="ghost"
+                                Content="{loc:Localize Key=settings.java.scan}"
+                                IsEnabled="{Binding !IsScanningJava}"
+                                Command="{Binding ScanJavaCommand}" />
+                        <Button Classes="ghost"
+                                Content="{loc:Localize Key=settings.java.use}"
+                                IsEnabled="{Binding HasSelectedJavaRuntime}"
+                                Command="{Binding UseSelectedJavaCommand}" />
+                        <Button Classes="ghost"
+                                Content="{loc:Localize Key=settings.java.remove}"
+                                IsEnabled="{Binding HasSelectedJavaRuntime}"
+                                Command="{Binding RemoveJavaCommand}" />
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox Text="{Binding NewJavaPath}"
+                                 Watermark="{loc:Localize Key=settings.java.pathHint}" />
+                        <Button Grid.Column="1"
+                                Classes="ghost"
+                                Margin="10,0,0,0"
+                                Content="{loc:Localize Key=settings.java.add}"
+                                Command="{Binding AddJavaCommand}" />
+                    </Grid>
+
+                    <TextBlock Classes="caption"
+                               TextWrapping="Wrap"
+                               Text="{loc:Localize Key=settings.java.removeHint}" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card" Padding="20">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="{loc:Localize Key=settings.appearance.title}" Classes="section" />
+                    <CheckBox Content="{loc:Localize Key=settings.appearance.dark}"
+                              IsChecked="{Binding DarkTheme}" />
+                    <CheckBox Content="{loc:Localize Key=settings.appearance.updateCheck}"
+                              IsChecked="{Binding CheckUpdatesOnStartup}" />
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="{loc:Localize Key=settings.appearance.language}"
+                                   Classes="caption" />
+                        <ComboBox ItemsSource="{Binding Languages}"
+                                  SelectedItem="{Binding SelectedLanguage}"
+                                  HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:LanguageOption">
+                                    <TextBlock Text="{Binding Label}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock Classes="caption"
+                                   TextWrapping="Wrap"
+                                   Text="{loc:Localize Key=settings.appearance.restartHint}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            <Border Classes="card" Padding="20">
+                <StackPanel Spacing="10">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Key=settings.download.title}" Classes="section" />
+                        <TextBlock Classes="caption"
+                                   TextWrapping="Wrap"
+                                   Text="{loc:Localize Key=settings.download.description}" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="{loc:Localize Key=settings.download.mirror}" Classes="caption" />
+                        <TextBox Text="{Binding DownloadMirror}"
+                                 Watermark="https://bmclapi2.bangbang93.com" />
+                        <TextBlock Classes="caption"
+                                   TextWrapping="Wrap"
+                                   Text="{loc:Localize Key=settings.download.mirrorHint}" />
+                    </StackPanel>
+
+                    <CheckBox Content="{loc:Localize Key=settings.download.preferOfficial}"
+                              IsChecked="{Binding PreferOfficialDownload}" />
+
+                    <StackPanel Spacing="5">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="{loc:Localize Key=settings.download.threads}" Classes="caption" />
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding DownloadThreadLimit, StringFormat='{}{0:0}'}"
+                                       Classes="caption" />
+                        </Grid>
+                        <Slider Minimum="1"
+                                Maximum="64"
+                                TickFrequency="1"
+                                IsSnapToTickEnabled="True"
+                                Value="{Binding DownloadThreadLimit}" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="5">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="{loc:Localize Key=settings.download.speed}" Classes="caption" />
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding DownloadSpeedLimitKb, StringFormat='{}{0:0} KB/s'}"
+                                       Classes="caption" />
+                        </Grid>
+                        <Slider Minimum="0"
+                                Maximum="102400"
+                                TickFrequency="1024"
+                                IsSnapToTickEnabled="True"
+                                Value="{Binding DownloadSpeedLimitKb}" />
+                        <TextBlock Classes="caption"
+                                   Text="{loc:Localize Key=settings.download.speedHint}" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="{loc:Localize Key=settings.download.proxy}" Classes="caption" />
+                        <TextBox Text="{Binding ProxyAddress}" Watermark="http://127.0.0.1:7890" />
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,10,*">
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding ProxyUsername}"
+                                 Watermark="{loc:Localize Key=settings.download.proxyUser}" />
+                        <TextBox Grid.Column="2"
+                                 Text="{Binding ProxyPassword}"
+                                 PasswordChar="●"
+                                 Watermark="{loc:Localize Key=settings.download.proxyPass}" />
+                    </Grid>
+
+                    <TextBlock Classes="caption"
+                               TextWrapping="Wrap"
+                               Text="{loc:Localize Key=settings.download.restartHint}" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card" Padding="20">
+                <StackPanel Spacing="10">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Key=settings.launch.title}" Classes="section" />
+                        <TextBlock Classes="caption"
+                                   TextWrapping="Wrap"
+                                   Text="{loc:Localize Key=settings.launch.description}" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="{loc:Localize Key=settings.launch.jvm}" Classes="caption" />
+                        <TextBox Text="{Binding JvmArguments}"
+                                 Watermark="{loc:Localize Key=settings.launch.jvmHint}" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="{loc:Localize Key=settings.launch.game}" Classes="caption" />
+                        <TextBox Text="{Binding GameArguments}"
+                                 Watermark="{loc:Localize Key=settings.launch.gameHint}" />
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,10,*">
+                        <StackPanel Grid.Column="0" Spacing="5">
+                            <TextBlock Text="{loc:Localize Key=settings.launch.width}" Classes="caption" />
+                            <TextBox Text="{Binding GameWindowWidth}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Spacing="5">
+                            <TextBlock Text="{loc:Localize Key=settings.launch.height}" Classes="caption" />
+                            <TextBox Text="{Binding GameWindowHeight}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <CheckBox Content="{loc:Localize Key=settings.launch.fullscreen}"
+                              IsChecked="{Binding GameFullScreen}" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card" Padding="20">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="{loc:Localize Key=settings.env.title}" Classes="section" />
+                    <TextBlock Text="{Binding PlatformSummary}"
+                               Classes="caption"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card" Padding="20">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="{loc:Localize Key=settings.config.title}" Classes="section" />
+                    <TextBlock Classes="muted"
+                               Text="{loc:Localize Key=settings.config.desc}" />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="soft">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="{loc:Localize Key=settings.license.title}" Classes="section" />
+                    <TextBlock Classes="caption"
+                               Text="{loc:Localize Key=settings.license.desc}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </Grid>
+</UserControl>

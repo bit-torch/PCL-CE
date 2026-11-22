@@ -1,0 +1,198 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PCL.Desktop.ViewModels"
+             xmlns:loc="using:PCL.Desktop.Localization"
+             xmlns:versions="using:PCL.Kernel.Versions"
+             x:Class="PCL.Desktop.Views.LaunchView"
+             x:DataType="vm:LaunchViewModel">
+
+    <Grid ColumnDefinitions="430,18,*">
+
+        <Border Grid.Column="0" Classes="card">
+            <StackPanel Spacing="16">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="{loc:Localize Key=launch.config.title}" Classes="h2" />
+                        <TextBlock Text="{Binding Status}" Classes="muted" />
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            Classes="ghost"
+                            Content="{loc:Localize Key=launch.action.refresh}"
+                            Command="{Binding RefreshVersionsCommand}" />
+                </Grid>
+
+                <StackPanel Spacing="7">
+                    <TextBlock Text="{loc:Localize Key=launch.label.version}" Classes="caption" />
+                    <ComboBox HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding Versions}"
+                              SelectedItem="{Binding SelectedVersion}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="versions:InstalledVersion">
+                                <Grid ColumnDefinitions="*,110">
+                                    <TextBlock Text="{Binding DisplayName}" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Type}"
+                                               Classes="caption"
+                                               HorizontalAlignment="Right" />
+                                </Grid>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+
+                <Grid ColumnDefinitions="*,14,*">
+                    <StackPanel Grid.Column="0" Spacing="7">
+                        <TextBlock Text="{loc:Localize Key=launch.label.username}" Classes="caption" />
+                        <TextBox Text="{Binding Username}" Watermark="Player" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Spacing="5">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="{loc:Localize Key=launch.label.memory}" Classes="caption" />
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding MemoryMb, StringFormat='{}{0:0} MB'}"
+                                       Classes="caption" />
+                        </Grid>
+                        <Slider Minimum="512"
+                                Maximum="16384"
+                                TickFrequency="512"
+                                IsSnapToTickEnabled="True"
+                                Value="{Binding MemoryMb}" />
+                    </StackPanel>
+                </Grid>
+
+                <StackPanel Spacing="7">
+                    <TextBlock Text="{loc:Localize Key=launch.label.java}" Classes="caption" />
+                    <TextBox Text="{Binding JavaPath}" Watermark="{loc:Localize Key=launch.java.watermark}" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Classes="ghost"
+                                Content="{loc:Localize Key=launch.action.installJava}"
+                                Command="{Binding InstallJavaCommand}" />
+                        <Button Classes="ghost"
+                                Content="{loc:Localize Key=launch.action.detectJava}"
+                                Command="{Binding DetectJavaCommand}" />
+                    </StackPanel>
+                    <TextBlock Classes="caption"
+                               Text="{loc:Localize Key=launch.java.hint}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Button Classes="primary"
+                            Content="{loc:Localize Key=launch.action.start}"
+                            Command="{Binding LaunchCommand}"
+                            IsEnabled="{Binding !IsRunning}" />
+                    <Button Classes="ghost"
+                            Content="{loc:Localize Key=launch.action.stop}"
+                            Command="{Binding StopCommand}"
+                            IsEnabled="{Binding IsRunning}" />
+                    <Button Classes="link"
+                            Content="{loc:Localize Key=launch.action.openDir}"
+                            Command="{Binding OpenGameFolderCommand}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Button Classes="ghost"
+                            Content="{loc:Localize Key=launch.action.verify}"
+                            Command="{Binding VerifyVersionCommand}" />
+                    <CheckBox Content="{loc:Localize Key=launch.delete.confirm}"
+                              IsChecked="{Binding IsDeleteConfirmed}" />
+                    <Button Classes="ghost"
+                            Content="{loc:Localize Key=launch.action.delete}"
+                            Command="{Binding DeleteVersionCommand}"
+                            IsEnabled="{Binding IsDeleteConfirmed}" />
+                    <Button Classes="ghost"
+                            Content="{loc:Localize Key=launch.action.export}"
+                            Click="OnExportInstanceClick" />
+                </StackPanel>
+
+                <Expander Header="{loc:Localize Key=launch.instance.title}" IsExpanded="False">
+                    <StackPanel Spacing="8">
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="{loc:Localize Key=launch.instance.name}" Classes="caption" />
+                            <TextBox Text="{Binding InstanceTitle}"
+                                     Watermark="{loc:Localize Key=launch.instance.nameHint}" />
+                        </StackPanel>
+
+                        <Grid ColumnDefinitions="*,10,*">
+                            <StackPanel Grid.Column="0" Spacing="5">
+                                <TextBlock Text="{loc:Localize Key=launch.instance.memory}"
+                                           Classes="caption" />
+                                <TextBox Text="{Binding InstanceMemoryMb}"
+                                         Watermark="{loc:Localize Key=launch.instance.followGlobal}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="5">
+                                <TextBlock Text="{loc:Localize Key=launch.instance.java}"
+                                           Classes="caption" />
+                                <TextBox Text="{Binding InstanceJavaPath}"
+                                         Watermark="{loc:Localize Key=launch.instance.followGlobal}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="{loc:Localize Key=launch.instance.jvm}" Classes="caption" />
+                            <TextBox Text="{Binding InstanceJvmArguments}"
+                                     Watermark="{loc:Localize Key=settings.launch.jvmHint}" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="{loc:Localize Key=launch.instance.game}" Classes="caption" />
+                            <TextBox Text="{Binding InstanceGameArguments}"
+                                     Watermark="{loc:Localize Key=settings.launch.gameHint}" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="{loc:Localize Key=launch.instance.window}" Classes="caption" />
+                            <Grid ColumnDefinitions="*,10,*">
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding InstanceWindowWidth}"
+                                         Watermark="{loc:Localize Key=settings.launch.width}" />
+                                <TextBox Grid.Column="2"
+                                         Text="{Binding InstanceWindowHeight}"
+                                         Watermark="{loc:Localize Key=settings.launch.height}" />
+                            </Grid>
+                        </StackPanel>
+
+                        <Button Classes="ghost"
+                                Content="{loc:Localize Key=launch.action.saveInstance}"
+                                Command="{Binding SaveInstanceSettingsCommand}" />
+                    </StackPanel>
+                </Expander>
+
+                <Border Classes="soft">
+                    <TextBlock Classes="caption"
+                               Text="{loc:Localize Key=launch.license.hint}" />
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Column="2" Classes="card">
+            <Grid RowDefinitions="Auto,*">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="{loc:Localize Key=launch.log.title}" Classes="h2" />
+                        <TextBlock Text="{loc:Localize Key=launch.log.subtitle}" Classes="muted" />
+                    </StackPanel>
+                    <Border Grid.Column="1" Classes="chip" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Status}"
+                                   FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                    </Border>
+                </Grid>
+
+                <TextBox Grid.Row="1"
+                         Classes="log"
+                         Margin="0,16,0,0"
+                         Height="480"
+                         Text="{Binding Log}"
+                         IsReadOnly="True"
+                         AcceptsReturn="True"
+                         TextWrapping="NoWrap"
+                         FontFamily="Cascadia Mono, Consolas, monospace"
+                         FontSize="12"
+                         VerticalContentAlignment="Top"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
