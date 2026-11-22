@@ -8,7 +8,14 @@ public sealed record InstalledVersion(
     string JsonPath,
     string? JarPath,
     string Type,
-    string? InheritsFrom);
+    string? InheritsFrom)
+{
+    /// <summary>实例自定义显示名称，来自实例覆盖设置。</summary>
+    public string? Title { get; init; }
+
+    public string DisplayName =>
+        string.IsNullOrWhiteSpace(Title) ? Id : $"{Title} ({Id})";
+}
 
 public static class InstalledVersionScanner
 {

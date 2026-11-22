@@ -56,6 +56,7 @@ public sealed class LauncherServices : IDisposable
         UpdateInstaller = new UpdateInstaller(
             Downloads, Path.Combine(Paths.CacheDirectory, "updates"));
         VersionManager = new VersionManager(Paths);
+        InstanceSettings = InstanceSettingsStore.Load(Paths);
         Launcher = new GameLauncher(Paths);
         UrlOpener = new SystemUrlOpener();
         Platform = new DesktopPlatformInfo(Paths);
@@ -98,6 +99,8 @@ public sealed class LauncherServices : IDisposable
     public UpdateInstaller UpdateInstaller { get; }
 
     public VersionManager VersionManager { get; }
+
+    public InstanceSettingsStore InstanceSettings { get; }
 
     public GameLauncher Launcher { get; }
 

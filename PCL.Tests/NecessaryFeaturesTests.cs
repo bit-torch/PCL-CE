@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using PCL.Kernel;
 using PCL.Kernel.App;
 using PCL.Kernel.GameData;
 using PCL.Kernel.Net;
@@ -165,6 +166,49 @@ public sealed class NecessaryFeaturesTests
             var filtered = await LogReader.SearchAsync(
                 logPath, "error", 10, TestContext.Current.CancellationToken);
             Assert.Equal("ERROR boom", filtered);
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
+    [Fact]
+    public void InstanceSettings_RoundTripsAndRemoves()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var paths = new LauncherPaths(
+                Path.Combine(root, "data"), Path.Combine(root, "game"));
+            Directory.CreateDirectory(paths.DataDirectory);
+
+            var store = InstanceSettingsStore.Load(paths);
+            store.Set("1.20.1", new InstanceSettings
+            {
+                Title = "整合包",
+                MaxMemoryMb = 4096,
+                JvmArguments = "-XX:+UseG1GC",
+                WindowWidth = 1280
+            });
+
+            var reloaded = InstanceSettingsStore.Load(paths).Get("1.20.1");
+            Assert.Equal("整合包", reloaded.Title);
+            Assert.Equal(4096, reloaded.MaxMemoryMb);
+            Assert.Equal(1280, reloaded.WindowWidth);
+            Assert.Equal("-XX:+UseG1GC", reloaded.JvmArguments);
+            Assert.True(string.IsNullOrEmpty(store.Get("missing").Title));
+
+            var version = new InstalledVersion(
+                "1.20.1", "dir", "json", null, "release", null)
+            {
+                Title = "整合包"
+            };
+            Assert.Equal("整合包 (1.20.1)", version.DisplayName);
+
+            store.Remove("1.20.1");
+            Assert.True(string.IsNullOrEmpty(
+                InstanceSettingsStore.Load(paths).Get("1.20.1").Title));
         }
         finally
         {

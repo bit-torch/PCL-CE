@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using PCL.Desktop.Localization;
 using PCL.Desktop.Services;
 using PCL.Kernel.Accounts;
+using PCL.Kernel.App;
 using PCL.Kernel.Install;
 using PCL.Kernel.Java;
 using PCL.Kernel.Launch;
@@ -39,10 +40,34 @@ public partial class LaunchViewModel : ObservableObject
 
     public string ExportDialogTitle => _strings["launch.export.dialog"];
 
-    public string ExportDefaultName => (SelectedVersion?.Id ?? "instance") + ".zip";
+    public string ExportDefaultName =>
+        (string.IsNullOrWhiteSpace(SelectedVersion?.Title)
+            ? SelectedVersion?.Id ?? "instance"
+            : SelectedVersion!.Title) + ".zip";
 
     [ObservableProperty]
     private InstalledVersion? selectedVersion;
+
+    [ObservableProperty]
+    private string instanceTitle = "";
+
+    [ObservableProperty]
+    private string instanceJavaPath = "";
+
+    [ObservableProperty]
+    private string instanceMemoryMb = "";
+
+    [ObservableProperty]
+    private string instanceJvmArguments = "";
+
+    [ObservableProperty]
+    private string instanceGameArguments = "";
+
+    [ObservableProperty]
+    private string instanceWindowWidth = "";
+
+    [ObservableProperty]
+    private string instanceWindowHeight = "";
 
     [ObservableProperty]
     private string username;
@@ -65,8 +90,11 @@ public partial class LaunchViewModel : ObservableObject
     [ObservableProperty]
     private bool isDeleteConfirmed;
 
-    partial void OnSelectedVersionChanged(InstalledVersion? value) =>
+    partial void OnSelectedVersionChanged(InstalledVersion? value)
+    {
         IsDeleteConfirmed = false;
+        LoadInstanceSettings(value);
+    }
 
     public void RefreshList()
     {
@@ -74,7 +102,12 @@ public partial class LaunchViewModel : ObservableObject
 
         Versions.Clear();
         foreach (var version in InstalledVersionScanner.Scan(_services.Paths))
-            Versions.Add(version);
+        {
+            var title = _services.InstanceSettings.Get(version.Id).Title;
+            Versions.Add(string.IsNullOrWhiteSpace(title)
+                ? version
+                : version with { Title = title });
+        }
 
         SelectedVersion = Versions.FirstOrDefault(v => v.Id == previous) ?? Versions.FirstOrDefault();
         IsDeleteConfirmed = false;
@@ -82,6 +115,70 @@ public partial class LaunchViewModel : ObservableObject
             ? _strings["launch.status.none"]
             : string.Format(_strings["launch.status.found"], Versions.Count);
     }
+
+    private void LoadInstanceSettings(InstalledVersion? version)
+    {
+        var settings = version is null
+            ? new InstanceSettings()
+            : _services.InstanceSettings.Get(version.Id);
+
+        InstanceTitle = settings.Title;
+        InstanceJavaPath = settings.JavaPath;
+        InstanceMemoryMb = settings.MaxMemoryMb?.ToString() ?? "";
+        InstanceJvmArguments = settings.JvmArguments;
+        InstanceGameArguments = settings.GameArguments;
+        InstanceWindowWidth = settings.WindowWidth?.ToString() ?? "";
+        InstanceWindowHeight = settings.WindowHeight?.ToString() ?? "";
+    }
+
+    [RelayCommand]
+    private void SaveInstanceSettings()
+    {
+        if (SelectedVersion is null)
+        {
+            Status = _strings["launch.status.select"];
+            return;
+        }
+
+        try
+        {
+            var settings = new InstanceSettings
+            {
+                Title = InstanceTitle,
+                JavaPath = InstanceJavaPath,
+                MaxMemoryMb = ParseOptionalInt(InstanceMemoryMb),
+                JvmArguments = InstanceJvmArguments.Trim(),
+                GameArguments = InstanceGameArguments.Trim(),
+                WindowWidth = ParseOptionalInt(InstanceWindowWidth),
+                WindowHeight = ParseOptionalInt(InstanceWindowHeight)
+            };
+
+            var id = SelectedVersion.Id;
+            _services.InstanceSettings.Set(id, settings);
+
+            for (var index = 0; index < Versions.Count; index++)
+            {
+                if (Versions[index].Id != id)
+                    continue;
+
+                var title = settings.Title.Trim();
+                Versions[index] = string.IsNullOrWhiteSpace(title)
+                    ? Versions[index] with { Title = null }
+                    : Versions[index] with { Title = title };
+                SelectedVersion = Versions[index];
+                break;
+            }
+
+            Status = _strings["launch.status.instanceSaved"];
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["launch.error.instance"] + ex.Message;
+        }
+    }
+
+    private static int? ParseOptionalInt(string text) =>
+        int.TryParse(text.Trim(), out var value) && value > 0 ? value : null;
 
     [RelayCommand]
     private void RefreshVersions() => RefreshList();
@@ -141,6 +238,7 @@ public partial class LaunchViewModel : ObservableObject
         try
         {
             _services.VersionManager.Delete(SelectedVersion);
+            _services.InstanceSettings.Remove(id);
             RefreshList();
             Status = string.Format(_strings["launch.status.deleted"], id);
         }
@@ -209,15 +307,26 @@ public partial class LaunchViewModel : ObservableObject
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(JavaPath) || !File.Exists(JavaPath))
+        var instanceSettings = _services.InstanceSettings.Get(SelectedVersion.Id);
+        var effectiveJava = string.IsNullOrWhiteSpace(instanceSettings.JavaPath)
+            ? JavaPath
+            : instanceSettings.JavaPath;
+
+        if (string.IsNullOrWhiteSpace(effectiveJava) || !File.Exists(effectiveJava))
+            effectiveJava = JavaPath;
+
+        if (string.IsNullOrWhiteSpace(effectiveJava) || !File.Exists(effectiveJava))
         {
             await DetectJavaAsync();
-            if (string.IsNullOrWhiteSpace(JavaPath) || !File.Exists(JavaPath))
+            effectiveJava = JavaPath;
+
+            if (string.IsNullOrWhiteSpace(effectiveJava) || !File.Exists(effectiveJava))
             {
                 Status = _strings["launch.status.installingJava"];
                 try
                 {
                     JavaPath = await InstallJavaRuntimeAsync();
+                    effectiveJava = JavaPath;
                 }
                 catch (Exception ex)
                 {
@@ -247,7 +356,8 @@ public partial class LaunchViewModel : ObservableObject
 
         try
         {
-            var memory = Math.Clamp((int)MemoryMb, 512, 65536);
+            var memory = instanceSettings.MaxMemoryMb
+                         ?? Math.Clamp((int)MemoryMb, 512, 65536);
             var account = await ResolveAccountAsync();
 
             if (account is null || account.Kind == AccountKind.Offline)
@@ -257,7 +367,7 @@ public partial class LaunchViewModel : ObservableObject
             if (account?.Kind == AccountKind.Yggdrasil)
                 authlibPath = await _services.AuthlibInjector.EnsureAsync();
 
-            _services.Settings.MaxMemoryMb = memory;
+            _services.Settings.MaxMemoryMb = Math.Clamp((int)MemoryMb, 512, 65536);
             _services.Settings.JavaPath = JavaPath;
             _services.Settings.LaunchCount++;
             _services.SaveSettings();
@@ -270,7 +380,7 @@ public partial class LaunchViewModel : ObservableObject
             var session = await _services.Launcher.LaunchAsync(new LaunchOptions
             {
                 VersionId = SelectedVersion.Id,
-                JavaPath = JavaPath,
+                JavaPath = effectiveJava,
                 Username = account?.Name ?? Username,
                 Uuid = account?.Id,
                 AccessToken = account?.AccessToken,
@@ -281,11 +391,15 @@ public partial class LaunchViewModel : ObservableObject
                 AuthlibInjectorPath = authlibPath,
                 MaxMemoryMb = memory,
                 GameDirectory = gameDirectory,
-                WindowWidth = _services.Settings.GameWindowWidth,
-                WindowHeight = _services.Settings.GameWindowHeight,
+                WindowWidth = instanceSettings.WindowWidth ?? _services.Settings.GameWindowWidth,
+                WindowHeight = instanceSettings.WindowHeight ?? _services.Settings.GameWindowHeight,
                 FullScreen = _services.Settings.GameFullScreen,
-                ExtraJvmArgs = ParseArguments(_services.Settings.JvmArguments),
-                ExtraGameArgs = ParseArguments(_services.Settings.GameArguments)
+                ExtraJvmArgs = ParseArguments(instanceSettings.JvmArguments)
+                    .Concat(ParseArguments(_services.Settings.JvmArguments))
+                    .ToArray(),
+                ExtraGameArgs = ParseArguments(instanceSettings.GameArguments)
+                    .Concat(ParseArguments(_services.Settings.GameArguments))
+                    .ToArray()
             });
 
             _session = session;
