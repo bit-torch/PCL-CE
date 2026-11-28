@@ -53,6 +53,7 @@ public sealed class LauncherServices : IDisposable
         AuthlibInjector = new AuthlibInjectorService(Paths, Downloads);
         Modrinth = new ModrinthClient();
         ResourceInstaller = new ResourceInstaller(Paths, Downloads, Modrinth);
+        Favorites = new FavoritesStore(Path.Combine(Paths.DataDirectory, "favorites.json"));
         News = new NewsService();
         UpdateChecker = new UpdateChecker();
         UpdateInstaller = new UpdateInstaller(
@@ -97,6 +98,8 @@ public sealed class LauncherServices : IDisposable
     public ResourceInstaller ResourceInstaller { get; }
 
     public NewsService News { get; }
+
+    public FavoritesStore Favorites { get; }
 
     public UpdateChecker UpdateChecker { get; }
 

@@ -420,5 +420,13 @@
   "tools.servers.online": "{0} · {1}/{2} online · {3} ms\n{4}",
   "tools.servers.offline": "Unreachable: {0}",
   "tools.servers.pingOk": "Connected to {0}.",
-  "tools.servers.pingFailed": "Could not connect to {0}."
+  "tools.servers.pingFailed": "Could not connect to {0}.",
+  "resources.favorites.title": "Favorites",
+  "resources.favorites.empty": "No favorites yet. Use \"Favorite\" on a project.",
+  "resources.favorites.add": "Favorite",
+  "resources.favorites.remove": "Unfavorite",
+  "resources.favorites.open": "Search project",
+  "resources.favorites.select": "Select a resource project first.",
+  "resources.favorites.added": "Added {0} to favorites.",
+  "resources.favorites.removedItem": "Removed {0} from favorites."
 }

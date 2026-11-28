@@ -420,5 +420,13 @@
   "tools.servers.online": "{0} · 在线 {1}/{2} · {3} ms\n{4}",
   "tools.servers.offline": "无法连接：{0}",
   "tools.servers.pingOk": "已连接 {0}。",
-  "tools.servers.pingFailed": "无法连接 {0}。"
+  "tools.servers.pingFailed": "无法连接 {0}。",
+  "resources.favorites.title": "收藏",
+  "resources.favorites.empty": "还没有收藏。在资源详情中点击「收藏」。",
+  "resources.favorites.add": "收藏",
+  "resources.favorites.remove": "取消收藏",
+  "resources.favorites.open": "搜索该项目",
+  "resources.favorites.select": "请先选择一个资源项目。",
+  "resources.favorites.added": "已收藏 {0}。",
+  "resources.favorites.removedItem": "已取消收藏 {0}。"
 }
