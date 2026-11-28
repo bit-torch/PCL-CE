@@ -406,5 +406,12 @@
   "about.help.title": "帮助与反馈",
   "about.help.description": "查阅使用文档，或提交问题与建议。",
   "about.action.docs": "帮助文档",
-  "about.action.feedback": "问题反馈"
+  "about.action.feedback": "问题反馈",
+  "settings.appearance.accent": "主题色",
+  "settings.appearance.font": "界面字体",
+  "settings.appearance.accent.sky": "天蓝",
+  "settings.appearance.accent.teal": "青绿",
+  "settings.appearance.accent.violet": "紫罗兰",
+  "settings.appearance.accent.amber": "琥珀",
+  "settings.appearance.font.default": "默认（跟随系统）"
 }

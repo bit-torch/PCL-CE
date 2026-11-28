@@ -22,6 +22,7 @@ public partial class App : Application
         {
             var services = new LauncherServices();
             _services = services;
+            AppearanceService.Apply(services.Settings);
             RequestedThemeVariant = services.Settings.DarkTheme
                 ? ThemeVariant.Dark
                 : ThemeVariant.Light;

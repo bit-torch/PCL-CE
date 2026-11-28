@@ -9,7 +9,7 @@
         <Border Classes="card" Padding="30">
             <Grid ColumnDefinitions="Auto,*">
                 <Border Width="64" Height="64" CornerRadius="20"
-                        Background="{StaticResource BrandBrush}"
+                        Background="{DynamicResource BrandBrush}"
                         VerticalAlignment="Top">
                     <TextBlock Text="P"
                                FontSize="32"

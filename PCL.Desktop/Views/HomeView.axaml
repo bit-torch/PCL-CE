@@ -15,7 +15,7 @@
                         <TextBlock Text="{loc:Localize Key=home.badge}"
                                    FontSize="12"
                                    FontWeight="SemiBold"
-                                   Foreground="{StaticResource AccentBrush}" />
+                                   Foreground="{DynamicResource AccentBrush}" />
                     </Border>
 
                     <TextBlock Text="{loc:Localize Key=home.hero.title}"
@@ -39,7 +39,7 @@
 
                 <Border Grid.Column="1"
                         CornerRadius="18"
-                        Background="{StaticResource AccentSoftBrush}"
+                        Background="{DynamicResource AccentSoftBrush}"
                         Padding="22"
                         Margin="24,0,0,0">
                     <StackPanel Spacing="14" VerticalAlignment="Center">
@@ -75,9 +75,9 @@
                 <StackPanel Spacing="9">
                     <StackPanel Orientation="Horizontal" Spacing="9">
                         <Border Width="28" Height="28" CornerRadius="9"
-                                Background="{StaticResource AccentSoftBrush}">
+                                Background="{DynamicResource AccentSoftBrush}">
                             <TextBlock Text="1" FontSize="12"
-                                       Foreground="{StaticResource AccentBrush}"
+                                       Foreground="{DynamicResource AccentBrush}"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center" />
                         </Border>
@@ -92,9 +92,9 @@
                 <StackPanel Spacing="9">
                     <StackPanel Orientation="Horizontal" Spacing="9">
                         <Border Width="28" Height="28" CornerRadius="9"
-                                Background="{StaticResource AccentSoftBrush}">
+                                Background="{DynamicResource AccentSoftBrush}">
                             <TextBlock Text="2" FontSize="12"
-                                       Foreground="{StaticResource AccentBrush}"
+                                       Foreground="{DynamicResource AccentBrush}"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center" />
                         </Border>
@@ -112,9 +112,9 @@
                 <StackPanel Spacing="9">
                     <StackPanel Orientation="Horizontal" Spacing="9">
                         <Border Width="28" Height="28" CornerRadius="9"
-                                Background="{StaticResource AccentSoftBrush}">
+                                Background="{DynamicResource AccentSoftBrush}">
                             <TextBlock Text="3" FontSize="12"
-                                       Foreground="{StaticResource AccentBrush}"
+                                       Foreground="{DynamicResource AccentBrush}"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center" />
                         </Border>

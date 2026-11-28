@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Avalonia;
+using Avalonia.Media;
 using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -51,6 +52,35 @@ public partial class SettingsViewModel : ObservableObject
         selectedLanguage = Languages.FirstOrDefault(item => item.Value == languageCode)
                            ?? Languages[0];
 
+        AccentOptions =
+        [
+            new(AppearanceService.DefaultAccent, _strings["settings.appearance.accent.sky"]),
+            new("#12B886", _strings["settings.appearance.accent.teal"]),
+            new("#7C5CFC", _strings["settings.appearance.accent.violet"]),
+            new("#F08C2E", _strings["settings.appearance.accent.amber"])
+        ];
+
+        FontOptions =
+        [
+            new("", _strings["settings.appearance.font.default"]),
+            new("Inter", "Inter"),
+            new("Microsoft YaHei UI", "微软雅黑"),
+            new("PingFang SC", "苹方"),
+            new("Noto Sans CJK SC", "Noto Sans CJK SC")
+        ];
+
+        selectedAccent = AccentOptions.FirstOrDefault(option =>
+                             string.Equals(
+                                 option.Value, services.Settings.AccentColor,
+                                 StringComparison.OrdinalIgnoreCase))
+                         ?? AccentOptions[0];
+
+        selectedFont = FontOptions.FirstOrDefault(option =>
+                           string.Equals(
+                               option.Value, services.Settings.UIFontFamily,
+                               StringComparison.OrdinalIgnoreCase))
+                       ?? FontOptions[0];
+
         foreach (var path in services.Settings.JavaPaths)
             JavaRuntimes.Add(new JavaRuntime(path, null));
 
@@ -71,6 +101,36 @@ public partial class SettingsViewModel : ObservableObject
         new("zh-CN", "简体中文"),
         new("en-US", "English")
     ];
+
+    public IReadOnlyList<AccentOption> AccentOptions { get; }
+
+    public IReadOnlyList<FontOption> FontOptions { get; }
+
+    [ObservableProperty]
+    private AccentOption selectedAccent;
+
+    [ObservableProperty]
+    private FontOption selectedFont;
+
+    partial void OnSelectedAccentChanged(AccentOption value)
+    {
+        if (value is null)
+            return;
+
+        AppearanceService.ApplyAccent(value.Value);
+        _services.Settings.AccentColor = value.Value;
+        _services.SaveSettings();
+    }
+
+    partial void OnSelectedFontChanged(FontOption value)
+    {
+        if (value is null)
+            return;
+
+        AppearanceService.ApplyFont(value.Value);
+        _services.Settings.UIFontFamily = value.Value;
+        _services.SaveSettings();
+    }
 
     [ObservableProperty]
     private JavaRuntime? selectedJavaRuntime;
@@ -229,6 +289,8 @@ public partial class SettingsViewModel : ObservableObject
             _services.Settings.IsolateVersions = IsolateVersions;
             _services.Settings.MicrosoftClientId = MicrosoftClientId.Trim();
             _services.Settings.DarkTheme = DarkTheme;
+            _services.Settings.AccentColor = SelectedAccent.Value;
+            _services.Settings.UIFontFamily = SelectedFont.Value;
             _services.Settings.Language = SelectedLanguage.Value;
             _services.Settings.CheckUpdatesOnStartup = CheckUpdatesOnStartup;
 
@@ -619,6 +681,18 @@ public partial class SettingsViewModel : ObservableObject
 }
 
 public sealed record LanguageOption(string Value, string Label)
+{
+    public override string ToString() => Label;
+}
+
+public sealed record AccentOption(string Value, string Label)
+{
+    public IBrush Swatch => new SolidColorBrush(Color.Parse(Value));
+
+    public override string ToString() => Label;
+}
+
+public sealed record FontOption(string Value, string Label)
 {
     public override string ToString() => Label;
 }

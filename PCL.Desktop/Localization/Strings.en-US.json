@@ -406,5 +406,12 @@
   "about.help.title": "Help & Feedback",
   "about.help.description": "Read the documentation, or report issues and suggestions.",
   "about.action.docs": "Documentation",
-  "about.action.feedback": "Feedback"
+  "about.action.feedback": "Feedback",
+  "settings.appearance.accent": "Accent color",
+  "settings.appearance.font": "UI font",
+  "settings.appearance.accent.sky": "Sky blue",
+  "settings.appearance.accent.teal": "Teal",
+  "settings.appearance.accent.violet": "Violet",
+  "settings.appearance.accent.amber": "Amber",
+  "settings.appearance.font.default": "Default (system)"
 }

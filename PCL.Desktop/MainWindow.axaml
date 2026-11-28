@@ -21,7 +21,7 @@
 
                 <StackPanel Margin="0,26,0,18" Spacing="9" HorizontalAlignment="Center">
                     <Border Width="48" Height="48" CornerRadius="15"
-                            Background="{StaticResource BrandBrush}">
+                            Background="{DynamicResource BrandBrush}">
                         <TextBlock Text="P"
                                    FontSize="24"
                                    FontWeight="Bold"
