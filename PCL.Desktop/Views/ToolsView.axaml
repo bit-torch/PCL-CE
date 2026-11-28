@@ -113,6 +113,20 @@
                                 IsEnabled="{Binding HasSelectedServer}"
                                 Command="{Binding DeleteServerCommand}" />
                         <StackPanel Spacing="6">
+                            <Button Classes="ghost"
+                                    HorizontalAlignment="Left"
+                                    Content="{loc:Localize Key=tools.servers.ping}"
+                                    IsEnabled="{Binding HasSelectedServer}"
+                                    Command="{Binding PingServerCommand}" />
+                            <TextBlock Classes="caption"
+                                       Text="{loc:Localize Key=tools.servers.pinging}"
+                                       IsVisible="{Binding IsPingingServer}" />
+                            <TextBlock Classes="muted"
+                                       TextWrapping="Wrap"
+                                       Text="{Binding PingSummary}"
+                                       IsVisible="{Binding HasPingStatus}" />
+                        </StackPanel>
+                        <StackPanel Spacing="6">
                             <TextBox Watermark="{loc:Localize Key=tools.servers.nameHint}"
                                      Text="{Binding NewServerName}" />
                             <TextBox Watermark="{loc:Localize Key=tools.servers.ipHint}"
@@ -300,6 +314,39 @@
                                 IsEnabled="{Binding HasSelectedMod}"
                                 Command="{Binding DeleteModCommand}" />
                     </StackPanel>
+
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8"
+                                IsVisible="{Binding HasMods}">
+                        <Button Classes="ghost"
+                                Content="{loc:Localize Key=tools.mods.backup}"
+                                IsEnabled="{Binding HasSelectedMod}"
+                                Command="{Binding BackupModCommand}" />
+                        <Button Classes="ghost"
+                                Content="{loc:Localize Key=tools.mods.restore}"
+                                IsEnabled="{Binding HasSelectedMod}"
+                                Command="{Binding RestoreModCommand}" />
+                        <Button Classes="ghost"
+                                Content="{loc:Localize Key=tools.mods.nested}"
+                                IsEnabled="{Binding HasSelectedMod}"
+                                Command="{Binding ScanNestedModsCommand}" />
+                    </StackPanel>
+
+                    <ListBox ItemsSource="{Binding NestedMods}"
+                             MaxHeight="160"
+                             IsVisible="{Binding HasNestedMods}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="data:NestedMod">
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                                    <TextBlock Text="{Binding EntryName}" FontSize="12" TextWrapping="Wrap" />
+                                    <TextBlock Grid.Column="1"
+                                               Classes="caption"
+                                               Margin="10,0,0,0"
+                                               Text="{Binding SizeLabel}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </StackPanel>
             </Border>
 

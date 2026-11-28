@@ -43,22 +43,13 @@ jobs:
         with:
           dotnet-version: |
             10.0.x
-            11.0.x
-      - name: Test portable core and headless desktop
-        run: dotnet test PCL.CrossPlatform.Test/PCL.CrossPlatform.Test.csproj -c CI --logger "trx;LogFileName=desktop.trx" --results-directory TestResults
+      - name: Test kernel and desktop
+        run: dotnet test PCL.Tests/PCL.Tests.csproj -c CI --logger "trx;LogFileName=desktop.trx" --results-directory TestResults
       - name: Publish desktop targets
         shell: bash
         run: |
           for rid in ${{ matrix.rids }}; do
-            dotnet publish PCL.Avalonia/PCL.Avalonia.csproj -c "$BUILD_CONFIGURATION" -r "$rid" --self-contained true -o "artifact/$rid"
-            if [[ "$rid" == osx-* ]]; then
-              app="artifact/$rid/PCL CE.app/Contents"
-              mkdir -p "$app/MacOS" "$app/Resources"
-              for item in artifact/"$rid"/*; do
-                [[ "$item" == *.app ]] || mv "$item" "$app/MacOS/"
-              done
-              cp PCL.Avalonia/Info.plist "$app/Info.plist"
-            fi
+            dotnet publish PCL.Desktop/PCL.Desktop.csproj -c "$BUILD_CONFIGURATION" -r "$rid" --self-contained true -o "artifact/$rid"
             name="PCL-CE-$rid"
             if [[ "$BUILD_CONFIGURATION" == "Beta" ]]; then
               name="PCL-CE-Beta-$rid"

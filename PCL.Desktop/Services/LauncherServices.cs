@@ -3,6 +3,7 @@ using PCL.Kernel;
 using PCL.Kernel.Abstractions;
 using PCL.Kernel.Accounts;
 using PCL.Kernel.App;
+using PCL.Kernel.Homepage;
 using PCL.Kernel.Install;
 using PCL.Kernel.Java;
 using PCL.Kernel.Launch;
@@ -52,6 +53,9 @@ public sealed class LauncherServices : IDisposable
         AuthlibInjector = new AuthlibInjectorService(Paths, Downloads);
         Modrinth = new ModrinthClient();
         ResourceInstaller = new ResourceInstaller(Paths, Downloads, Modrinth);
+        Favorites = new FavoritesStore(Path.Combine(Paths.DataDirectory, "favorites.json"));
+        News = new NewsService();
+        Issues = new GitHubIssueClient();
         UpdateChecker = new UpdateChecker();
         UpdateInstaller = new UpdateInstaller(
             Downloads, Path.Combine(Paths.CacheDirectory, "updates"));
@@ -94,6 +98,12 @@ public sealed class LauncherServices : IDisposable
 
     public ResourceInstaller ResourceInstaller { get; }
 
+    public FavoritesStore Favorites { get; }
+
+    public NewsService News { get; }
+
+    public GitHubIssueClient Issues { get; }
+
     public UpdateChecker UpdateChecker { get; }
 
     public UpdateInstaller UpdateInstaller { get; }
@@ -120,6 +130,8 @@ public sealed class LauncherServices : IDisposable
     {
         Downloads.Dispose();
         Modrinth.Dispose();
+        News.Dispose();
+        Issues.Dispose();
         UpdateChecker.Dispose();
     }
 }

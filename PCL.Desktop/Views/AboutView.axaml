@@ -1,6 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:PCL.Desktop.ViewModels"
+             xmlns:net="using:PCL.Kernel.Net"
+             xmlns:loc="using:PCL.Desktop.Localization"
              x:Class="PCL.Desktop.Views.AboutView"
              x:DataType="vm:AboutViewModel">
 
@@ -9,7 +11,7 @@
         <Border Classes="card" Padding="30">
             <Grid ColumnDefinitions="Auto,*">
                 <Border Width="64" Height="64" CornerRadius="20"
-                        Background="{StaticResource BrandBrush}"
+                        Background="{DynamicResource BrandBrush}"
                         VerticalAlignment="Top">
                     <TextBlock Text="P"
                                FontSize="32"
@@ -42,6 +44,65 @@
                 </StackPanel>
             </Border>
         </Grid>
+
+        <Border Classes="card">
+            <StackPanel Spacing="14">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="{Binding HelpSectionTitle}" Classes="section" />
+                    <TextBlock Classes="muted"
+                               TextWrapping="Wrap"
+                               Text="{Binding HelpDescription}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Button Classes="ghost"
+                            Content="{Binding DocsLabel}"
+                            Command="{Binding OpenHelpCommand}" />
+                    <Button Classes="ghost"
+                            Content="{Binding FeedbackLabel}"
+                            Command="{Binding OpenFeedbackCommand}" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+            <StackPanel Spacing="12">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="{loc:Localize Key=about.issues.title}" Classes="section" />
+                    <Button Grid.Column="1"
+                            Classes="ghost"
+                            Content="{loc:Localize Key=about.issues.load}"
+                            Command="{Binding LoadIssuesCommand}" />
+                </Grid>
+
+                <TextBlock Classes="caption"
+                           TextWrapping="Wrap"
+                           Text="{Binding IssuesStatus}" />
+
+                <ListBox ItemsSource="{Binding Issues}"
+                         SelectedItem="{Binding SelectedIssue}"
+                         MaxHeight="240"
+                         IsVisible="{Binding HasIssues}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="net:GitHubIssue">
+                            <StackPanel Spacing="2" Margin="0,3">
+                                <TextBlock Text="{Binding DisplayTitle}"
+                                           FontWeight="SemiBold"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Classes="caption"
+                                           Text="{Binding Author}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <Button Classes="ghost"
+                        HorizontalAlignment="Left"
+                        Content="{loc:Localize Key=about.issues.open}"
+                        IsEnabled="{Binding SelectedIssue}"
+                        Command="{Binding OpenIssueCommand}" />
+            </StackPanel>
+        </Border>
 
         <Border Classes="card">
             <StackPanel Spacing="16">

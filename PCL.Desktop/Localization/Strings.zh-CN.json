@@ -4,7 +4,6 @@
   "shell.updateAvailable": "发现新版本 {0}",
   "shell.badge": "独立内核",
   "shell.version": "v1.0",
-
   "nav.home": "总览",
   "nav.install": "安装",
   "nav.resources": "资源",
@@ -12,7 +11,6 @@
   "nav.launch": "启动",
   "nav.settings": "设置",
   "nav.about": "关于",
-
   "page.home.title": "总览",
   "page.home.subtitle": "干净内核与 Avalonia 新界面的起点",
   "page.install.title": "安装",
@@ -27,7 +25,6 @@
   "page.settings.subtitle": "管理游戏目录、Java 与内存",
   "page.about.title": "关于",
   "page.about.subtitle": "许可证、署名与项目状态",
-
   "home.badge": "独立内核 · Avalonia",
   "home.hero.title": "从一条干净的启动链路开始",
   "home.hero.description": "新内核只依赖 Mojang 官方接口与跨平台 .NET 能力。界面采用纵向导航、卡片分区和柔和层级，参考白板类应用的组织方式，不复刻其布局与素材。",
@@ -58,7 +55,6 @@
   "home.status.ready": "内核已就绪",
   "home.error.manifest": "版本清单读取失败：",
   "home.error.openDir": "无法打开游戏目录：",
-
   "install.title": "选择要安装的版本",
   "install.description": "仅使用 Mojang 官方版本清单与资源源。安装过程不会写入 PCL 的签名、统计或更新逻辑。",
   "install.action.refresh": "刷新清单",
@@ -93,7 +89,6 @@
   "install.loader.stage.prepare": "准备安装加载器",
   "install.loader.done": "已安装 {0}（{1} 个依赖库）",
   "install.loader.failed": "加载器安装失败：",
-
   "resources.title": "资源下载",
   "resources.description": "使用 Modrinth 公开接口搜索资源，自动解析必选依赖并下载到当前游戏目录的对应文件夹。",
   "resources.search.watermark": "搜索名称或关键词",
@@ -118,7 +113,6 @@
   "resources.error.search": "搜索失败：",
   "resources.error.versions": "读取版本失败：",
   "resources.error.install": "安装失败：",
-
   "tools.title": "本地实例工具",
   "tools.description": "读取当前游戏目录中的存档、服务器列表、截图与日志，并可直接导入 Modrinth 整合包。",
   "tools.action.refresh": "刷新",
@@ -191,7 +185,6 @@
   "tools.status.saveImported": "存档已导入：{0}",
   "tools.status.resourcePackToggled": "资源包状态已更新：{0}",
   "tools.status.resourcePackMoved": "资源包顺序已更新：{0}",
-
   "launch.config.title": "启动配置",
   "launch.action.refresh": "刷新版本",
   "launch.label.version": "版本",
@@ -242,7 +235,6 @@
   "launch.status.stopRequested": "已请求结束游戏进程",
   "launch.error.stop": "结束进程失败：",
   "launch.error.openDir": "无法打开游戏目录：",
-
   "settings.title": "游戏与运行时",
   "settings.description": "这些设置保存在新内核自己的配置文件中。",
   "settings.label.gameDir": "游戏目录",
@@ -320,7 +312,6 @@
   "settings.appearance.updateCheck": "启动时自动检查更新",
   "settings.appearance.language": "界面语言",
   "settings.appearance.restartHint": "语言更改在重启启动器后生效。",
-
   "about.version": "新内核预览 · Avalonia",
   "about.attribution": "原 PCL 作者：龙腾猫跃。当前仓库派生自 PCL，并包含 PCL Community 的社区工作。",
   "about.license.title": "许可证义务",
@@ -334,7 +325,6 @@
   "about.action.upstream": "上游仓库",
   "about.action.community": "社区仓库",
   "about.error.open": "无法打开链接：",
-
   "license.title": "启动前提示",
   "license.heading": "支持正版，也支持原 PCL 作者",
   "license.intro": "在 PCL 代码与资源完全替换前，本项目需要遵守《PCL 分发有限许可》，在启动游戏前提示购买正版并提供赞助入口。",
@@ -344,9 +334,7 @@
   "license.action.sponsor": "赞助原 PCL 作者",
   "license.action.later": "稍后再说",
   "license.action.accept": "我已了解，继续启动",
-
   "common.target.global": "全局游戏目录",
-
   "tools.target.label": "操作目标",
   "tools.logs.viewerTitle": "日志查看器",
   "tools.logs.refresh": "刷新日志",
@@ -355,9 +343,7 @@
   "tools.logs.search": "筛选",
   "tools.logs.none": "logs 目录中还没有日志文件。",
   "tools.logs.readError": "读取日志失败：",
-
   "resources.target.label": "安装目标",
-
   "launch.action.export": "导出实例",
   "launch.export.dialog": "导出实例压缩包",
   "launch.status.exporting": "正在导出实例…",
@@ -375,7 +361,6 @@
   "launch.action.saveInstance": "保存实例设置",
   "launch.status.instanceSaved": "实例设置已保存",
   "launch.error.instance": "保存实例设置失败：",
-
   "settings.download.title": "下载",
   "settings.download.description": "配置下载镜像、并发线程、限速与代理。",
   "settings.download.mirror": "镜像源基址",
@@ -396,5 +381,53 @@
   "settings.launch.gameHint": "例如 --demo，按空白拆分",
   "settings.launch.width": "窗口宽度",
   "settings.launch.height": "窗口高度",
-  "settings.launch.fullscreen": "以全屏启动"
+  "settings.launch.fullscreen": "以全屏启动",
+  "tools.mods.backup": "备份",
+  "tools.mods.restore": "恢复",
+  "tools.mods.nested": "内嵌模组",
+  "tools.mods.backupDone": "已备份到 {0}。",
+  "tools.mods.noBackup": "该模组还没有备份。",
+  "tools.mods.restoreDone": "已恢复备份 {0}。",
+  "tools.mods.nestedDone": "共 {0} 个内嵌模组。",
+  "home.news.title": "Minecraft 新闻",
+  "home.news.description": "来自 minecraft.net 的最新官方动态。",
+  "home.news.loading": "正在加载新闻…",
+  "home.news.error": "新闻加载失败：",
+  "home.news.refresh": "刷新",
+  "home.news.open": "查看详情",
+  "about.help.title": "帮助与反馈",
+  "about.help.description": "查阅使用文档，或提交问题与建议。",
+  "about.action.docs": "帮助文档",
+  "about.action.feedback": "问题反馈",
+  "settings.appearance.accent": "主题色",
+  "settings.appearance.font": "界面字体",
+  "settings.appearance.accent.sky": "天蓝",
+  "settings.appearance.accent.teal": "青绿",
+  "settings.appearance.accent.violet": "紫罗兰",
+  "settings.appearance.accent.amber": "琥珀",
+  "settings.appearance.font.default": "默认（跟随系统）",
+  "tools.servers.ping": "测试状态",
+  "tools.servers.pinging": "正在探测服务器…",
+  "tools.servers.select": "请先选择一个服务器。",
+  "tools.servers.online": "{0} · 在线 {1}/{2} · {3} ms\n{4}",
+  "tools.servers.offline": "无法连接：{0}",
+  "tools.servers.pingOk": "已连接 {0}。",
+  "tools.servers.pingFailed": "无法连接 {0}。",
+  "resources.favorites.title": "收藏",
+  "resources.favorites.empty": "还没有收藏。在资源详情中点击「收藏」。",
+  "resources.favorites.add": "收藏",
+  "resources.favorites.remove": "取消收藏",
+  "resources.favorites.open": "搜索该项目",
+  "resources.favorites.select": "请先选择一个资源项目。",
+  "resources.favorites.added": "已收藏 {0}。",
+  "resources.favorites.removedItem": "已取消收藏 {0}。",
+  "launch.action.duplicate": "复制实例",
+  "launch.status.duplicated": "已复制为 {0}。",
+  "launch.error.duplicate": "复制实例失败：",
+  "about.issues.title": "反馈列表",
+  "about.issues.load": "刷新列表",
+  "about.issues.loading": "正在读取 Issues…",
+  "about.issues.loaded": "共 {0} 条待处理反馈。",
+  "about.issues.error": "读取反馈失败：",
+  "about.issues.open": "打开选中反馈"
 }

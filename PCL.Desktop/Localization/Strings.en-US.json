@@ -4,7 +4,6 @@
   "shell.updateAvailable": "New version {0} available",
   "shell.badge": "Independent kernel",
   "shell.version": "v1.0",
-
   "nav.home": "Overview",
   "nav.install": "Install",
   "nav.resources": "Resources",
@@ -12,7 +11,6 @@
   "nav.launch": "Launch",
   "nav.settings": "Settings",
   "nav.about": "About",
-
   "page.home.title": "Overview",
   "page.home.subtitle": "A clean kernel with a new Avalonia interface",
   "page.install.title": "Install",
@@ -27,7 +25,6 @@
   "page.settings.subtitle": "Manage game directory, Java and memory",
   "page.about.title": "About",
   "page.about.subtitle": "License, attribution and project status",
-
   "home.badge": "Independent kernel · Avalonia",
   "home.hero.title": "Start from a clean launch pipeline",
   "home.hero.description": "The new kernel depends only on official Mojang endpoints and cross-platform .NET. The interface uses vertical navigation, card sections and soft hierarchy, organized in the spirit of whiteboard apps without copying their layout or assets.",
@@ -58,7 +55,6 @@
   "home.status.ready": "Kernel is ready",
   "home.error.manifest": "Failed to read version manifest: ",
   "home.error.openDir": "Unable to open game folder: ",
-
   "install.title": "Choose a version to install",
   "install.description": "Only the official Mojang manifest and asset sources are used. Installation does not include PCL signing, telemetry or update logic.",
   "install.action.refresh": "Refresh list",
@@ -93,7 +89,6 @@
   "install.loader.stage.prepare": "Preparing loader install",
   "install.loader.done": "Installed {0} ({1} libraries)",
   "install.loader.failed": "Loader install failed: ",
-
   "resources.title": "Download resources",
   "resources.description": "Search Modrinth through its public API, resolve required dependencies and download files into the matching folders of the current game directory.",
   "resources.search.watermark": "Search by name or keyword",
@@ -118,7 +113,6 @@
   "resources.error.search": "Search failed: ",
   "resources.error.versions": "Failed to read versions: ",
   "resources.error.install": "Install failed: ",
-
   "tools.title": "Local instance tools",
   "tools.description": "Read saves, servers, screenshots and logs from the current game directory, and import Modrinth modpacks.",
   "tools.action.refresh": "Refresh",
@@ -191,7 +185,6 @@
   "tools.status.saveImported": "World imported: {0}",
   "tools.status.resourcePackToggled": "Resource pack state updated: {0}",
   "tools.status.resourcePackMoved": "Resource pack order updated: {0}",
-
   "launch.config.title": "Launch configuration",
   "launch.action.refresh": "Refresh versions",
   "launch.label.version": "Version",
@@ -242,7 +235,6 @@
   "launch.status.stopRequested": "Stop requested",
   "launch.error.stop": "Failed to stop process: ",
   "launch.error.openDir": "Unable to open game folder: ",
-
   "settings.title": "Game and runtime",
   "settings.description": "These settings are stored in the new kernel's own configuration file.",
   "settings.label.gameDir": "Game directory",
@@ -320,7 +312,6 @@
   "settings.appearance.updateCheck": "Check for launcher updates on startup",
   "settings.appearance.language": "Interface language",
   "settings.appearance.restartHint": "Language changes take effect after restarting the launcher.",
-
   "about.version": "New kernel preview · Avalonia",
   "about.attribution": "Original PCL author: Longtengmaoyue. This repository derives from PCL and includes community work from PCL Community.",
   "about.license.title": "License obligations",
@@ -334,7 +325,6 @@
   "about.action.upstream": "Upstream repository",
   "about.action.community": "Community repository",
   "about.error.open": "Unable to open link: ",
-
   "license.title": "Before launch",
   "license.heading": "Support genuine copies and the original PCL author",
   "license.intro": "Until PCL code and assets are fully replaced, this project follows the PCL Limited Distribution License: show genuine-purchase guidance and a sponsorship entry before launching the game.",
@@ -344,9 +334,7 @@
   "license.action.sponsor": "Sponsor the original PCL author",
   "license.action.later": "Later",
   "license.action.accept": "Understood, continue",
-
   "common.target.global": "Global game directory",
-
   "tools.target.label": "Target",
   "tools.logs.viewerTitle": "Log viewer",
   "tools.logs.refresh": "Refresh logs",
@@ -355,9 +343,7 @@
   "tools.logs.search": "Filter",
   "tools.logs.none": "No log files in the logs directory yet.",
   "tools.logs.readError": "Failed to read log: ",
-
   "resources.target.label": "Install target",
-
   "launch.action.export": "Export instance",
   "launch.export.dialog": "Export instance archive",
   "launch.status.exporting": "Exporting instance…",
@@ -375,7 +361,6 @@
   "launch.action.saveInstance": "Save instance settings",
   "launch.status.instanceSaved": "Instance settings saved",
   "launch.error.instance": "Failed to save instance settings: ",
-
   "settings.download.title": "Downloads",
   "settings.download.description": "Configure the mirror, concurrency, speed limit and proxy.",
   "settings.download.mirror": "Mirror base URL",
@@ -396,5 +381,53 @@
   "settings.launch.gameHint": "e.g. --demo; split by whitespace",
   "settings.launch.width": "Window width",
   "settings.launch.height": "Window height",
-  "settings.launch.fullscreen": "Start fullscreen"
+  "settings.launch.fullscreen": "Start fullscreen",
+  "tools.mods.backup": "Backup",
+  "tools.mods.restore": "Restore",
+  "tools.mods.nested": "Nested mods",
+  "tools.mods.backupDone": "Backed up to {0}.",
+  "tools.mods.noBackup": "No backup for this mod yet.",
+  "tools.mods.restoreDone": "Restored backup {0}.",
+  "tools.mods.nestedDone": "{0} nested mod(s).",
+  "home.news.title": "Minecraft News",
+  "home.news.description": "Latest official updates from minecraft.net.",
+  "home.news.loading": "Loading news…",
+  "home.news.error": "Failed to load news: ",
+  "home.news.refresh": "Refresh",
+  "home.news.open": "Read more",
+  "about.help.title": "Help & Feedback",
+  "about.help.description": "Read the documentation, or report issues and suggestions.",
+  "about.action.docs": "Documentation",
+  "about.action.feedback": "Feedback",
+  "settings.appearance.accent": "Accent color",
+  "settings.appearance.font": "UI font",
+  "settings.appearance.accent.sky": "Sky blue",
+  "settings.appearance.accent.teal": "Teal",
+  "settings.appearance.accent.violet": "Violet",
+  "settings.appearance.accent.amber": "Amber",
+  "settings.appearance.font.default": "Default (system)",
+  "tools.servers.ping": "Test status",
+  "tools.servers.pinging": "Pinging server…",
+  "tools.servers.select": "Select a server first.",
+  "tools.servers.online": "{0} · {1}/{2} online · {3} ms\n{4}",
+  "tools.servers.offline": "Unreachable: {0}",
+  "tools.servers.pingOk": "Connected to {0}.",
+  "tools.servers.pingFailed": "Could not connect to {0}.",
+  "resources.favorites.title": "Favorites",
+  "resources.favorites.empty": "No favorites yet. Use \"Favorite\" on a project.",
+  "resources.favorites.add": "Favorite",
+  "resources.favorites.remove": "Unfavorite",
+  "resources.favorites.open": "Search project",
+  "resources.favorites.select": "Select a resource project first.",
+  "resources.favorites.added": "Added {0} to favorites.",
+  "resources.favorites.removedItem": "Removed {0} from favorites.",
+  "launch.action.duplicate": "Duplicate",
+  "launch.status.duplicated": "Duplicated as {0}.",
+  "launch.error.duplicate": "Failed to duplicate instance: ",
+  "about.issues.title": "Feedback list",
+  "about.issues.load": "Refresh list",
+  "about.issues.loading": "Loading issues…",
+  "about.issues.loaded": "{0} open item(s).",
+  "about.issues.error": "Failed to load feedback: ",
+  "about.issues.open": "Open selected"
 }

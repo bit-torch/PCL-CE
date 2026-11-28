@@ -45,6 +45,7 @@ public partial class ResourcesViewModel : ObservableObject
             Targets.Add(target);
         selectedTarget = Targets[0];
 
+        RefreshFavorites();
         _ = LoadGameVersionsAsync();
     }
 
@@ -55,6 +56,8 @@ public partial class ResourcesViewModel : ObservableObject
     public ObservableCollection<ResourceProject> Projects { get; } = [];
 
     public ObservableCollection<ResourceVersion> Versions { get; } = [];
+
+    public ObservableCollection<FavoriteResource> Favorites { get; } = [];
 
     public ObservableCollection<string> GameVersions { get; } = [];
 
@@ -83,6 +86,22 @@ public partial class ResourcesViewModel : ObservableObject
     private ResourceVersion? selectedVersion;
 
     [ObservableProperty]
+    private FavoriteResource? selectedFavorite;
+
+    public bool HasFavorites => Favorites.Count > 0;
+
+    public bool HasSelectedProject => SelectedProject is not null;
+
+    public bool HasSelectedFavorite => SelectedFavorite is not null;
+
+    public bool IsSelectedFavorite =>
+        SelectedProject is not null && _services.Favorites.Contains(SelectedProject.Id);
+
+    public string FavoriteToggleLabel => IsSelectedFavorite
+        ? _strings["resources.favorites.remove"]
+        : _strings["resources.favorites.add"];
+
+    [ObservableProperty]
     private bool isBusy;
 
     [ObservableProperty]
@@ -99,8 +118,16 @@ public partial class ResourcesViewModel : ObservableObject
     partial void OnSelectedTypeChanged(ResourceTypeOption value) =>
         OnPropertyChanged(nameof(ShowLoader));
 
-    partial void OnSelectedProjectChanged(ResourceProject? value) =>
+    partial void OnSelectedProjectChanged(ResourceProject? value)
+    {
+        OnPropertyChanged(nameof(HasSelectedProject));
+        OnPropertyChanged(nameof(IsSelectedFavorite));
+        OnPropertyChanged(nameof(FavoriteToggleLabel));
         _ = LoadVersionsAsync();
+    }
+
+    partial void OnSelectedFavoriteChanged(FavoriteResource? value) =>
+        OnPropertyChanged(nameof(HasSelectedFavorite));
 
     [RelayCommand]
     private async Task LoadGameVersionsAsync()
@@ -232,6 +259,74 @@ public partial class ResourcesViewModel : ObservableObject
         {
             IsInstalling = false;
         }
+    }
+
+    [RelayCommand]
+    private void ToggleFavorite()
+    {
+        if (SelectedProject is not { } project)
+        {
+            Status = _strings["resources.favorites.select"];
+            return;
+        }
+
+        var favorite = new FavoriteResource(
+            project.Id,
+            project.Slug,
+            project.Title,
+            project.Author,
+            project.ProjectType,
+            project.IconUrl);
+
+        var added = _services.Favorites.Toggle(favorite);
+        RefreshFavorites();
+        OnPropertyChanged(nameof(IsSelectedFavorite));
+        OnPropertyChanged(nameof(FavoriteToggleLabel));
+
+        Status = added
+            ? string.Format(_strings["resources.favorites.added"], project.Title)
+            : string.Format(_strings["resources.favorites.removedItem"], project.Title);
+    }
+
+    [RelayCommand]
+    private void RemoveFavorite()
+    {
+        if (SelectedFavorite is not { } favorite)
+        {
+            Status = _strings["resources.favorites.select"];
+            return;
+        }
+
+        if (!_services.Favorites.Remove(favorite.Id))
+            return;
+
+        RefreshFavorites();
+        OnPropertyChanged(nameof(IsSelectedFavorite));
+        OnPropertyChanged(nameof(FavoriteToggleLabel));
+        Status = string.Format(_strings["resources.favorites.removedItem"], favorite.Title);
+    }
+
+    [RelayCommand]
+    private async Task OpenFavoriteAsync()
+    {
+        if (SelectedFavorite is not { } favorite)
+        {
+            Status = _strings["resources.favorites.select"];
+            return;
+        }
+
+        SearchQuery = favorite.Title;
+        await SearchAsync();
+    }
+
+    private void RefreshFavorites()
+    {
+        Favorites.Clear();
+        foreach (var favorite in _services.Favorites.Items)
+            Favorites.Add(favorite);
+
+        OnPropertyChanged(nameof(HasFavorites));
+        SelectedFavorite = Favorites.FirstOrDefault();
     }
 }
 

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using PCL.Kernel.Mojang;
 
 namespace PCL.Kernel.Versions;
@@ -154,8 +155,7 @@ public sealed class VersionManager
     }
 
     public void Delete(InstalledVersion version)
-    {
-        var root = Path.GetFullPath(_paths.VersionsDirectory);
+    {        var root = Path.GetFullPath(_paths.VersionsDirectory);
         var target = Path.GetFullPath(version.Directory);
 
         if (!target.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.Ordinal))
@@ -163,5 +163,91 @@ public sealed class VersionManager
 
         if (Directory.Exists(target))
             Directory.Delete(target, true);
+    }
+
+    /// <summary>把整个实例目录复制为新的版本 ID，并同步内部 id 字段。</summary>
+    public InstalledVersion Duplicate(InstalledVersion source)
+    {
+        var root = Path.GetFullPath(_paths.VersionsDirectory);
+        var sourceDirectory = Path.GetFullPath(source.Directory);
+
+        if (!sourceDirectory.StartsWith(
+                root + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("源版本目录不在 versions 目录内，已拒绝复制。");
+        }
+
+        if (!Directory.Exists(sourceDirectory))
+            throw new DirectoryNotFoundException("源版本目录不存在。");
+
+        var id = CreateCopyId(source.Id);
+        var targetDirectory = _paths.VersionDirectory(id);
+        CopyDirectory(sourceDirectory, targetDirectory);
+
+        var newJson = Path.Combine(targetDirectory, id + ".json");
+        var oldJson = Path.Combine(targetDirectory, source.Id + ".json");
+        if (File.Exists(oldJson))
+            File.Move(oldJson, newJson);
+
+        var newJar = Path.Combine(targetDirectory, id + ".jar");
+        var oldJar = Path.Combine(targetDirectory, source.Id + ".jar");
+        if (File.Exists(oldJar))
+            File.Move(oldJar, newJar);
+
+        TryRewriteId(newJson, id);
+
+        return new InstalledVersion(
+            id,
+            targetDirectory,
+            newJson,
+            File.Exists(newJar) ? newJar : null,
+            source.Type,
+            source.InheritsFrom);
+    }
+
+    private string CreateCopyId(string sourceId)
+    {
+        for (var index = 1; ; index++)
+        {
+            var id = index == 1 ? $"{sourceId}-copy" : $"{sourceId}-copy{index}";
+            if (!Directory.Exists(_paths.VersionDirectory(id)) &&
+                !File.Exists(_paths.VersionJsonPath(id)))
+            {
+                return id;
+            }
+        }
+    }
+
+    private static void CopyDirectory(string source, string target)
+    {
+        Directory.CreateDirectory(target);
+
+        foreach (var file in Directory.EnumerateFiles(source))
+            File.Copy(file, Path.Combine(target, Path.GetFileName(file)));
+
+        foreach (var directory in Directory.EnumerateDirectories(source))
+            CopyDirectory(directory, Path.Combine(target, Path.GetFileName(directory)));
+    }
+
+    private static void TryRewriteId(string jsonPath, string id)
+    {
+        try
+        {
+            if (!File.Exists(jsonPath))
+                return;
+
+            if (JsonNode.Parse(File.ReadAllText(jsonPath)) is not JsonObject profile)
+                return;
+
+            profile["id"] = id;
+            File.WriteAllText(
+                jsonPath,
+                profile.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        }
+        catch (Exception ex) when (
+            ex is IOException or JsonException or InvalidOperationException)
+        {
+            // id 字段无法改写时仍保留可启动的目录副本。
+        }
     }
 }

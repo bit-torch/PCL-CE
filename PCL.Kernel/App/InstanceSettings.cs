@@ -132,6 +132,17 @@ public sealed class InstanceSettingsStore
             Save();
     }
 
+    /// <summary>把源实例的覆盖设置复制到新实例 ID。</summary>
+    public void Duplicate(string sourceId, string targetId)
+    {
+        if (string.Equals(sourceId, targetId, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        var settings = Get(sourceId);
+        if (!settings.IsEmpty)
+            Set(targetId, settings);
+    }
+
     public void Save()
     {
         Directory.CreateDirectory(Path.GetDirectoryName(_path)!);

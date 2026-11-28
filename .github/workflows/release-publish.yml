@@ -1,8 +1,7 @@
 name: Release publish
 
-# 冻结说明：旧 WPF 客户端已停止默认构建。
-# 本工作流暂时保留既有发布路径，直到 PCL.Desktop 接入打包与签名，
-# 请勿在此基础上新增功能。
+# 发布入口已切换到 Avalonia 桌面端（PCL.Desktop）。
+# 旧 WPF 客户端已冻结，不再参与默认构建与发布。
 permissions:
   contents: write
   actions: write
@@ -47,23 +46,6 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "configuration=$configuration" >> "$GITHUB_OUTPUT"
 
-  build:
-    needs: [prepare]
-    strategy:
-      matrix:
-        include:
-          - configuration: ${{ needs.prepare.outputs.configuration }}
-            architecture: x64
-          - configuration: ${{ needs.prepare.outputs.configuration }}
-            architecture: ARM64
-      fail-fast: false
-
-    uses: ./.github/workflows/reusable-build.yml
-    with:
-      configuration: ${{ matrix.configuration }}
-      architecture: ${{ matrix.architecture }}
-    secrets: inherit
-
   desktop:
     needs: [prepare]
     uses: ./.github/workflows/cross-platform.yml
@@ -103,59 +85,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  rename_and_release:
-    needs: [prepare, build, changelog]
-    permissions:
-      actions: read
-      contents: write
-      id-token: write
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - configuration: ${{ needs.prepare.outputs.configuration }}
-            architecture: x64
-          - configuration: ${{ needs.prepare.outputs.configuration }}
-            architecture: ARM64
-    steps:
-      - name: Download Build Artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}
-          path: ./artifact
-
-      - name: Rename binaries
-        run: |
-          mv "./artifact/Plain Craft Launcher 2.exe" "PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe"
-
-      - name: Sign the binary
-        uses: sigstore/gh-action-sigstore-python@790bc6befb9d733738f18d8f895854b453640ec9 # v3.5.0
-        with:
-          inputs: PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe
-          verify: true
-          verify-cert-identity: https://github.com/${{ github.repository }}/.github/workflows/release-publish.yml@${{ github.ref }}
-          verify-oidc-issuer: https://token.actions.githubusercontent.com
-
-      - name: Upload binary and signature to Release
-        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
-        with:
-          draft: true
-          tag_name: v${{ needs.prepare.outputs.version }}
-          files: |
-            PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe
-            PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe.sigstore.json
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  publish_draft:
-    needs: [prepare, rename_and_release]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Publish Draft
-        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
-        with:
-          tag_name: v${{ needs.prepare.outputs.version }}
-
   publish_desktop:
     needs: [prepare, desktop, changelog]
     permissions:
@@ -193,3 +122,12 @@ jobs:
           files: |
             PCL-CE-*.tar.gz
             PCL-CE-*.sigstore.json
+
+  publish_draft:
+    needs: [prepare, publish_desktop]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish Draft
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+        with:
+          tag_name: v${{ needs.prepare.outputs.version }}

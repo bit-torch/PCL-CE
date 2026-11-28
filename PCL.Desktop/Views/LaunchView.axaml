@@ -103,6 +103,9 @@
                     <Button Classes="ghost"
                             Content="{loc:Localize Key=launch.action.export}"
                             Click="OnExportInstanceClick" />
+                    <Button Classes="ghost"
+                            Content="{loc:Localize Key=launch.action.duplicate}"
+                            Command="{Binding DuplicateVersionCommand}" />
                 </StackPanel>
 
                 <Expander Header="{loc:Localize Key=launch.instance.title}" IsExpanded="False">

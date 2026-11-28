@@ -7,6 +7,7 @@ using PCL.Desktop.Services;
 using PCL.Kernel.GameData;
 using PCL.Kernel.Install;
 using PCL.Kernel.Modpacks;
+using PCL.Kernel.Net;
 using PCL.Kernel.Updates;
 
 namespace PCL.Desktop.ViewModels;
@@ -39,6 +40,8 @@ public partial class ToolsViewModel : ObservableObject
     public ObservableCollection<ServerEntry> Servers { get; } = [];
 
     public ObservableCollection<ModEntry> Mods { get; } = [];
+
+    public ObservableCollection<NestedMod> NestedMods { get; } = [];
 
     public ObservableCollection<ResourcePackEntry> ResourcePacks { get; } = [];
 
@@ -73,7 +76,26 @@ public partial class ToolsViewModel : ObservableObject
 
     public bool HasSelectedServer => SelectedServer is not null;
 
+    public bool HasPingStatus => PingStatus is not null;
+
+    public string PingSummary => PingStatus switch
+    {
+        null => "",
+        { IsReachable: true } status => string.Format(
+            _strings["tools.servers.online"],
+            status.VersionName,
+            status.OnlinePlayers,
+            status.MaxPlayers,
+            status.LatencyMs,
+            status.Motd),
+        { } status => string.Format(
+            _strings["tools.servers.offline"],
+            status.Error ?? "")
+    };
+
     public bool HasSelectedMod => SelectedMod is not null;
+
+    public bool HasNestedMods => NestedMods.Count > 0;
 
     public bool HasSelectedResourcePack => SelectedResourcePack is not null;
 
@@ -163,11 +185,30 @@ public partial class ToolsViewModel : ObservableObject
         OnPropertyChanged(nameof(ExportSaveDefaultName));
     }
 
-    partial void OnSelectedServerChanged(ServerEntry? value) =>
+    partial void OnSelectedServerChanged(ServerEntry? value)
+    {
         OnPropertyChanged(nameof(HasSelectedServer));
+        PingStatus = null;
+    }
 
-    partial void OnSelectedModChanged(ModEntry? value) =>
+    [ObservableProperty]
+    private ServerStatus? pingStatus;
+
+    [ObservableProperty]
+    private bool isPingingServer;
+
+    partial void OnPingStatusChanged(ServerStatus? value)
+    {
+        OnPropertyChanged(nameof(HasPingStatus));
+        OnPropertyChanged(nameof(PingSummary));
+    }
+
+    partial void OnSelectedModChanged(ModEntry? value)
+    {
         OnPropertyChanged(nameof(HasSelectedMod));
+        NestedMods.Clear();
+        OnPropertyChanged(nameof(HasNestedMods));
+    }
 
     partial void OnSelectedResourcePackChanged(ResourcePackEntry? value) =>
         OnPropertyChanged(nameof(HasSelectedResourcePack));
@@ -367,6 +408,85 @@ public partial class ToolsViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void BackupMod()
+    {
+        if (SelectedMod is null)
+            return;
+
+        try
+        {
+            var path = ModBackupService.Create(GameDirectory, SelectedMod.FileName);
+            Status = string.Format(
+                _strings["tools.mods.backupDone"],
+                Path.GetFileName(Path.GetDirectoryName(path)));
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["tools.status.error"] + ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private void RestoreMod()
+    {
+        if (SelectedMod is not { } mod)
+            return;
+
+        try
+        {
+            var latest = ModBackupService
+                .Scan(GameDirectory)
+                .FirstOrDefault(backup => string.Equals(
+                    StripDisabled(backup.FileName),
+                    StripDisabled(mod.DisplayName),
+                    StringComparison.OrdinalIgnoreCase));
+
+            if (latest is null)
+            {
+                Status = _strings["tools.mods.noBackup"];
+                return;
+            }
+
+            ModBackupService.Restore(GameDirectory, latest);
+            Refresh();
+            Status = string.Format(_strings["tools.mods.restoreDone"], latest.FileName);
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["tools.status.error"] + ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private void ScanNestedMods()
+    {
+        if (SelectedMod is not { } mod)
+            return;
+
+        try
+        {
+            var nested = JarInJarScanner.Scan(mod.FilePath);
+            NestedMods.Clear();
+            foreach (var item in nested)
+                NestedMods.Add(item);
+
+            OnPropertyChanged(nameof(HasNestedMods));
+            Status = string.Format(_strings["tools.mods.nestedDone"], nested.Count);
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["tools.status.error"] + ex.Message;
+        }
+    }
+
+    private const string DisabledSuffix = ".disabled";
+
+    private static string StripDisabled(string fileName) =>
+        fileName.EndsWith(DisabledSuffix, StringComparison.OrdinalIgnoreCase)
+            ? fileName[..^DisabledSuffix.Length]
+            : fileName;
+
+    [RelayCommand]
     private void ToggleResourcePack()
     {
         if (SelectedResourcePack is null)
@@ -432,6 +552,38 @@ public partial class ToolsViewModel : ObservableObject
         catch (Exception ex)
         {
             Status = _strings["tools.status.error"] + ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private async Task PingServerAsync()
+    {
+        if (IsPingingServer)
+            return;
+
+        if (SelectedServer is null)
+        {
+            Status = _strings["tools.servers.select"];
+            return;
+        }
+
+        IsPingingServer = true;
+        PingStatus = null;
+
+        try
+        {
+            PingStatus = await ServerPing.PingAsync(SelectedServer.Ip);
+            Status = PingStatus.IsReachable
+                ? string.Format(_strings["tools.servers.pingOk"], SelectedServer.DisplayName)
+                : string.Format(_strings["tools.servers.pingFailed"], SelectedServer.DisplayName);
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["tools.status.error"] + ex.Message;
+        }
+        finally
+        {
+            IsPingingServer = false;
         }
     }
 

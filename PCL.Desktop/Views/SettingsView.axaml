@@ -246,6 +246,39 @@
                     <CheckBox Content="{loc:Localize Key=settings.appearance.updateCheck}"
                               IsChecked="{Binding CheckUpdatesOnStartup}" />
                     <StackPanel Spacing="5">
+                        <TextBlock Text="{loc:Localize Key=settings.appearance.accent}"
+                                   Classes="caption" />
+                        <ComboBox ItemsSource="{Binding AccentOptions}"
+                                  SelectedItem="{Binding SelectedAccent}"
+                                  HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:AccentOption">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Ellipse Width="12" Height="12"
+                                                 Fill="{Binding Swatch}"
+                                                 VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding Label}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="{loc:Localize Key=settings.appearance.font}"
+                                   Classes="caption" />
+                        <ComboBox ItemsSource="{Binding FontOptions}"
+                                  SelectedItem="{Binding SelectedFont}"
+                                  HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:FontOption">
+                                    <TextBlock Text="{Binding Label}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Spacing="5">
                         <TextBlock Text="{loc:Localize Key=settings.appearance.language}"
                                    Classes="caption" />
                         <ComboBox ItemsSource="{Binding Languages}"

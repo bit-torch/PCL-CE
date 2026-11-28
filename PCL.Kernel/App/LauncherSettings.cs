@@ -30,6 +30,12 @@ public sealed class LauncherSettings
 
     public bool DarkTheme { get; set; }
 
+    /// <summary>界面强调色（#RRGGBB）；空字符串表示使用默认色。</summary>
+    public string AccentColor { get; set; } = "";
+
+    /// <summary>界面字体名称；空字符串表示使用默认字体链。</summary>
+    public string UIFontFamily { get; set; } = "";
+
     /// <summary>界面语言；空字符串表示跟随系统。</summary>
     public string Language { get; set; } = "";
 
@@ -68,6 +74,8 @@ public sealed class LauncherSettings
         Download.Normalize();
         JvmArguments ??= "";
         GameArguments ??= "";
+        AccentColor = (AccentColor ?? "").Trim();
+        UIFontFamily = (UIFontFamily ?? "").Trim();
         GameWindowWidth = Math.Clamp(GameWindowWidth, 0, 16384);
         GameWindowHeight = Math.Clamp(GameWindowHeight, 0, 16384);
 

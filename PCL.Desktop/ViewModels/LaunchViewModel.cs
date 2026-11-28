@@ -249,6 +249,29 @@ public partial class LaunchViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void DuplicateVersion()
+    {
+        if (SelectedVersion is not { } version)
+        {
+            Status = _strings["launch.status.select"];
+            return;
+        }
+
+        try
+        {
+            var copy = _services.VersionManager.Duplicate(version);
+            _services.InstanceSettings.Duplicate(version.Id, copy.Id);
+            RefreshList();
+            SelectedVersion = Versions.FirstOrDefault(item => item.Id == copy.Id);
+            Status = string.Format(_strings["launch.status.duplicated"], copy.Id);
+        }
+        catch (Exception ex)
+        {
+            Status = _strings["launch.error.duplicate"] + ex.Message;
+        }
+    }
+
+    [RelayCommand]
     private async Task DetectJavaAsync()
     {
         Status = _strings["launch.status.detectingJava"];

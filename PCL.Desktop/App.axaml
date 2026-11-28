@@ -4,6 +4,16 @@
              xmlns:views="using:PCL.Desktop.Views"
              x:Class="PCL.Desktop.App"
              RequestedThemeVariant="Light">
+    <Application.Resources>
+        <!-- 强调色资源由 AppearanceService 在启动与设置变更时替换。 -->
+        <SolidColorBrush x:Key="AccentBrush" Color="#2F6BFF" />
+        <SolidColorBrush x:Key="AccentHoverBrush" Color="#2459D6" />
+        <SolidColorBrush x:Key="AccentSoftBrush" Color="#EAF0FF" />
+        <LinearGradientBrush x:Key="BrandBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Color="#2F6BFF" Offset="0" />
+            <GradientStop Color="#12B8A6" Offset="1" />
+        </LinearGradientBrush>
+    </Application.Resources>
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://PCL-CE/Styles/Theme.axaml" />
