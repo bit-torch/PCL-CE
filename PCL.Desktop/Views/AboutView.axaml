@@ -44,6 +44,26 @@
         </Grid>
 
         <Border Classes="card">
+            <StackPanel Spacing="14">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="{Binding HelpSectionTitle}" Classes="section" />
+                    <TextBlock Classes="muted"
+                               TextWrapping="Wrap"
+                               Text="{Binding HelpDescription}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Button Classes="ghost"
+                            Content="{Binding DocsLabel}"
+                            Command="{Binding OpenHelpCommand}" />
+                    <Button Classes="ghost"
+                            Content="{Binding FeedbackLabel}"
+                            Command="{Binding OpenFeedbackCommand}" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Border Classes="card">
             <StackPanel Spacing="16">
                 <StackPanel Spacing="5">
                     <TextBlock Text="{Binding SupportSectionTitle}" Classes="section" />

@@ -396,5 +396,15 @@
   "settings.launch.gameHint": "e.g. --demo; split by whitespace",
   "settings.launch.width": "Window width",
   "settings.launch.height": "Window height",
-  "settings.launch.fullscreen": "Start fullscreen"
+  "settings.launch.fullscreen": "Start fullscreen",
+  "home.news.title": "Minecraft News",
+  "home.news.description": "Latest official updates from minecraft.net.",
+  "home.news.loading": "Loading news…",
+  "home.news.error": "Failed to load news: ",
+  "home.news.refresh": "Refresh",
+  "home.news.open": "Read more",
+  "about.help.title": "Help & Feedback",
+  "about.help.description": "Read the documentation, or report issues and suggestions.",
+  "about.action.docs": "Documentation",
+  "about.action.feedback": "Feedback"
 }

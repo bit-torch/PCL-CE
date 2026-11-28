@@ -396,5 +396,15 @@
   "settings.launch.gameHint": "例如 --demo，按空白拆分",
   "settings.launch.width": "窗口宽度",
   "settings.launch.height": "窗口高度",
-  "settings.launch.fullscreen": "以全屏启动"
+  "settings.launch.fullscreen": "以全屏启动",
+  "home.news.title": "Minecraft 新闻",
+  "home.news.description": "来自 minecraft.net 的最新官方动态。",
+  "home.news.loading": "正在加载新闻…",
+  "home.news.error": "新闻加载失败：",
+  "home.news.refresh": "刷新",
+  "home.news.open": "查看详情",
+  "about.help.title": "帮助与反馈",
+  "about.help.description": "查阅使用文档，或提交问题与建议。",
+  "about.action.docs": "帮助文档",
+  "about.action.feedback": "问题反馈"
 }

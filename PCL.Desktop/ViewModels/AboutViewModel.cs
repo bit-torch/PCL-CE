@@ -13,6 +13,8 @@ public partial class AboutViewModel : ObservableObject
     private const string SponsorUrl = "https://afdian.com/a/LTCat";
     private const string UpstreamUrl = "https://github.com/Meloong-Git/PCL";
     private const string CommunityUrl = "https://github.com/PCL-Community/PCL-CE";
+    private const string HelpUrl = "https://www.pclc.cc/";
+    private const string FeedbackUrl = "https://github.com/PCL-Community/PCL-CE/issues/new/choose";
 
     private readonly LauncherServices _services;
     private readonly LocalizationService _strings;
@@ -49,6 +51,14 @@ public partial class AboutViewModel : ObservableObject
 
     public string CommunityLabel => _strings["about.action.community"];
 
+    public string HelpSectionTitle => _strings["about.help.title"];
+
+    public string HelpDescription => _strings["about.help.description"];
+
+    public string DocsLabel => _strings["about.action.docs"];
+
+    public string FeedbackLabel => _strings["about.action.feedback"];
+
     [ObservableProperty]
     private string status = "";
 
@@ -63,6 +73,12 @@ public partial class AboutViewModel : ObservableObject
 
     [RelayCommand]
     private Task OpenCommunityAsync() => OpenAsync(CommunityUrl);
+
+    [RelayCommand]
+    private Task OpenHelpAsync() => OpenAsync(HelpUrl);
+
+    [RelayCommand]
+    private Task OpenFeedbackAsync() => OpenAsync(FeedbackUrl);
 
     private async Task OpenAsync(string url)
     {
