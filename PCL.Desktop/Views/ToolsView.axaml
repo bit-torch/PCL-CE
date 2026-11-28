@@ -113,6 +113,20 @@
                                 IsEnabled="{Binding HasSelectedServer}"
                                 Command="{Binding DeleteServerCommand}" />
                         <StackPanel Spacing="6">
+                            <Button Classes="ghost"
+                                    HorizontalAlignment="Left"
+                                    Content="{loc:Localize Key=tools.servers.ping}"
+                                    IsEnabled="{Binding HasSelectedServer}"
+                                    Command="{Binding PingServerCommand}" />
+                            <TextBlock Classes="caption"
+                                       Text="{loc:Localize Key=tools.servers.pinging}"
+                                       IsVisible="{Binding IsPingingServer}" />
+                            <TextBlock Classes="muted"
+                                       TextWrapping="Wrap"
+                                       Text="{Binding PingSummary}"
+                                       IsVisible="{Binding HasPingStatus}" />
+                        </StackPanel>
+                        <StackPanel Spacing="6">
                             <TextBox Watermark="{loc:Localize Key=tools.servers.nameHint}"
                                      Text="{Binding NewServerName}" />
                             <TextBox Watermark="{loc:Localize Key=tools.servers.ipHint}"

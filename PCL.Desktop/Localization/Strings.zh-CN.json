@@ -413,5 +413,12 @@
   "settings.appearance.accent.teal": "青绿",
   "settings.appearance.accent.violet": "紫罗兰",
   "settings.appearance.accent.amber": "琥珀",
-  "settings.appearance.font.default": "默认（跟随系统）"
+  "settings.appearance.font.default": "默认（跟随系统）",
+  "tools.servers.ping": "测试状态",
+  "tools.servers.pinging": "正在探测服务器…",
+  "tools.servers.select": "请先选择一个服务器。",
+  "tools.servers.online": "{0} · 在线 {1}/{2} · {3} ms\n{4}",
+  "tools.servers.offline": "无法连接：{0}",
+  "tools.servers.pingOk": "已连接 {0}。",
+  "tools.servers.pingFailed": "无法连接 {0}。"
 }

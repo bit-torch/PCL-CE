@@ -413,5 +413,12 @@
   "settings.appearance.accent.teal": "Teal",
   "settings.appearance.accent.violet": "Violet",
   "settings.appearance.accent.amber": "Amber",
-  "settings.appearance.font.default": "Default (system)"
+  "settings.appearance.font.default": "Default (system)",
+  "tools.servers.ping": "Test status",
+  "tools.servers.pinging": "Pinging server…",
+  "tools.servers.select": "Select a server first.",
+  "tools.servers.online": "{0} · {1}/{2} online · {3} ms\n{4}",
+  "tools.servers.offline": "Unreachable: {0}",
+  "tools.servers.pingOk": "Connected to {0}.",
+  "tools.servers.pingFailed": "Could not connect to {0}."
 }
